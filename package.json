@@ -1,0 +1,12 @@
+{
+    "name": "portfolio",
+    "scripts": {
+        "build": "cd client && npm install && npm run build",
+        "start": "node server/index.js",
+        "install-all": "cd client && npm install && cd ../server && npm install"
+    },
+    "dependencies": {
+        "express": "^5.2.1",
+        "path": "^0.12.7"
+    }
+}
