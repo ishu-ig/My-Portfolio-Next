@@ -13,8 +13,8 @@ var whitelist = [
     'http://localhost:8000',
     'http://localhost:4000',
     'http://localhost:5000',
-    'https://my-portfolio-x6zy.onrender.com',
-    'https://my-portfolio-react-red.vercel.app'
+    'https://my-portfolio-next-vszt.onrender.com',
+    'https://my-portfolio-next-sigma.vercel.app'
 ]
 
 var corsOptions = {
