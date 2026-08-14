@@ -1228,8 +1228,8 @@ body.sidebar-open .sidebar-backdrop {
 
 .auth-page {
   width: 100%;
-  max-width: 480px;
-  padding: 1.5rem;
+  max-width: 560px;
+  padding: 1.75rem;
   margin: auto;
   animation: pageFadeIn 0.4s var(--ease-spring);
 }
