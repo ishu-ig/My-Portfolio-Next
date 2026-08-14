@@ -75,8 +75,8 @@ import AdminAchievement from './pages/achievement/AdminAchievement';
 import AdminCreateAchievement from './pages/achievement/AdminCreateAchievement';
 import AdminUpdateAchievement from './pages/achievement/AdminUpdateAchievement';
 import ForgetPasswordPage from "./pages/ForgetPassword";
-import AdminContactUs from "./pages/contactus/AdminContactUs";
-import AdminShowQuery from "./pages/contactus/AdminShowQuery"
+import AdminContactUs from "./pages/contactUs/AdminContactUs";
+import AdminShowQuery from "./pages/contactUs/AdminShowQuery"
 import AdminAbout from "./pages/about/AdminAbout";
 import AdminCreateAbout from "./pages/about/AdminCreateAbout";
 import AdminUpdateAbout from "./pages/about/AdminUpdateAbout";

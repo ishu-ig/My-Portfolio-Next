@@ -1380,6 +1380,49 @@ body.sidebar-open .sidebar-backdrop {
   padding-bottom: 0;
 }
 
+/* ── File Upload Dropzone (Theme Responsive) ──────────────────────────────── */
+.upload-dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1.5rem 1rem;
+  border-radius: var(--admin-radius);
+  border: 1.5px dashed var(--admin-border);
+  background: var(--admin-surface-soft);
+  color: var(--admin-muted);
+  cursor: pointer;
+  transition: all var(--ease-spring);
+  text-align: center;
+}
+
+.upload-dropzone:hover {
+  border-color: var(--admin-primary);
+  background: var(--admin-surface);
+  box-shadow: var(--admin-shadow-sm);
+}
+
+.upload-dropzone i {
+  font-size: 1.75rem;
+  color: var(--admin-muted);
+  transition: color var(--ease-spring);
+}
+
+.upload-dropzone:hover i {
+  color: var(--admin-primary);
+}
+
+.upload-dropzone span {
+  font-size: 0.85rem;
+  color: var(--admin-muted);
+  transition: color var(--ease-spring);
+}
+
+.upload-dropzone:hover span {
+  color: var(--admin-text-strong);
+}
+
 /* ── Responsive Media Queries ────────────────────────────────────────────── */
 
 /* Tablet & Mobile (< 992px) */

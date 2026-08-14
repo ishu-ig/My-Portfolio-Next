@@ -241,13 +241,9 @@ export default function AdminCreatePortfolio() {
 
                   {/* Dropzone / file input */}
                   {picFiles.length < 5 && (
-                    <label
-                      htmlFor="pic"
-                      className="d-flex flex-column align-items-center justify-content-center gap-2 rounded border border-dashed p-4"
-                      style={{ cursor: "pointer", borderStyle: "dashed", borderColor: "#adb5bd", background: "#f8f9fa" }}
-                    >
-                      <i className="bi bi-cloud-upload fs-3 text-muted"></i>
-                      <span className="text-muted small">Click to add images (JPEG, PNG, WebP · max 2 MB each)</span>
+                    <label htmlFor="pic" className="upload-dropzone">
+                      <i className="bi bi-cloud-upload"></i>
+                      <span>Click to add images (JPEG, PNG, WebP · max 2 MB each)</span>
                       <input
                         id="pic" type="file" name="pic"
                         className="d-none" multiple accept="image/jpeg,image/png,image/webp"

@@ -313,11 +313,9 @@ export default function AdminUpdatePortfolio() {
 
                   {/* Add more images */}
                   {totalCount < 5 && (
-                    <label htmlFor="pic"
-                      className="d-flex flex-column align-items-center justify-content-center gap-2 rounded border p-3"
-                      style={{ cursor: "pointer", borderStyle: "dashed", borderColor: "#adb5bd", background: "#f8f9fa" }}>
-                      <i className="bi bi-plus-circle fs-4 text-muted"></i>
-                      <span className="text-muted small">Add more images (JPEG, PNG, WebP · max 2 MB each)</span>
+                    <label htmlFor="pic" className="upload-dropzone">
+                      <i className="bi bi-plus-circle"></i>
+                      <span>Add more images (JPEG, PNG, WebP · max 2 MB each)</span>
                       <input id="pic" type="file" name="pic" className="d-none" multiple
                         accept="image/jpeg,image/png,image/webp" onChange={handleImageChange} />
                     </label>
