@@ -1,115 +1,126 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import AOS from "aos";
+import React, { useState, useEffect, useRef } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { getAchievement } from "../Redux/ActionCreators/AchievementActionCreators";
 import "aos/dist/aos.css";
+import AOS from "aos";
 
 export default function Achievement() {
-    const [counters, setCounters] = useState([
-        { icon: "bi bi-briefcase", label: "Projects Built", target: 15, value: 0 },
-        { icon: "bi bi-code-slash", label: "HackerRank", stat: "5 Star Coder", isStatic: true },
-        { icon: "bi bi-lightbulb", label: "LeetCode", stat: "30 Problems Solved", isStatic: true },
-        { icon: "bi bi-patch-check", label: "Certifications Earned", target: 10, value: 0 },
-    ]);
-    const [hovered, setHovered] = useState(null);
+  const dispatch = useDispatch();
+  const AchievementStateData = useSelector(state => state.AchievementStateData);
+  const [counters, setCounters] = useState([]);
+  const sectionRef = useRef(null);
+  const animatedRef = useRef(false);
 
-    useEffect(() => {
-        AOS.init({ duration: 900, once: false });
-        AOS.refresh();
-    }, []);
+  useEffect(() => { 
+    dispatch(getAchievement()); 
+    AOS.init({ duration: 900, once: true });
+  }, [dispatch]);
 
-    useEffect(() => {
-        const intervals = counters.map((counter, index) => {
-            if (!counter.target) return null;
-            let start = 0;
-            const increment = Math.ceil(counter.target / 80);
-            return setInterval(() => {
-                start += increment;
-                if (start >= counter.target) start = counter.target;
-                setCounters(prev => {
-                    const updated = [...prev];
-                    updated[index] = { ...counter, value: start };
-                    return updated;
-                });
-            }, 30);
+  useEffect(() => {
+    if (!AchievementStateData?.length) return;
+    const active = [...AchievementStateData]
+      .filter(item => item.active)
+      .sort((a, b) => (a.order || 0) - (b.order || 0))
+      .map(item => ({ ...item, value: 0, isStatic: item.type === "static" }));
+    setCounters(active);
+  }, [AchievementStateData]);
+
+  // Run Countup when in view
+  useEffect(() => {
+    if (!counters.length || animatedRef.current) return;
+
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && !animatedRef.current) {
+        animatedRef.current = true;
+        
+        counters.forEach((counter, index) => {
+          if (counter.isStatic || !counter.target) return;
+          let current = 0;
+          const target = Number(counter.target);
+          const increment = Math.max(1, Math.ceil(target / 45));
+          const timer = setInterval(() => {
+            current += increment;
+            if (current >= target) {
+              current = target;
+              clearInterval(timer);
+            }
+            setCounters(prev => {
+              const next = [...prev];
+              if (next[index]) next[index] = { ...next[index], value: current };
+              return next;
+            });
+          }, 35);
         });
-        return () => intervals.forEach(i => i && clearInterval(i));
-    }, []);
+      }
+    }, { threshold: 0.2 });
 
-    return (
-        <section style={{ padding: "70px 16px", backgroundColor: "var(--bg-color)", color: "var(--text-color)" }}>
-            <div className="container">
+    const elem = sectionRef.current;
+    if (elem) observer.observe(elem);
 
-                {/* Header */}
-                <div className="text-center mb-5" data-aos="fade-up">
-                    <p style={{ fontSize: 11, fontWeight: 500, letterSpacing: "2.5px", textTransform: "uppercase", color: "var(--primary-color)", margin: "0 0 8px" }}>
-                        My Milestones
-                    </p>
-                    <h2 style={{ fontSize: "2rem", fontWeight: 600, color: "var(--text-color)", margin: "0 0 10px" }}>
-                        Achievements
-                    </h2>
-                    <svg viewBox="0 0 80 16" style={{ width: 70, display: "block", margin: "0 auto 14px" }}>
-                        <path d="M0 8 C13 0,20 16,40 8 C60 0,67 16,80 8" stroke="var(--primary-color)" strokeWidth="2" fill="none" strokeLinecap="round" />
-                    </svg>
-                    <p style={{ fontSize: 15, color: "var(--muted-color)", maxWidth: 460, margin: "0 auto", lineHeight: 1.6 }}>
-                        Showcasing what I have achieved so far.
-                    </p>
+    return () => {
+      if (elem) observer.unobserve(elem);
+    };
+  }, [counters]);
+
+  if (!counters.length) return null;
+
+  return (
+    <section ref={sectionRef} id="achievements" style={{ padding: "80px 0", backgroundColor: "var(--bg-color)" }}>
+      <div className="container">
+
+        {/* Header */}
+        <div className="text-center mb-5" data-aos="fade-up">
+          <span className="section-badge">
+            <i className="bi bi-trophy-fill"></i>
+            Key Milestones
+          </span>
+          <h2 className="section-title">
+            Achievements & Impact
+          </h2>
+          <div className="title-shape">
+            <svg viewBox="0 0 200 20" xmlns="http://www.w3.org/2000/svg">
+              <path d="M 0,10 C 40,0 60,20 100,10 C 140,0 160,20 200,10" fill="none" stroke="currentColor" strokeWidth="2"></path>
+            </svg>
+          </div>
+          <p className="section-subtitle">
+            Measurable results, key achievements, and performance metrics delivered across multiple domains.
+          </p>
+        </div>
+
+        {/* Cards Grid */}
+        <div className="achievement-grid" data-aos="fade-up" data-aos-delay="100">
+          {counters.map((counter, index) => (
+            <div
+              key={counter._id || index}
+              className="achievement-card-v2"
+            >
+              {/* Icon Circle */}
+              <div className="achievement-icon-circle">
+                <i className={counter.icon || "bi bi-award-fill"} />
+              </div>
+
+              {/* Unified Counter / Stat Display */}
+              <div>
+                <div className="achievement-number">
+                  {counter.isStatic ? (
+                    <span>{counter.stat || counter.target || "100%"}</span>
+                  ) : (
+                    <>
+                      {counter.value}
+                      <span style={{ fontSize: "1.3rem", fontWeight: 700 }}>+</span>
+                    </>
+                  )}
                 </div>
-
-                {/* Grid */}
-                <div style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(auto-fill, minmax(clamp(130px, 42vw, 200px), 1fr))",
-                    gap: 14, maxWidth: 860, margin: "0 auto",
-                }}>
-                    {counters.map((counter, index) => (
-                        <div
-                            key={index}
-                            data-aos="fade-up"
-                            data-aos-delay={index * 100}
-                            onMouseEnter={() => setHovered(index)}
-                            onMouseLeave={() => setHovered(null)}
-                            style={{
-                                background: "var(--card-bg)",
-                                border: `1px solid ${hovered === index ? "var(--primary-color)" : "var(--border-color)"}`,
-                                borderRadius: 14, padding: "22px 16px",
-                                textAlign: "center",
-                                transition: "transform 0.22s, border-color 0.22s",
-                                transform: hovered === index ? "translateY(-5px)" : "translateY(0)",
-                                display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
-                            }}
-                        >
-                            {/* Icon box */}
-                            <div style={{
-                                width: 48, height: 48, borderRadius: 12,
-                                background: "rgba(0,123,255,0.1)",
-                                display: "flex", alignItems: "center", justifyContent: "center",
-                            }}>
-                                <i className={counter.icon} style={{ fontSize: 22, color: "var(--primary-color)" }}></i>
-                            </div>
-
-                            {counter.isStatic ? (
-                                <>
-                                    <p style={{ fontSize: 14, fontWeight: 600, color: "var(--text-color)", margin: 0 }}>{counter.label}</p>
-                                    <span style={{
-                                        fontSize: 12, fontWeight: 500,
-                                        color: "#16a34a", background: "rgba(22,163,74,0.1)",
-                                        padding: "2px 10px", borderRadius: 999,
-                                    }}>
-                                        {counter.stat}
-                                    </span>
-                                </>
-                            ) : (
-                                <>
-                                    <span style={{ fontSize: 28, fontWeight: 700, color: "var(--primary-color)", lineHeight: 1 }}>
-                                        {counter.value}
-                                    </span>
-                                    <p style={{ fontSize: 12, color: "var(--muted-color)", margin: 0 }}>{counter.label}</p>
-                                </>
-                            )}
-                        </div>
-                    ))}
-                </div>
+                <p className="achievement-label">
+                  {counter.label}
+                </p>
+              </div>
             </div>
-        </section>
-    );
+          ))}
+        </div>
+
+      </div>
+    </section>
+  );
 }

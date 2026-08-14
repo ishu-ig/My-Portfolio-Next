@@ -9,10 +9,10 @@ const {
     deleteRecord,
 } = require("../controllers/PortfolioController")
 
-PortfolioRouter.post("", verifyAdmin, portfolioUploader.single("pic"), createRecord)
+PortfolioRouter.post("", verifyAdmin, portfolioUploader.array("pic"), createRecord)
 PortfolioRouter.get("", getRecord)
 PortfolioRouter.get("/:_id", getSingleRecord)
-PortfolioRouter.put("/:_id",verifyAdmin, portfolioUploader.single("pic"), updateRecord)
+PortfolioRouter.put("/:_id",verifyAdmin, portfolioUploader.array("pic"), updateRecord)
 PortfolioRouter.delete("/:_id",verifyAdmin, deleteRecord)
 
 

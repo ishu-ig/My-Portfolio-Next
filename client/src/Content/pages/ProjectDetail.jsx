@@ -1,12 +1,15 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { getPortfolio } from "../Redux/ActionCreartors/PortfolioActionCreators";
-import { useParams } from "next/navigation";
+import Image from "next/image";
 import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useDispatch, useSelector } from "react-redux";
+import { getPortfolio } from "../Redux/ActionCreators/PortfolioActionCreators";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Autoplay } from "swiper/modules";
+import { Autoplay, Pagination, Thumbs } from "swiper/modules";
 import "swiper/css";
+import "swiper/css/pagination";
+import "swiper/css/thumbs";
 
 export default function ProjectDetails() {
     const { id } = useParams();
@@ -14,127 +17,247 @@ export default function ProjectDetails() {
     const PortfolioStateData = useSelector(state => state.PortfolioStateData);
     const [data, setData] = useState(null);
     const [relatedData, setRelatedData] = useState([]);
-    const [imgHovered, setImgHovered] = useState(null);
+    const [thumbsSwiper, setThumbsSwiper] = useState(null);
 
     useEffect(() => { dispatch(getPortfolio()); }, [dispatch]);
 
     useEffect(() => {
         if (PortfolioStateData.length) {
-            setData(PortfolioStateData.find(x => x._id === id) || null);
-            setRelatedData(PortfolioStateData.filter(x => x._id !== id));
+            setData(PortfolioStateData.find(x => String(x._id) === String(id)) || null);
+            setRelatedData(PortfolioStateData.filter(x => String(x._id) !== String(id)));
         }
     }, [PortfolioStateData, id]);
 
     if (!data) return (
-        <div style={{ textAlign: "center", padding: "80px 16px", color: "var(--text-color)" }}>
-            Loading project details...
+        <div style={{ textAlign: "center", padding: "100px 16px", color: "var(--text-color)" }}>
+            <div className="spinner-border text-primary" role="status"></div>
+            <p className="mt-3 text-muted">Loading project details...</p>
         </div>
     );
 
+    const pics = Array.isArray(data.pic)
+        ? data.pic
+        : data.pic
+        ? [data.pic]
+        : [];
+
     const metaItems = [
-        { icon: "bi-grid", label: "Category", value: data.category },
-        { icon: "bi-code-slash", label: "Tech Stack", value: data.tech },
+        { icon: "bi-grid-fill", label: "Category", value: data.category || "Full Stack" },
+        { icon: "bi-code-slash", label: "Tech Stack", value: data.tech || "React, Node.js, Express, MongoDB" },
     ];
 
     return (
         <>
-            {/* ── Project Detail ── */}
-            <section style={{ padding: "60px 16px", backgroundColor: "var(--bg-color)", color: "var(--text-color)" }}>
-                <div style={{ maxWidth: 860, margin: "0 auto" }}>
+            <section style={{ padding: "70px 16px 50px", backgroundColor: "var(--bg-color)", color: "var(--text-color)" }}>
+                <div style={{ maxWidth: 900, margin: "0 auto" }}>
+
+                    {/* Breadcrumbs */}
+                    <div className="d-flex align-items-center gap-2 mb-4" style={{ fontSize: "0.86rem" }}>
+                        <Link href="/" className="text-muted text-decoration-none">Home</Link>
+                        <span className="text-muted">/</span>
+                        <Link href="/#portfolio" className="text-muted text-decoration-none">Portfolio</Link>
+                        <span className="text-muted">/</span>
+                        <span className="text-primary fw-bold text-truncate">{data.name}</span>
+                    </div>
 
                     {/* Header */}
                     <div className="text-center mb-4">
-                        <p style={{ fontSize: 11, fontWeight: 500, letterSpacing: "2.5px", textTransform: "uppercase", color: "var(--primary-color)", margin: "0 0 8px" }}>
-                            Project
-                        </p>
-                        <h1 style={{ fontSize: "clamp(1.6rem, 4vw, 2.4rem)", fontWeight: 700, color: "var(--text-color)", margin: "0 0 14px", lineHeight: 1.2 }}>
+                        <span className="section-badge">
+                            <i className="bi bi-briefcase-fill"></i>
+                            Project Case Study
+                        </span>
+                        <h1 style={{ fontSize: "clamp(1.8rem, 4vw, 2.6rem)", fontWeight: 800, color: "var(--text-color)", margin: "8px 0 14px", lineHeight: 1.2 }}>
                             {data.name}
                         </h1>
-                        <div style={{ width: 60, height: 4, background: "var(--primary-color)", borderRadius: 2, margin: "0 auto 20px" }} />
+                        <div className="title-shape">
+                            <svg viewBox="0 0 200 20" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M 0,10 C 40,0 60,20 100,10 C 140,0 160,20 200,10" fill="none" stroke="currentColor" strokeWidth="2"></path>
+                            </svg>
+                        </div>
                     </div>
 
-                    {/* Hero image */}
-                    <div style={{ borderRadius: 16, overflow: "hidden", marginBottom: 28 }}>
-                        <img src={data.pic} alt={data.name} style={{ width: "100%", maxHeight: 420, objectFit: "cover", display: "block" }} />
+                    {/* Hero Image / Swiper Gallery */}
+                    <div style={{ marginBottom: 32 }}>
+                        {pics.length > 1 ? (
+                            <>
+                                <Swiper
+                                    modules={[Autoplay, Pagination, Thumbs]}
+                                    autoplay={{ delay: 3500, disableOnInteraction: false }}
+                                    pagination={{ clickable: true }}
+                                    thumbs={{ swiper: thumbsSwiper && !thumbsSwiper.destroyed ? thumbsSwiper : null }}
+                                    loop={true}
+                                    style={{ borderRadius: "var(--radius-lg)", marginBottom: 12, boxShadow: "var(--shadow-md)" }}
+                                >
+                                    {pics.map((imgUrl, i) => (
+                                        <SwiperSlide key={i}>
+                                            <div style={{ position: "relative", width: "100%", height: 440 }}>
+                                                <Image
+                                                    src={imgUrl}
+                                                    alt={`${data.name} ${i + 1}`}
+                                                    fill
+                                                    sizes="(max-width: 900px) 100vw, 900px"
+                                                    style={{ objectFit: "cover" }}
+                                                    priority={i === 0}
+                                                />
+                                            </div>
+                                        </SwiperSlide>
+                                    ))}
+                                </Swiper>
+
+                                <Swiper
+                                    onSwiper={setThumbsSwiper}
+                                    modules={[Thumbs]}
+                                    spaceBetween={10}
+                                    slidesPerView={pics.length > 5 ? 5 : pics.length}
+                                    watchSlidesProgress={true}
+                                    style={{ borderRadius: "var(--radius-md)" }}
+                                >
+                                    {pics.map((imgUrl, i) => (
+                                        <SwiperSlide key={i} style={{ cursor: "pointer" }}>
+                                            <div style={{ position: "relative", width: "100%", height: 75, borderRadius: 8, overflow: "hidden", border: "2px solid transparent", transition: "border-color 0.2s, opacity 0.2s" }}>
+                                                <Image
+                                                    src={imgUrl}
+                                                    alt={`thumb-${i + 1}`}
+                                                    fill
+                                                    sizes="150px"
+                                                    style={{ objectFit: "cover" }}
+                                                />
+                                            </div>
+                                        </SwiperSlide>
+                                    ))}
+                                </Swiper>
+                            </>
+                        ) : pics.length === 1 ? (
+                            <div style={{ position: "relative", width: "100%", height: 440, borderRadius: "var(--radius-lg)", overflow: "hidden", boxShadow: "var(--shadow-md)" }}>
+                                <Image
+                                    src={pics[0]}
+                                    alt={data.name}
+                                    fill
+                                    sizes="(max-width: 900px) 100vw, 900px"
+                                    style={{ objectFit: "cover" }}
+                                    priority
+                                />
+                            </div>
+                        ) : (
+                            <div style={{ height: 240, borderRadius: "var(--radius-lg)", background: "var(--card-bg)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-muted)" }}>
+                                No Project Image Available
+                            </div>
+                        )}
                     </div>
 
                     {/* Short description */}
-                    <p style={{ fontSize: 16, color: "var(--muted-color)", lineHeight: 1.75, textAlign: "center", marginBottom: 28, maxWidth: 640, margin: "0 auto 28px" }}>
+                    <p style={{ fontSize: "1.1rem", color: "var(--text-muted)", lineHeight: 1.75, textAlign: "center", maxWidth: 700, margin: "0 auto 32px" }}>
                         {data.shortDescription}
                     </p>
 
-                    {/* Divider */}
-                    <div style={{ borderTop: "1px dashed var(--border-color)", margin: "28px 0" }} />
-
-                    {/* Long description */}
-                    <div style={{ fontSize: 15, lineHeight: 1.85, color: "var(--text-color)", marginBottom: 32 }}
-                        dangerouslySetInnerHTML={{ __html: data.longDescription }} />
-
                     {/* Meta cards */}
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14, marginBottom: 28 }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16, marginBottom: 32 }}>
                         {metaItems.map((m, i) => (
-                            <div key={i} style={{ background: "var(--card-bg)", border: "1px solid var(--border-color)", borderRadius: 12, padding: "14px 16px", display: "flex", alignItems: "flex-start", gap: 10 }}>
-                                <div style={{ width: 36, height: 36, borderRadius: 8, background: "rgba(0,123,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                                    <i className={`bi ${m.icon}`} style={{ fontSize: 16, color: "var(--primary-color)" }}></i>
+                            <div key={i} style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: "var(--radius-md)", padding: "16px 20px", display: "flex", alignItems: "center", gap: 14, boxShadow: "var(--shadow-sm)" }}>
+                                <div style={{ width: 42, height: 42, borderRadius: 12, background: "rgba(var(--accent-rgb), 0.12)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "var(--primary-color)", fontSize: "1.2rem" }}>
+                                    <i className={`bi ${m.icon}`}></i>
                                 </div>
                                 <div>
-                                    <p style={{ fontSize: 10, fontWeight: 500, color: "var(--primary-color)", textTransform: "uppercase", letterSpacing: "1px", margin: "0 0 2px" }}>{m.label}</p>
-                                    <p style={{ fontSize: 13, color: "var(--text-color)", margin: 0 }}>{m.value}</p>
+                                    <p style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--primary-color)", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 2px" }}>{m.label}</p>
+                                    <p style={{ fontSize: "0.95rem", fontWeight: 600, color: "var(--text-color)", margin: 0 }}>{m.value}</p>
                                 </div>
                             </div>
                         ))}
                     </div>
 
-                    {/* CTA buttons */}
-                    <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
-                        {data.githubRepo && (
-                            <a href={data.githubRepo} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "10px 22px", borderRadius: 999, background: "var(--primary-color)", color: "#fff", fontSize: 13, fontWeight: 500, textDecoration: "none" }}>
-                                <i className="bi bi-github"></i> GitHub Repo
+                    {/* Long Description Card */}
+                    {data.longDescription && (
+                        <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: "var(--radius-lg)", padding: "32px", marginBottom: 36, boxShadow: "var(--shadow-sm)" }}>
+                            <h3 className="fw-bold mb-3" style={{ fontSize: "1.3rem", color: "var(--text-color)" }}>Project Overview & Architecture</h3>
+                            <div
+                                style={{ fontSize: "0.96rem", lineHeight: 1.85, color: "var(--text-muted)" }}
+                                dangerouslySetInnerHTML={{ __html: data.longDescription }}
+                            />
+                        </div>
+                    )}
+
+                    {/* Action Links */}
+                    <div className="d-flex gap-3 justify-content-center flex-wrap pt-2">
+                        {data.liveUrl && (
+                            <a href={data.liveUrl} target="_blank" rel="noreferrer" className="btn btn-primary">
+                                <i className="bi bi-box-arrow-up-right"></i> Live Deployment
                             </a>
                         )}
-                        <Link href="/" style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "10px 22px", borderRadius: 999, border: "1px solid var(--border-color)", background: "transparent", color: "var(--text-color)", fontSize: 13, fontWeight: 500, textDecoration: "none" }}>
-                            <i className="bi bi-house"></i> Home
+                        {data.githubRepo && (
+                            <a href={data.githubRepo} target="_blank" rel="noreferrer" className="btn btn-secondary">
+                                <i className="bi bi-github"></i> GitHub Source
+                            </a>
+                        )}
+                        <Link href="/" className="btn btn-outline-dark">
+                            <i className="bi bi-arrow-left"></i> Back to Home
                         </Link>
                     </div>
+
                 </div>
             </section>
 
-            {/* ── Related Projects ── */}
-            <section style={{ padding: "50px 16px", backgroundColor: "var(--bg-color)" }}>
-                <div className="container">
-                    <div className="text-center mb-4">
-                        <p style={{ fontSize: 11, fontWeight: 500, letterSpacing: "2.5px", textTransform: "uppercase", color: "var(--primary-color)", margin: "0 0 8px" }}>
-                            Explore More
-                        </p>
-                        <h2 style={{ fontSize: "1.6rem", fontWeight: 600, color: "var(--text-color)", margin: "0 0 10px" }}>Other Projects</h2>
-                        <div style={{ width: 60, height: 4, background: "var(--primary-color)", borderRadius: 2, margin: "0 auto" }} />
+            {/* Related Projects */}
+            {relatedData.length > 0 && (
+                <section style={{ padding: "60px 16px 80px", backgroundColor: "var(--bg-alt)" }}>
+                    <div className="container">
+                        <div className="text-center mb-4">
+                            <h3 className="fw-bold" style={{ fontSize: "1.6rem", color: "var(--text-color)" }}>Other Featured Works</h3>
+                            <p className="text-muted" style={{ fontSize: "0.9rem" }}>Explore more applications and projects</p>
+                        </div>
+
+                        <Swiper
+                            modules={[Autoplay]}
+                            spaceBetween={20}
+                            autoplay={{ delay: 3500 }}
+                            breakpoints={{
+                                0: { slidesPerView: 1 },
+                                576: { slidesPerView: 2 },
+                                992: { slidesPerView: 3 },
+                            }}
+                        >
+                            {relatedData.map((item) => {
+                                const itemPic = Array.isArray(item.pic) ? (item.pic[0] || "/img/portfolio/portfolio-1.webp") : (item.pic || "/img/portfolio/portfolio-1.webp");
+
+                                return (
+                                    <SwiperSlide key={item._id}>
+                                        <div
+                                            style={{
+                                                background: "var(--card-bg)",
+                                                border: "1px solid var(--card-border)",
+                                                borderRadius: "var(--radius-lg)",
+                                                overflow: "hidden",
+                                                boxShadow: "var(--shadow-sm)",
+                                                transition: "transform var(--ease-smooth), box-shadow var(--ease-smooth)",
+                                            }}
+                                            className="hover-lift"
+                                        >
+                                            <div style={{ position: "relative", height: 180, overflow: "hidden" }}>
+                                                <Image
+                                                    src={itemPic}
+                                                    alt={item.name}
+                                                    fill
+                                                    sizes="(max-width: 576px) 100vw, (max-width: 992px) 50vw, 33vw"
+                                                    style={{ objectFit: "cover" }}
+                                                />
+                                            </div>
+                                            <div style={{ padding: "18px 20px" }}>
+                                                <h4 style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text-color)", margin: "0 0 6px" }}>{item.name}</h4>
+                                                <p style={{ fontSize: "0.8rem", color: "var(--primary-color)", fontWeight: 600, margin: "0 0 14px" }}>{item.category}</p>
+                                                <Link
+                                                    href={`/projectDetail/${item._id}`}
+                                                    style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--primary-color)", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 4 }}
+                                                >
+                                                    View Details <i className="bi bi-arrow-right"></i>
+                                                </Link>
+                                            </div>
+                                        </div>
+                                    </SwiperSlide>
+                                );
+                            })}
+                        </Swiper>
                     </div>
-
-                    <Swiper modules={[Autoplay]} spaceBetween={16} autoplay={{ delay: 2500 }}
-                        breakpoints={{ 0: { slidesPerView: 1.1 }, 576: { slidesPerView: 2 }, 992: { slidesPerView: 3 } }}>
-                        {relatedData.map((item, i) => (
-                            <SwiperSlide key={item._id}>
-                                <div
-                                    onMouseEnter={() => setImgHovered(item._id)}
-                                    onMouseLeave={() => setImgHovered(null)}
-                                    style={{ background: "var(--card-bg)", border: `1px solid ${imgHovered === item._id ? "var(--primary-color)" : "var(--border-color)"}`, borderRadius: 14, overflow: "hidden", transition: "transform 0.22s, border-color 0.22s", transform: imgHovered === item._id ? "translateY(-5px)" : "translateY(0)" }}
-                                >
-                                    <div style={{ height: 160, overflow: "hidden" }}>
-                                        <img src={item.pic} alt={item.name} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", transition: "transform 0.3s", transform: imgHovered === item._id ? "scale(1.05)" : "scale(1)" }} />
-                                    </div>
-                                    <div style={{ padding: "12px 14px" }}>
-                                        <p style={{ fontSize: 13, fontWeight: 600, color: "var(--text-color)", margin: "0 0 4px" }}>{item.name}</p>
-                                        <p style={{ fontSize: 11, color: "var(--muted-color)", margin: "0 0 10px" }}>{item.category}</p>
-                                        <Link href={`/projectDetail/${item._id}`} style={{ fontSize: 12, color: "var(--primary-color)", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 3 }}>
-                                            View Details <i className="bi bi-arrow-right"></i>
-                                        </Link>
-                                    </div>
-                                </div>
-                            </SwiperSlide>
-                        ))}
-                    </Swiper>
-                </div>
-            </section>
+                </section>
+            )}
         </>
     );
 }

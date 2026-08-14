@@ -10,6 +10,10 @@ const SkillSchema = new mongoose.Schema({
         type: String,
         required: [true, "Description is Mendatory"]
     },
+    icon: {
+        type: String,
+        default: ""   // Bootstrap icon class e.g. "bi bi-code-slash" or image URL
+    },
     level: {
         type: Number,
         required: [true, "Level is Mendatory"]

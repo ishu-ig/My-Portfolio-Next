@@ -1,190 +1,259 @@
-import React, { useEffect, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { Link, useNavigate } from 'react-router-dom'
-import formValidator from "../../FormValidators/formValidator"
-import { createEducation, getEducation } from '../../Redux/ActionCreators/EducationActionCreators'
+import React, { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import formValidator from "../../FormValidators/formValidator";
+import { createEducation, getEducation } from "../../Redux/ActionCreators/EducationActionCreators";
+
+const checklist = [
+  { dot: "bg-success", title: "Add degree & institute", body: "Use the official names for clarity." },
+  { dot: "bg-primary", title: "Set the dates",          body: "Leave end date blank if ongoing."     },
+  { dot: "bg-warning", title: "Add CGPA (optional)",    body: "Helps showcase academic performance."  },
+];
 
 export default function AdminCreateEducation() {
-    let [data, setData] = useState({
-        degreeName: "",
-        instituteName: "",
-        startDate: "",
-        endDate: "",
-        description: "",
-        cgpa: "",
-        active: true
-    })
-    let [error, setError] = useState({
-        degreeName: "Degree Name Field is Mandatory",
-        instituteName: "Institute Name Field is Mandatory",
-        startDate: "Start Date Field is Mandatory",
-        description: "Description Field is Mandatory"
-    })
-    let [show, setShow] = useState(false)
-    let navigate = useNavigate()
+  let [data, setData] = useState({
+    degreeName: "",
+    instituteName: "",
+    startDate: "",
+    endDate: "",
+    description: "",
+    cgpa: "",
+    active: true,
+  });
+  let [error, setError] = useState({
+    degreeName: "Degree Name Field is Mandatory",
+    instituteName: "Institute Name Field is Mandatory",
+    startDate: "Start Date Field is Mandatory",
+    description: "Description Field is Mandatory",
+  });
+  let [show, setShow] = useState(false);
+  let navigate = useNavigate();
 
-    let EducationStateData = useSelector(state => state.EducationStateData)
-    let dispatch = useDispatch()
+  let EducationStateData = useSelector((state) => state.EducationStateData);
+  let dispatch = useDispatch();
 
-    function getInputData(e) {
-        let name = e.target.name
-        let value = e.target.value
+  function getInputData(e) {
+    let name = e.target.name;
+    let value = e.target.value;
 
-        if (name !== "active" && name !== "endDate" && name !== "cgpa") {
-            setError((old) => {
-                return {
-                    ...old,
-                    [name]: formValidator(e)
-                }
-            })
-        }
-        setData((old) => {
-            return {
-                ...old,
-                [name]: name === "active" ? (value === "1" ? true : false) : value
-            }
-        })
+    if (name !== "active" && name !== "endDate" && name !== "cgpa") {
+      setError((old) => ({
+        ...old,
+        [name]: formValidator(e),
+      }));
     }
+    setData((old) => ({
+      ...old,
+      [name]: name === "active" ? (value === "1" ? true : false) : value,
+    }));
+  }
 
-    function postSubmit(e) {
-        e.preventDefault()
-        let errorItem = Object.values(error).find(x => x !== "")
-        if (errorItem)
-            setShow(true)
-        else {
-            let item = EducationStateData.find(x => x.degreeName.toLocaleLowerCase() === data.degreeName.toLocaleLowerCase())
-            if (item) {
-                setShow(true)
-                setError((old) => {
-                    return {
-                        ...old,
-                        "degreeName": "Education Record Already Exist"
-                    }
-                })
-            }
-            else {
-                dispatch(createEducation({ ...data }))
-                navigate("/education")
-            }
-        }
+  function postSubmit(e) {
+    e.preventDefault();
+    let errorItem = Object.values(error).find((x) => x !== "");
+    if (errorItem) {
+      setShow(true);
+    } else {
+      let item = EducationStateData.find(
+        (x) => x.degreeName.toLocaleLowerCase() === data.degreeName.toLocaleLowerCase()
+      );
+      if (item) {
+        setShow(true);
+        setError((old) => ({ ...old, degreeName: "Education Record Already Exist" }));
+      } else {
+        dispatch(createEducation({ ...data }));
+        navigate("/education");
+      }
     }
+  }
 
-    useEffect(() => {
-        (() => {
-            dispatch(getEducation())
-        })()
-    }, [EducationStateData.length])
+  useEffect(() => {
+    dispatch(getEducation());
+  }, [EducationStateData.length]);
 
-    return (
-        <>
-            <div className="container">
-                <h5 className="text-center text-light bg-primary p-2">
-                    Create Education{' '}
-                    <Link to="/education"><i className="fa fa-arrow-left text-light float-end pt-1"></i></Link>
-                </h5>
+  return (
+    <main className="dashboard-content">
+      <div className="container-fluid px-3 px-lg-4 py-4">
 
-                <div className="card mt-3 shadow-sm p-4">
-                    <form onSubmit={postSubmit}>
-
-                        {/* Degree Name */}
-                        <div className="mb-3">
-                            <label className="fw-bold">Degree Name*</label>
-                            <input
-                                type="text"
-                                name="degreeName"
-                                onChange={getInputData}
-                                placeholder="Enter Degree Name"
-                                className={`form-control ${show && error.degreeName ? 'border-danger' : 'border-primary'}`}
-                            />
-                            {show && error.degreeName && <p className="text-danger mt-1">{error.degreeName}</p>}
-                        </div>
-
-                        {/* Institute Name */}
-                        <div className="mb-3">
-                            <label className="fw-bold">Institute Name*</label>
-                            <input
-                                type="text"
-                                name="instituteName"
-                                onChange={getInputData}
-                                placeholder="Enter Institute Name"
-                                className={`form-control ${show && error.instituteName ? 'border-danger' : 'border-primary'}`}
-                            />
-                            {show && error.instituteName && <p className="text-danger mt-1">{error.instituteName}</p>}
-                        </div>
-
-                        {/* Start Date & End Date */}
-                        <div className="row">
-                            <div className="col-md-6 mb-3">
-                                <label className="fw-bold">Start Date*</label>
-                                <input
-                                    type="date"
-                                    name="startDate"
-                                    onChange={getInputData}
-                                    className={`form-control ${show && error.startDate ? 'border-danger' : 'border-primary'}`}
-                                />
-                                {show && error.startDate && <p className="text-danger mt-1">{error.startDate}</p>}
-                            </div>
-
-                            <div className="col-md-6 mb-3">
-                                <label className="fw-bold">End Date</label>
-                                <input
-                                    type="date"
-                                    name="endDate"
-                                    onChange={getInputData}
-                                    className="form-control border-primary"
-                                />
-                            </div>
-                        </div>
-
-                        {/* Description */}
-                        <div className="mb-3">
-                            <label className="fw-bold">Description*</label>
-                            <textarea
-                                name="description"
-                                onChange={getInputData}
-                                placeholder="Enter Description"
-                                rows={3}
-                                className={`form-control ${show && error.description ? 'border-danger' : 'border-primary'}`}
-                            />
-                            {show && error.description && <p className="text-danger mt-1">{error.description}</p>}
-                        </div>
-
-                        {/* CGPA & Active */}
-                        <div className="row">
-                            <div className="col-md-6 mb-3">
-                                <label className="fw-bold">CGPA</label>
-                                <input
-                                    type="text"
-                                    name="cgpa"
-                                    onChange={getInputData}
-                                    placeholder="Enter CGPA (optional)"
-                                    className="form-control border-primary"
-                                />
-                            </div>
-
-                            <div className="col-md-6 mb-3">
-                                <label className="fw-bold">Active</label>
-                                <select
-                                    name="active"
-                                    onChange={getInputData}
-                                    className="form-select border-primary"
-                                >
-                                    <option value="1">Yes</option>
-                                    <option value="0">No</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        {/* Submit Button */}
-                        <div className="mb-3">
-                            <button type="submit" className="btn btn-primary w-100 text-light">
-                                <i className="fa fa-save"></i> Create Education
-                            </button>
-                        </div>
-
-                    </form>
-                </div>
+        <div className="page-heading">
+          <div className="page-heading-copy">
+            <span className="page-icon">
+              <i className="bi bi-plus-circle" aria-hidden="true"></i>
+            </span>
+            <div>
+              <p className="eyebrow mb-1">Management</p>
+              <h1 className="h3 mb-1">Add Education</h1>
+              <p className="text-muted mb-0">
+                Create a new education record with degree, institute, and dates.
+              </p>
             </div>
-        </>
-    )
+          </div>
+          <div className="heading-actions">
+            <Link className="btn btn-outline-secondary btn-sm" to="/education">
+              <i className="bi bi-arrow-left" aria-hidden="true"></i> Back to Education
+            </Link>
+          </div>
+        </div>
+
+        {show && (
+          <div className="alert alert-danger alert-dismissible" role="alert">
+            {Object.values(error).find((x) => x !== "")}
+            <button
+              type="button"
+              className="btn-close"
+              onClick={() => setShow(false)}
+              aria-label="Close"
+            />
+          </div>
+        )}
+
+        <section className="row g-3">
+
+          <div className="col-12 col-xl-8">
+            <div className="panel">
+              <div className="panel-header">
+                <div>
+                  <h2 className="h5 mb-1 section-title">
+                    <i className="bi bi-mortarboard" aria-hidden="true"></i>
+                    <span>Education Information</span>
+                  </h2>
+                  <p className="text-muted mb-0">
+                    Fill in the details to create a new education record.
+                  </p>
+                </div>
+              </div>
+
+              <div className="row g-3">
+
+                <div className="col-md-6">
+                  <label className="form-label" htmlFor="degreeName">Degree Name</label>
+                  <input
+                    className={`form-control ${show && error.degreeName ? "is-invalid" : ""}`}
+                    id="degreeName"
+                    type="text"
+                    name="degreeName"
+                    onChange={getInputData}
+                    placeholder="Enter Degree Name"
+                  />
+                  {show && error.degreeName && (
+                    <div className="text-danger small mt-1">{error.degreeName}</div>
+                  )}
+                </div>
+
+                <div className="col-md-6">
+                  <label className="form-label" htmlFor="instituteName">Institute Name</label>
+                  <input
+                    className={`form-control ${show && error.instituteName ? "is-invalid" : ""}`}
+                    id="instituteName"
+                    type="text"
+                    name="instituteName"
+                    onChange={getInputData}
+                    placeholder="Enter Institute Name"
+                  />
+                  {show && error.instituteName && (
+                    <div className="text-danger small mt-1">{error.instituteName}</div>
+                  )}
+                </div>
+
+                <div className="col-md-6">
+                  <label className="form-label" htmlFor="startDate">Start Date</label>
+                  <input
+                    className={`form-control ${show && error.startDate ? "is-invalid" : ""}`}
+                    id="startDate"
+                    type="date"
+                    name="startDate"
+                    onChange={getInputData}
+                  />
+                  {show && error.startDate && (
+                    <div className="text-danger small mt-1">{error.startDate}</div>
+                  )}
+                </div>
+
+                <div className="col-md-6">
+                  <label className="form-label" htmlFor="endDate">End Date</label>
+                  <input
+                    className="form-control"
+                    id="endDate"
+                    type="date"
+                    name="endDate"
+                    onChange={getInputData}
+                  />
+                </div>
+
+                <div className="col-12">
+                  <label className="form-label" htmlFor="description">Description</label>
+                  <textarea
+                    className={`form-control ${show && error.description ? "is-invalid" : ""}`}
+                    id="description"
+                    name="description"
+                    onChange={getInputData}
+                    placeholder="Enter Description"
+                    rows={3}
+                  />
+                  {show && error.description && (
+                    <div className="text-danger small mt-1">{error.description}</div>
+                  )}
+                </div>
+
+                <div className="col-md-6">
+                  <label className="form-label" htmlFor="cgpa">CGPA</label>
+                  <input
+                    className="form-control"
+                    id="cgpa"
+                    type="text"
+                    name="cgpa"
+                    onChange={getInputData}
+                    placeholder="Enter CGPA (optional)"
+                  />
+                </div>
+
+                <div className="col-md-6">
+                  <label className="form-label" htmlFor="active">Status</label>
+                  <select
+                    className="form-select"
+                    id="active"
+                    name="active"
+                    value={data.active ? "1" : "0"}
+                    onChange={getInputData}
+                  >
+                    <option value="1">Active</option>
+                    <option value="0">Inactive</option>
+                  </select>
+                </div>
+
+              </div>
+
+              <div className="d-flex flex-wrap justify-content-end gap-2 mt-4">
+                <Link className="btn btn-outline-secondary" to="/education">Cancel</Link>
+                <button className="btn btn-primary" type="button" onClick={postSubmit}>
+                  <i className="bi bi-check-circle" aria-hidden="true"></i> Create Education
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="col-12 col-xl-4">
+            <div className="panel h-100">
+              <h2 className="h5 mb-3 section-title">
+                <i className="bi bi-list-check" aria-hidden="true"></i>
+                <span>Setup Checklist</span>
+              </h2>
+              <div className="activity-list">
+                {checklist.map(({ dot, title, body }) => (
+                  <div key={title} className="activity-item">
+                    <span className={`activity-dot ${dot}`}></span>
+                    <div>
+                      <p className="mb-1 fw-semibold">{title}</p>
+                      <p className="text-muted small mb-0">{body}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+        </section>
+      </div>
+    </main>
+  );
 }

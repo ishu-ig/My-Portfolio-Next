@@ -1,8 +1,11 @@
 "use client"
-import React, { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { getPortfolio } from '../Redux/ActionCreartors/PortfolioActionCreators';
+import React, { useEffect, useState, useMemo } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
+import { useDispatch, useSelector } from 'react-redux';
+import { getPortfolio } from '../Redux/ActionCreators/PortfolioActionCreators';
+import "aos/dist/aos.css";
+import AOS from "aos";
 
 export default function Portfolio() {
     const PortfolioStateData = useSelector(state => state.PortfolioStateData);
@@ -11,161 +14,361 @@ export default function Portfolio() {
 
     useEffect(() => {
         dispatch(getPortfolio());
-    }, []);
+        AOS.init({ duration: 900, once: true });
+    }, [dispatch]);
 
-    const categories = ['all', ...new Set(
-        PortfolioStateData.filter(x => x.active).map(x => x.category)
-    )];
+    const activeItems = useMemo(() => {
+        return Array.isArray(PortfolioStateData) ? PortfolioStateData.filter(x => x.active) : [];
+    }, [PortfolioStateData]);
 
-    const filtered = PortfolioStateData
-        .filter(x => x.active)
-        .filter(x => activeFilter === 'all' || x.category === activeFilter);
+    const categories = useMemo(() => {
+        const cats = new Set(activeItems.map(x => x.category).filter(Boolean));
+        return ['all', ...Array.from(cats)];
+    }, [activeItems]);
+
+    const filtered = useMemo(() => {
+        return activeItems.filter(
+            x => activeFilter === 'all' || x.category?.toLowerCase() === activeFilter.toLowerCase()
+        );
+    }, [activeItems, activeFilter]);
 
     return (
-        <section
-            id="portfolio"
-            style={{ padding: '60px 0', backgroundColor: 'var(--bg-color)', color: 'var(--text-color)' }}
-        >
-            {/* ── Header ── */}
-            <div className="container text-center mb-5" data-aos="fade-up">
-                <p style={{ fontSize: 12, fontWeight: 500, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--primary-color)', margin: 0 }}>
-                    My Work
-                </p>
-                <h2 style={{ fontSize: '2rem', fontWeight: 600, margin: '8px 0 12px', color: 'var(--text-color)' }}>
-                    Portfolio
-                </h2>
-                <svg viewBox="0 0 80 16" style={{ width: 80, display: 'block', margin: '0 auto 14px' }}>
-                    <path d="M0 8 C13 0,20 16,40 8 C60 0,67 16,80 8"
-                        stroke="var(--primary-color)" strokeWidth="2"
-                        fill="none" strokeLinecap="round" />
-                </svg>
-                <p style={{ fontSize: 15, color: 'var(--muted-color)', maxWidth: 500, margin: '0 auto' }}>
-                    Showcasing my best works in web design, graphics, motion, and branding.
-                </p>
-            </div>
+        <>
+            <style>{`
+                .pf-section { 
+                    padding: 95px 0; 
+                    background: var(--bg-color); 
+                    color: var(--text-color); 
+                }
 
-            {/* ── Filter Pills ── */}
-            <div className="container" data-aos="fade-up">
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center', marginBottom: 32 }}>
-                    {categories.map(cat => (
-                        <button
-                            key={cat}
-                            onClick={() => setActiveFilter(cat)}
-                            style={{
-                                padding: '6px 18px',
-                                borderRadius: 999,
-                                border: `1px solid ${activeFilter === cat ? 'transparent' : 'var(--border-color)'}`,
-                                background: activeFilter === cat ? 'var(--primary-color)' : 'transparent',
-                                color: activeFilter === cat ? '#fff' : 'var(--muted-color)',
-                                fontSize: 13,
-                                cursor: 'pointer',
-                                transition: 'all 0.2s',
-                                textTransform: 'capitalize',
-                            }}
-                        >
-                            {cat}
-                        </button>
-                    ))}
-                </div>
-            </div>
+                .pf-filters {
+                    display: flex; 
+                    flex-wrap: wrap; 
+                    gap: 10px;
+                    justify-content: center; 
+                    margin-bottom: 44px;
+                }
 
-            {/* ── Grid ── */}
-            <div className="container" data-aos="fade-up" data-aos-delay="100">
-                <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(270px, 1fr))',
-                    gap: 20,
-                    maxWidth: 960,
-                    margin: '0 auto',
-                }}>
-                    {filtered.map((item, index) => (
-                        <div
-                            key={index}
-                            style={{
-                                background: 'var(--card-bg)',
-                                borderRadius: 14,
-                                border: '1px solid var(--border-color)',
-                                overflow: 'hidden',
-                                transition: 'transform 0.25s, border-color 0.25s',
-                            }}
-                            onMouseEnter={e => {
-                                e.currentTarget.style.transform = 'translateY(-6px)';
-                                e.currentTarget.style.borderColor = 'var(--primary-color)';
-                            }}
-                            onMouseLeave={e => {
-                                e.currentTarget.style.transform = 'translateY(0)';
-                                e.currentTarget.style.borderColor = 'var(--border-color)';
-                            }}
-                        >
-                            {/* Image + overlay */}
-                            <div style={{ position: 'relative', height: 190, overflow: 'hidden', background: 'var(--card-bg)' }}
-                                className="port-img-group">
-                                <img
-                                    src={item.pic}
-                                    alt={item.name}
-                                    loading="lazy"
-                                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.35s' }}
-                                />
-                                {/* Category badge */}
-                                <span style={{
-                                    position: 'absolute', top: 12, left: 12,
-                                    background: 'var(--primary-color)', color: '#fff',
-                                    fontSize: 11, fontWeight: 500,
-                                    padding: '3px 10px', borderRadius: 999,
-                                }}>
-                                    {item.category}
-                                </span>
+                .pf-pill {
+                    font-family: 'Plus Jakarta Sans', sans-serif;
+                    padding: 8px 22px; 
+                    border-radius: var(--radius-pill);
+                    font-size: 0.86rem; 
+                    font-weight: 600;
+                    cursor: pointer; 
+                    transition: all var(--ease-quick);
+                    text-transform: capitalize;
+                    border: 1.5px solid var(--border-color);
+                    background: transparent;
+                    color: var(--text-muted);
+                }
 
-                                {/* Hover overlay */}
-                                {/* Hover overlay */}
-<div
-    className="port-card-overlay"
-    style={{
-        position: 'absolute', inset: 0,
-        background: 'rgba(10,18,45,0.65)',
-        opacity: 0, transition: 'opacity 0.25s',
-        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14,
-    }}
->
-    <a href={item.liveUrl} target="_blank" rel="noopener noreferrer" style={actionBtnStyle} aria-label="Preview">
-        <i className="bi bi-eye" style={{ fontSize: 17 }}></i>
-    </a>
-    <Link href={`/projectDetail/${item._id}`} style={actionBtnStyle} aria-label="View details">
-        <i className="bi bi-arrow-right" style={{ fontSize: 17 }}></i>
-    </Link>
-</div>
-                            </div>
+                .pf-pill:hover:not(.pf-pill--active) {
+                    border-color: var(--primary-color);
+                    color: var(--primary-color);
+                }
 
-                            {/* Card body */}
-                            <div style={{ padding: '14px 16px 16px' }}>
-                                <p style={{ fontSize: 15, fontWeight: 500, color: 'var(--text-color)', margin: '0 0 4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                    {item.name}
-                                </p>
-                                <p style={{ fontSize: 12, color: 'var(--muted-color)', margin: 0 }}>
-                                    <i className="bi bi-grid" style={{ marginRight: 4 }}></i>
-                                    {item.category}
-                                </p>
-                                {/* Footer */}
-                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--border-color)' }}>
-                                    <Link href={`/projectDetail/${item._id}`} style={{ fontSize: 12, color: 'var(--primary-color)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4 }}>
-                                        View details <i className="bi bi-arrow-right"></i>
-                                    </Link>
-                                </div>
-                            </div>
+                .pf-pill--active {
+                    background: var(--primary-color);
+                    border-color: var(--primary-color);
+                    color: #ffffff;
+                    box-shadow: 0 4px 16px rgba(var(--accent-rgb), 0.4);
+                }
+
+                .pf-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+                    gap: 28px;
+                    justify-content: center;
+                }
+
+                @media (max-width: 576px) {
+                    .pf-grid {
+                        grid-template-columns: 1fr;
+                        gap: 20px;
+                    }
+                }
+
+                .pf-card {
+                    border-radius: var(--radius-lg);
+                    overflow: hidden;
+                    background: var(--card-bg);
+                    border: 1px solid var(--card-border);
+                    box-shadow: var(--shadow-sm);
+                    transition: transform var(--ease-smooth),
+                                border-color var(--ease-smooth),
+                                box-shadow var(--ease-smooth);
+                    display: flex;
+                    flex-direction: column;
+                }
+
+                .pf-card:hover {
+                    transform: translateY(-8px);
+                    border-color: var(--primary-color);
+                    box-shadow: var(--shadow-lg), 0 0 30px rgba(var(--accent-rgb), 0.15);
+                }
+
+                .pf-img-wrap {
+                    position: relative;
+                    height: 220px;
+                    overflow: hidden;
+                    background: var(--bg-alt);
+                }
+
+                .pf-img-wrap img {
+                    transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+                }
+
+                .pf-card:hover .pf-img-wrap img { 
+                    transform: scale(1.08); 
+                }
+
+                .pf-badge {
+                    position: absolute; 
+                    top: 12px; 
+                    left: 12px;
+                    background: var(--primary-color); 
+                    color: #ffffff;
+                    font-size: 0.72rem; 
+                    font-weight: 700;
+                    letter-spacing: 0.04em; 
+                    text-transform: uppercase;
+                    padding: 4px 12px; 
+                    border-radius: var(--radius-pill);
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+                    z-index: 2;
+                }
+
+                .pf-overlay {
+                    position: absolute; 
+                    inset: 0;
+                    background: linear-gradient(160deg, rgba(10, 14, 38, 0.75) 0%, rgba(10, 14, 38, 0.55) 100%);
+                    display: flex; 
+                    align-items: center; 
+                    justify-content: center;
+                    gap: 16px;
+                    opacity: 0;
+                    transition: opacity var(--ease-quick);
+                    backdrop-filter: blur(4px);
+                    z-index: 3;
+                }
+
+                .pf-card:hover .pf-overlay { 
+                    opacity: 1; 
+                }
+
+                .pf-action-btn {
+                    width: 44px; 
+                    height: 44px; 
+                    border-radius: 50%;
+                    background: #ffffff;
+                    display: flex; 
+                    align-items: center; 
+                    justify-content: center;
+                    color: #0f111a; 
+                    text-decoration: none;
+                    font-size: 1.1rem;
+                    border: none; 
+                    cursor: pointer;
+                    transition: transform var(--ease-spring), background var(--ease-quick), color var(--ease-quick);
+                    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+                }
+
+                .pf-action-btn:hover {
+                    transform: scale(1.15);
+                    background: var(--primary-color);
+                    color: #ffffff;
+                }
+
+                .pf-card-body { 
+                    padding: 20px; 
+                    flex: 1;
+                    display: flex;
+                    flex-direction: column;
+                }
+
+                .pf-card-name {
+                    font-family: 'Plus Jakarta Sans', sans-serif;
+                    font-size: 1.1rem; 
+                    font-weight: 700;
+                    color: var(--text-color);
+                    margin: 0 0 6px;
+                    line-height: 1.35;
+                }
+
+                .pf-tech-pill {
+                    font-family: 'DM Mono', monospace;
+                    font-size: 0.72rem;
+                    color: var(--primary-color);
+                    background: rgba(var(--accent-rgb), 0.1);
+                    padding: 2px 8px;
+                    border-radius: var(--radius-sm);
+                    margin-right: 6px;
+                    margin-bottom: 6px;
+                    display: inline-block;
+                }
+
+                .pf-card-footer {
+                    display: flex; 
+                    align-items: center;
+                    justify-content: space-between;
+                    margin-top: auto; 
+                    padding-top: 14px;
+                    border-top: 1px solid var(--border-color);
+                }
+
+                .pf-view-link {
+                    font-size: 0.86rem; 
+                    font-weight: 700;
+                    color: var(--primary-color); 
+                    text-decoration: none;
+                    display: inline-flex; 
+                    align-items: center; 
+                    gap: 6px;
+                    transition: gap var(--ease-quick);
+                }
+
+                .pf-view-link:hover { 
+                    gap: 10px; 
+                }
+
+                .pf-live-link {
+                    font-size: 1.05rem; 
+                    color: var(--text-muted);
+                    text-decoration: none; 
+                    transition: color var(--ease-quick), transform var(--ease-spring);
+                }
+
+                .pf-live-link:hover { 
+                    color: var(--primary-color); 
+                    transform: scale(1.2);
+                }
+            `}</style>
+
+            <section id="portfolio" className="pf-section">
+                <div className="container">
+                    
+                    {/* Header */}
+                    <div className="text-center mb-5" data-aos="fade-up">
+                        <span className="section-badge">
+                            <i className="bi bi-briefcase-fill"></i>
+                            Featured Projects
+                        </span>
+                        <h2 className="section-title">Portfolio Showcase</h2>
+                        <div className="title-shape">
+                            <svg viewBox="0 0 200 20" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M 0,10 C 40,0 60,20 100,10 C 140,0 160,20 200,10" fill="none" stroke="currentColor" strokeWidth="2"></path>
+                            </svg>
                         </div>
-                    ))}
+                        <p className="section-subtitle">
+                            Explore full-stack web applications, SaaS platforms, UI design systems, and creative experiments.
+                        </p>
+                    </div>
+
+                    {/* Filter Pills */}
+                    <div className="pf-filters" data-aos="fade-up" data-aos-delay="100">
+                        {categories.map(cat => (
+                            <button
+                                key={cat}
+                                className={`pf-pill ${activeFilter.toLowerCase() === cat.toLowerCase() ? 'pf-pill--active' : ''}`}
+                                onClick={() => setActiveFilter(cat)}
+                            >
+                                {cat === 'all' ? `All Projects (${activeItems.length})` : cat}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Projects Grid */}
+                    <div className="pf-grid">
+                        {filtered.map((item, index) => {
+                            const imgSrc = Array.isArray(item.pic) ? item.pic[0] : (item.pic || "/img/portfolio/portfolio-1.webp");
+                            return (
+                                <div
+                                    key={item._id || index}
+                                    className="pf-card"
+                                    data-aos="fade-up"
+                                    data-aos-delay={(index % 3) * 100}
+                                >
+                                    <div className="pf-img-wrap">
+                                        <Image
+                                            src={imgSrc}
+                                            alt={item.name}
+                                            fill
+                                            sizes="(max-width: 576px) 100vw, (max-width: 1024px) 50vw, 320px"
+                                            style={{ objectFit: "cover" }}
+                                            loading={index < 3 ? undefined : "lazy"}
+                                        />
+                                        <span className="pf-badge">{item.category || "Project"}</span>
+                                        
+                                        <div className="pf-overlay">
+                                            {item.liveUrl && (
+                                                <a
+                                                    href={item.liveUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="pf-action-btn"
+                                                    title="Live Preview"
+                                                >
+                                                    <i className="bi bi-box-arrow-up-right"></i>
+                                                </a>
+                                            )}
+                                            <Link
+                                                href={`/projectDetail/${item._id}`}
+                                                className="pf-action-btn"
+                                                title="View Case Study"
+                                            >
+                                                <i className="bi bi-arrow-right"></i>
+                                            </Link>
+                                        </div>
+                                    </div>
+
+                                    <div className="pf-card-body">
+                                        <h3 className="pf-card-name text-truncate">{item.name}</h3>
+                                        
+                                        {/* Tech Stack Chips if available */}
+                                        {item.tech && (
+                                            <div className="mb-2">
+                                                {item.tech.split(',').slice(0, 3).map((t, idx) => (
+                                                    <span key={idx} className="pf-tech-pill">
+                                                        {t.trim()}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        <div className="pf-card-footer">
+                                            <Link
+                                                href={`/projectDetail/${item._id}`}
+                                                className="pf-view-link"
+                                            >
+                                                Case Study <i className="bi bi-arrow-right"></i>
+                                            </Link>
+                                            {item.liveUrl && (
+                                                <a
+                                                    href={item.liveUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="pf-live-link"
+                                                    title="Open live site"
+                                                >
+                                                    <i className="bi bi-globe2"></i>
+                                                </a>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    {filtered.length === 0 && (
+                        <div className="text-center py-5 text-muted">
+                            No projects found in this category.
+                        </div>
+                    )}
+
                 </div>
-            </div>
-        </section>
+            </section>
+        </>
     );
 }
-
-const actionBtnStyle = {
-    width: 40, height: 40,
-    borderRadius: '50%',
-    background: '#fff',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    color: '#111',
-    textDecoration: 'none',
-    transition: 'transform 0.15s',
-};

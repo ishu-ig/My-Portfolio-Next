@@ -41,57 +41,83 @@ async function deleteFromCloudinary(url) {
 
 
 async function createRecord(req, res) {
-    if (schema.validate(req.body.password)) {
-        bcrypt.hash(req.body.password, 12, async (error, hash) => {
-            if (error) {
-                res.status(500).send({
-                    result: "Fail",
-                    reason: "Internal Server Error"
-                })
-            }
-            else {
+    async function createRecord(req, res) {
+        if (schema.validate(req.body.password)) {
+            bcrypt.hash(req.body.password, 12, async (error, hash) => {
+                if (error) {
+                    return res.status(500).send({
+                        result: "Fail",
+                        reason: "Internal Server Error"
+                    });
+                }
+
                 try {
-                    let data = new User(req.body)
-                    data.role = "Admin"
-                    data.password = hash
-                    await data.save()
+                    let data = new User(req.body);
+
+                    data.password = hash;
+
+                    if (req.files?.pic) {
+                        data.pic = req.files.pic[0].path;
+                    }
+
+                    if (req.files?.resume) {
+                        data.resume = req.files.resume[0].path;
+                    }
+
+                    await data.save();
+
                     res.send({
                         result: "Done",
-                        data: data
-                    })
+                        data
+                    });
+
                 } catch (error) {
 
-                    if (req.file) await deleteFromCloudinary(req.file.path);
-                    let errorMessage = {}
-                    error.keyValue?.username ? errorMessage.username = "User With This User Name Already Exist" : null
-                    error.keyValue?.email ? errorMessage.email = "User With This Email Address Already Exist" : null
-                    error.errors?.name ? errorMessage.name = error.errors.name.message : null
-                    error.errors?.username ? errorMessage.username = error.errors.username.message : null
-                    error.errors?.email ? errorMessage.email = error.errors.email.message : null
-                    error.errors?.phone ? errorMessage.phone = error.errors.phone.message : null
-                    error.errors?.password ? errorMessage.password = error.errors.password.message : null
+                    if (req.files?.pic) {
+                        await deleteFromCloudinary(req.files.pic[0].path);
+                    }
 
-                    if (Object.values(errorMessage).length === 0) {
-                        res.status(500).send({
-                            result: "Fail",
-                            reason: "Internal Server Error"
-                        })
+                    if (req.files?.resume) {
+                        await deleteFromCloudinary(req.files.resume[0].path);
                     }
-                    else {
-                        res.status(400).send({
-                            result: "Fail",
-                            reason: errorMessage
-                        })
-                    }
+
+                    let errorMessage = {};
+
+                    if (error.keyValue?.username)
+                        errorMessage.username = "User Name Already Exist";
+
+                    if (error.keyValue?.email)
+                        errorMessage.email = "Email Already Exist";
+
+                    if (error.errors?.name)
+                        errorMessage.name = error.errors.name.message;
+
+                    if (error.errors?.username)
+                        errorMessage.username = error.errors.username.message;
+
+                    if (error.errors?.email)
+                        errorMessage.email = error.errors.email.message;
+
+                    if (error.errors?.phone)
+                        errorMessage.phone = error.errors.phone.message;
+
+                    if (error.errors?.password)
+                        errorMessage.password = error.errors.password.message;
+
+                    res.status(400).send({
+                        result: "Fail",
+                        reason: errorMessage
+                    });
                 }
-            }
-        })
+            });
+        }
+        else {
+            res.status(400).send({
+                result: "Fail",
+                reason: "Invalid Password"
+            });
+        }
     }
-    else
-        res.status(400).send({
-            result: "Fail",
-            reason: "Invalid Password. It Must Container at least 1 upper case and 1 lower case alphabet, 1 digit, should not contain any space and length must be 8-100"
-        })
 }
 
 async function getRecord(req, res) {
@@ -136,52 +162,76 @@ async function getSingleRecord(req, res) {
 
 async function updateRecord(req, res) {
     try {
-        let data = await User.findOne({ _id: req.params._id })
-        if (data) {
-            data.name = req.body.name ?? data.name
-            data.username = req.body.username ?? data.username
-            data.email = req.body.email ?? data.email
-            data.phone = req.body.phone ?? data.phone
-            data.address = req.body.address ?? data.address
-            data.pin = req.body.pin ?? data.pin
-            data.city = req.body.city ?? data.city
-            data.state = req.body.state ?? data.state
-            data.active = req.body.active ?? data.active
-            // ✅ After
-            if (req.file) {
-                await deleteFromCloudinary(data.pic); // delete OLD image
-                data.pic = req.file.path;             // set NEW image
-            }
-            await data.save()
-            res.send({
-                result: "Done",
-                data: data
-            })
-        }
-        else
-            res.status(404).send({
+        let data = await User.findById(req.params._id);
+
+        if (!data) {
+            return res.status(404).send({
                 result: "Fail",
                 reason: "Record Not Found"
-            })
-    } catch (error) {
-        if (req.file) await deleteFromCloudinary(req.file.path);
+            });
+        }
 
-        let errorMessage = {}
-        error.keyValue?.username ? errorMessage.username = "User With This User Name Already Exist" : null
-        error.keyValue?.email ? errorMessage.email = "User With This Email Already Exist" : null
-        console.log(error)
-        if (Object.values(errorMessage).length === 0) {
-            res.status(500).send({
-                result: "Fail",
-                reason: "Internal Server Error"
-            })
+        data.name = req.body.name ?? data.name;
+        data.username = req.body.username ?? data.username;
+        data.email = req.body.email ?? data.email;
+        data.phone = req.body.phone ?? data.phone;
+        data.address = req.body.address ?? data.address;
+        data.pin = req.body.pin ?? data.pin;
+        data.city = req.body.city ?? data.city;
+        data.state = req.body.state ?? data.state;
+        data.active = req.body.active ?? data.active;
+
+        // Profile Image
+        if (req.files?.pic) {
+
+            if (data.pic) {
+                await deleteFromCloudinary(data.pic);
+            }
+
+            data.pic = req.files.pic[0].path;
         }
-        else {
-            res.status(400).send({
-                result: "Fail",
-                reason: errorMessage
-            })
+
+        // Resume PDF
+        if (req.files?.resume) {
+
+            if (data.resume) {
+                await deleteFromCloudinary(data.resume);
+            }
+
+            data.resume = req.files.resume[0].path;
         }
+
+        await data.save();
+
+        res.send({
+            result: "Done",
+            data
+        });
+
+    } catch (error) {
+
+        if (req.files?.pic) {
+            await deleteFromCloudinary(req.files.pic[0].path);
+        }
+
+        if (req.files?.resume) {
+            await deleteFromCloudinary(req.files.resume[0].path);
+        }
+
+        let errorMessage = {};
+
+        if (error.keyValue?.username)
+            errorMessage.username = "User Name Already Exist";
+
+        if (error.keyValue?.email)
+            errorMessage.email = "Email Already Exist";
+
+        res.status(400).send({
+            result: "Fail",
+            reason: Object.keys(errorMessage).length
+                ? errorMessage
+                : "Internal Server Error"
+        });
     }
 }
 
@@ -189,8 +239,8 @@ async function deleteRecord(req, res) {
     try {
         let data = await User.findOne({ _id: req.params._id })
         if (data) {
-             // Delete image from Cloudinary
-        await deleteFromCloudinary(data.pic);
+            // Delete image from Cloudinary
+            await deleteFromCloudinary(data.pic);
             await data.deleteOne()
             res.send({
                 result: "Done",

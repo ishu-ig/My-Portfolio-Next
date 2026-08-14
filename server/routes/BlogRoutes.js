@@ -17,3 +17,5 @@ BlogRouter.delete("/:_id",verifyAdmin, deleteRecord)
 
 
 module.exports = BlogRouter
+
+

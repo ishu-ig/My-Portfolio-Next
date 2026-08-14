@@ -13,10 +13,23 @@ const {
     forgetPassword3,
 } = require("../controllers/UserController")
 
-UserRouter.post("", createRecord)
+UserRouter.post(
+    "",
+    userUploader.fields([
+        { name: "pic", maxCount: 1 },
+        { name: "resume", maxCount: 1 }
+    ]),
+    verifyAdmin,
+    createRecord
+)
 UserRouter.get("", verifyAdmin,  getRecord)
 UserRouter.get("/:_id", verifyBoth, getSingleRecord)
-UserRouter.put("/:_id", verifyBoth, userUploader.single("pic"), updateRecord)
+UserRouter.put("/:_id",verifyBoth,
+    userUploader.fields([
+        { name: "pic", maxCount: 1 },
+        { name: "resume", maxCount: 1 }
+    ]),updateRecord
+)
 UserRouter.delete("/:_id", verifyAdmin,  deleteRecord)
 UserRouter.post("/login", login)
 UserRouter.post("/forgetPassword-1", forgetPassword1)

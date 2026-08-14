@@ -1,233 +1,169 @@
 "use client";
-import React, { useEffect, useState, useContext } from "react";
-import AOS from "aos";
+import React, { useEffect, useState, useMemo } from "react";
+import Image from "next/image";
 import "aos/dist/aos.css";
-import { ThemeContext } from "../ThemeContext";
+import AOS from "aos";
+import { useDispatch, useSelector } from "react-redux";
+import { getAbout } from "../Redux/ActionCreators/AboutActionCreators";
 
-const words = ["Developer", "Coder", "Graphic Designer", "UI/UX Designer"];
+import dynamic from "next/dynamic";
+const HeroCanvas3D = dynamic(() => import("./HeroCanvas3D"), { ssr: false });
 
 export default function HeroSection() {
-    const { theme } = useContext(ThemeContext);
+    const dispatch = useDispatch();
+    const AboutStateData = useSelector((state) => state.AboutStateData);
+    const data = AboutStateData?.[0] ?? null;
+
+    const words = useMemo(() => ["Full Stack Developer", "MERN Specialist", "UI/UX Designer", "Creative Technologist"], []);
     const [currentWordIndex, setCurrentWordIndex] = useState(0);
     const [text, setText] = useState("");
     const [isDeleting, setIsDeleting] = useState(false);
 
     useEffect(() => {
-        AOS.init({ duration: 900, once: false });
-    }, []);
+        AOS.init({ duration: 900, once: true });
+        dispatch(getAbout());
+    }, [dispatch]);
 
-    // Typing effect
     useEffect(() => {
-        const typingSpeed = isDeleting ? 50 : 100;
+        const typingSpeed = isDeleting ? 40 : 80;
         let timeout;
+
         if (!isDeleting && text === words[currentWordIndex]) {
-            timeout = setTimeout(() => setIsDeleting(true), 1500);
+            timeout = setTimeout(() => setIsDeleting(true), 1800);
         } else if (isDeleting && text === "") {
             setIsDeleting(false);
-            setCurrentWordIndex(prev => (prev + 1) % words.length);
+            setCurrentWordIndex((prev) => (prev + 1) % words.length);
         } else {
             timeout = setTimeout(() => {
-                setText(prev =>
+                setText((prevText) =>
                     isDeleting
-                        ? prev.slice(0, -1)
-                        : words[currentWordIndex].slice(0, prev.length + 1)
+                        ? prevText.slice(0, -1)
+                        : words[currentWordIndex].slice(0, prevText.length + 1)
                 );
             }, typingSpeed);
         }
-        return () => clearTimeout(timeout);
-    }, [text, isDeleting, currentWordIndex]);
 
-    const stats = [
-        { n: "1+",   l: "Years\nExperience" },
-        { n: "15+",  l: "Projects\nCompleted" },
-        { n: "200+", l: "Coding\nQuestions" },
-    ];
+        return () => clearTimeout(timeout);
+    }, [text, isDeleting, currentWordIndex, words]);
+
+    const name = data?.name || "Ishaan Gupta";
+    const shortDescription = data?.shortDescription || "I build full-stack web applications, custom software architectures, and intuitive modern interfaces.";
+    const yearExperience = data?.yearExperience ?? 3;
+    const projectsCompleted = data?.projectsCompleted ?? 15;
+    const programmingQuestions = data?.programmingQuestions ?? 500;
+    const resume = data?.resume;
 
     return (
         <section
             id="home"
-            style={{
-                padding: "70px 16px",
-                backgroundColor: "var(--bg-color)",
-                color: "var(--text-color)",
-                transition: "background-color 0.3s ease, color 0.3s ease",
-            }}
+            className="hero-section d-flex align-items-center"
         >
-            <div className="container">
-                <div style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 340px), 1fr))",
-                    gap: 48,
-                    alignItems: "center",
-                    maxWidth: 960,
-                    margin: "0 auto",
-                }}>
+            <div className="container position-relative" style={{ zIndex: 2 }}>
+                <div className="row align-items-center g-5">
 
-                    {/* ── Left: Text ── */}
-                    <div data-aos="fade-right">
+                    {/* Left Column: Intro & Info */}
+                    <div className="col-lg-6 text-center text-lg-start" data-aos="fade-right">
 
-                        {/* Available tag */}
-                        <div style={{
-                            display: "inline-flex", alignItems: "center", gap: 6,
-                            background: "var(--card-bg)",
-                            border: "1px solid var(--border-color)",
-                            borderRadius: 999, padding: "3px 12px",
-                            fontSize: 11, color: "var(--muted-color)",
-                            marginBottom: 14,
-                        }}>
-                            <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#22c55e", flexShrink: 0 }} />
-                            Available for work
+                        {/* Live Status Badge */}
+                        <div className="hero-status-pill">
+                            <span className="status-dot"></span>
+                            <span>Available for new projects & collaborations</span>
                         </div>
 
-                        {/* Eyebrow */}
-                        <p style={{ fontSize: 11, fontWeight: 500, letterSpacing: "2.5px", textTransform: "uppercase", color: "var(--primary-color)", margin: "0 0 8px" }}>
-                            Portfolio
-                        </p>
-
-                        {/* Name */}
-                        <h1 style={{ fontSize: "clamp(2rem, 5vw, 2.8rem)", fontWeight: 700, color: "var(--text-color)", lineHeight: 1.15, margin: "0 0 12px" }}>
-                            Ishaan Gupta
+                        {/* Main Name */}
+                        <h1 className="fw-bold">
+                            {name}
                         </h1>
 
-                        {/* Typing row */}
-                        <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 16 }}>
-                            <span style={{ fontSize: 18, color: "var(--muted-color)" }}>I'm a</span>
-                            <span style={{ fontSize: 18, fontWeight: 600, color: "var(--primary-color)" }}>{text}</span>
-                            <span style={{
-                                fontSize: 18, color: "var(--primary-color)",
-                                animation: "heroBlinkCursor 0.7s infinite",
-                            }}>|</span>
+                        {/* Typing Animation */}
+                        <div className="typing-container justify-content-center justify-content-lg-start">
+                            <span className="static-text">I build as a</span>
+                            <span className="dynamic-text ps-1">{text}</span>
+                            <span className="cursor">|</span>
                         </div>
 
-                        {/* Description */}
-                        <p style={{ fontSize: 15, color: "var(--muted-color)", lineHeight: 1.7, maxWidth: 440, margin: "0 0 24px" }}>
-                            Transforming ideas into elegant solutions through creative design and innovative development.
+                        {/* Lead Description */}
+                        <p className="lead">
+                            {shortDescription}
                         </p>
 
                         {/* CTA Buttons */}
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 36 }}>
-    <a
-        href="#portfolio"
-        style={{
-            padding: "10px 24px",
-            borderRadius: 999,
-            background: "var(--primary-color)",
-            color: "#fff",
-            fontSize: 14,
-            fontWeight: 500,
-            textDecoration: "none",
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 6,
-            transition: "opacity 0.2s",
-        }}
-        onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.85")}
-        onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
-    >
-        <i className="bi bi-grid"></i> My Work
-    </a>
-
-    <a
-        href="/file/Ishaan CV.pdf"
-        target="_blank"
-        rel="noopener noreferrer"
-        style={{
-            padding: "10px 24px",
-            borderRadius: 999,
-            background: "transparent",
-            color: "var(--text-color)",
-            fontSize: 14,
-            fontWeight: 500,
-            border: "1px solid var(--border-color)",
-            textDecoration: "none",
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 6,
-            transition: "background 0.2s",
-        }}
-        onMouseEnter={(e) => (e.currentTarget.style.background = "var(--card-bg)")}
-        onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-    >
-        <i className="bi bi-download"></i> Resume
-    </a>
-</div>
-
-                        {/* Stats bar */}
-                        <div style={{
-                            display: "flex",
-                            border: "1px solid var(--border-color)",
-                            borderRadius: 12,
-                            overflow: "hidden",
-                        }}>
-                            {stats.map((s, i) => (
-                                <div
-                                    key={i}
-                                    style={{
-                                        flex: 1, textAlign: "center", padding: "12px 8px",
-                                        borderRight: i < stats.length - 1 ? "1px solid var(--border-color)" : "none",
-                                    }}
+                        <div className="action-buttons d-flex flex-wrap justify-content-center justify-content-lg-start gap-3 mt-4">
+                            <a href="#portfolio" className="btn btn-primary btn-lg">
+                                <i className="bi bi-rocket-takeoff-fill"></i>
+                                View My Work
+                            </a>
+                            <a href="#contact" className="btn btn-secondary btn-lg">
+                                <i className="bi bi-chat-dots-fill"></i>
+                                Let's Talk
+                            </a>
+                            {resume && (
+                                <a
+                                    href={resume}
+                                    className="btn btn-outline-dark btn-lg px-4"
+                                    target="_blank"
+                                    rel="noreferrer"
                                 >
-                                    <span style={{ fontSize: 20, fontWeight: 700, color: "var(--primary-color)", display: "block" }}>
-                                        {s.n}
-                                    </span>
-                                    <span style={{ fontSize: 11, color: "var(--muted-color)", lineHeight: 1.4, display: "block", marginTop: 2, whiteSpace: "pre-line" }}>
-                                        {s.l}
-                                    </span>
-                                </div>
-                            ))}
+                                    <i className="bi bi-file-earmark-pdf"></i>
+                                    Resume
+                                </a>
+                            )}
+                        </div>
+
+                        {/* Live Interactive Stats Cards */}
+                        <div className="hero-stats">
+                            <div className="stat-item">
+                                <span className="stat-number">{yearExperience}+</span>
+                                <p className="stat-label">Years Experience</p>
+                            </div>
+                            <div className="stat-item">
+                                <span className="stat-number">{projectsCompleted}+</span>
+                                <p className="stat-label">Projects Completed</p>
+                            </div>
+                            <div className="stat-item">
+                                <span className="stat-number">{programmingQuestions}+</span>
+                                <p className="stat-label">Problems Solved</p>
+                            </div>
                         </div>
                     </div>
 
-                    {/* ── Right: Image ── */}
-                    <div data-aos="fade-left" style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
-                        <div style={{ position: "relative", width: "clamp(290px, 35vw, 420px)", height: "clamp(290px, 35vw, 420px)" }}>
+                    {/* Right Column: Interactive 3D Canvas & Floating Badges */}
+                    <div className="col-lg-6 text-center" data-aos="fade-left" data-aos-delay="150">
+                        <div className="hero-avatar-wrapper">
 
-                            {/* Dashed rings */}
-                            <div style={{ position: "absolute", inset: -22, borderRadius: "50%", border: "0.5px solid var(--border-color)" }} />
-                            <div style={{ position: "absolute", inset: -10, borderRadius: "50%", border: "1.5px dashed var(--border-color)" }} />
+                            {/* Glowing backdrop aura */}
+                            <div className="hero-glow-1"></div>
 
-                            {/* Profile image */}
-                            <img
-                                src="/img/profile/profile-1.webp"
-                                alt="Ishaan Gupta"
-                                style={{
-                                    width: "100%", height: "100%",
-                                    objectFit: "cover",
-                                    borderRadius: "50%",
-                                    border: "4px solid var(--bg-color)",
-                                    display: "block",
-                                    position: "relative", zIndex: 1,
-                                }}
-                            />
-
-                            {/* Badge — bottom left */}
-                            <div style={{
-                                position: "absolute", bottom: 18, left: -14, zIndex: 2,
-                                background: "var(--card-bg)",
-                                border: "1px solid var(--border-color)",
-                                borderRadius: 12, padding: "8px 12px",
-                                display: "flex", alignItems: "center", gap: 8,
-                            }}>
-                                <i className="bi bi-code-slash" style={{ fontSize: 16, color: "var(--primary-color)" }}></i>
+                            {/* Floating Tech Badges */}
+                            <div className="hero-floating-pill pill-1">
+                                <span style={{ fontSize: "1.1rem" }}>⚡</span>
                                 <div>
-                                    <p style={{ fontSize: 12, fontWeight: 600, color: "var(--text-color)", margin: 0 }}>Full Stack</p>
-                                    <p style={{ fontSize: 11, color: "var(--muted-color)", margin: 0 }}>Developer</p>
+                                    <div style={{ fontSize: "0.78rem", color: "var(--text-muted)", lineHeight: 1 }}>Specialist</div>
+                                    <div style={{ fontSize: "0.86rem", fontWeight: 700 }}>MERN Full Stack</div>
                                 </div>
                             </div>
 
-                            {/* Badge — top right */}
-                            <div style={{
-                                position: "absolute", top: 18, right: -14, zIndex: 2,
-                                background: "var(--card-bg)",
-                                border: "1px solid var(--border-color)",
-                                borderRadius: 12, padding: "8px 12px",
-                                display: "flex", alignItems: "center", gap: 8,
-                            }}>
-                                <i className="bi bi-palette" style={{ fontSize: 16, color: "var(--primary-color)" }}></i>
+                            <div className="hero-floating-pill pill-2">
+                                <span style={{ fontSize: "1.1rem" }}>🎯</span>
                                 <div>
-                                    <p style={{ fontSize: 12, fontWeight: 600, color: "var(--text-color)", margin: 0 }}>UI / UX</p>
-                                    <p style={{ fontSize: 11, color: "var(--muted-color)", margin: 0 }}>Designer</p>
+                                    <div style={{ fontSize: "0.78rem", color: "var(--text-muted)", lineHeight: 1 }}>Passion</div>
+                                    <div style={{ fontSize: "0.86rem", fontWeight: 700 }}>Clean UI/UX & Code</div>
                                 </div>
+                            </div>
+
+                            {/* 3D Interactive WebGL Developer Object */}
+                            <div
+                                className="hero-avatar-frame hero-3d-frame"
+                                style={{
+                                    position: "relative",
+                                    width: "100%",
+                                    height: 440,
+                                    maxWidth: 440,
+                                    margin: "0 auto",
+                                    background: "radial-gradient(circle at 50% 50%, rgba(99,102,241,0.12), transparent 70%)",
+                                }}
+                            >
+                                <HeroCanvas3D />
                             </div>
 
                         </div>
@@ -235,17 +171,6 @@ export default function HeroSection() {
 
                 </div>
             </div>
-
-            {/* Cursor blink keyframe */}
-            <style>{`
-                @keyframes heroBlinkCursor { 50% { opacity: 0; } }
-                @media (max-width: 640px) {
-                    #home .hero-text-col { text-align: center; }
-                    #home .hero-text-col > div[style*="inline-flex"] { margin: 0 auto 14px; }
-                    #home .hero-text-col > div[style*="flex-wrap"] { justify-content: center; }
-                    #home p[style*="max-width: 440"] { margin: 0 auto 24px; }
-                }
-            `}</style>
         </section>
     );
 }

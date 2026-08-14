@@ -54,6 +54,9 @@ const UserSchema = new mongoose.Schema({
     active: {
         type: Boolean,
         default: true
+    },
+    resume:{
+        type:"String"
     }
 })
 const User = new mongoose.model("User", UserSchema)

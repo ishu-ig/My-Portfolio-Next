@@ -5,7 +5,13 @@ const syncResume = require("../resumeSync/resumeSync");
 
 async function createRecord(req, res) {
     try {
-        let data = new Skill(req.body)
+        let data = new Skill({
+            name: req.body.name,
+            description: req.body.description,
+            icon: req.body.icon ?? "",
+            level: req.body.level,
+            active: req.body.active ?? true
+        })
         await data.save()
         await syncResume("skills", data._id);
         res.send({
@@ -59,6 +65,7 @@ async function updateRecord(req, res) {
         if (data) {
             data.name = req.body.name ?? data.name
             data.description = req.body.description ?? data.description
+            data.icon = req.body.icon !== undefined ? req.body.icon : data.icon
             data.level = req.body.level ?? data.level
             data.active = req.body.active ?? data.active
             await data.save()

@@ -1,199 +1,317 @@
-"use client";
-
+"use client"
 import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { getCertificate } from "../Redux/ActionCreartors/CertificateActionCreators";
-import Link from "next/link";
+import Image from "next/image";
+import { useDispatch, useSelector } from 'react-redux';
+import { getCertificate } from '../Redux/ActionCreators/CertificateActionCreators';
 import AOS from "aos";
 import "aos/dist/aos.css";
 
 export default function Certificates() {
     const CertificateStateData = useSelector(state => state.CertificateStateData);
     const dispatch = useDispatch();
-    const [hovered, setHovered] = useState(null);
+    const [previewCert, setPreviewCert] = useState(null);
 
     useEffect(() => {
         dispatch(getCertificate());
-        AOS.init({ duration: 900, once: false });
-        AOS.refresh();
+        AOS.init({ duration: 900, once: true });
     }, [dispatch]);
 
-    const active = CertificateStateData.filter(x => x.active);
+    const active = Array.isArray(CertificateStateData) ? CertificateStateData.filter(x => x.active) : [];
 
     return (
-        <section id="certificate" style={{ padding: "70px 0", backgroundColor: "var(--bg-color)" }}>
-            <div className="container">
+        <>
+            <style>{`
+                .cert-section {
+                    padding: 90px 0;
+                    background-color: var(--bg-color);
+                }
 
-                {/* ── Header ── */}
-                <div className="text-center mb-4" data-aos="fade-up">
-                    <p style={{ fontSize: 11, fontWeight: 500, letterSpacing: "2.5px", textTransform: "uppercase", color: "var(--primary-color)", margin: "0 0 8px" }}>
-                        Achievements
-                    </p>
-                    <h2 style={{ fontSize: "2rem", fontWeight: 600, color: "var(--text-color)", margin: "0 0 10px" }}>
-                        Certificates
-                    </h2>
-                    <svg viewBox="0 0 80 16" style={{ width: 70, display: "block", margin: "0 auto 14px" }}>
-                        <path d="M0 8 C13 0,20 16,40 8 C60 0,67 16,80 8" stroke="var(--primary-color)" strokeWidth="2" fill="none" strokeLinecap="round" />
-                    </svg>
-                    <p style={{ fontSize: 15, color: "var(--muted-color)", maxWidth: 480, margin: "0 auto", lineHeight: 1.6 }}>
-                        Professional certifications that validate my expertise and commitment to continuous learning.
-                    </p>
-                </div>
+                .cert-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+                    gap: 24px;
+                    justify-content: center;
+                }
 
-                {/* ── Stats Row ── */}
-                <div data-aos="fade-up" data-aos-delay="100" style={{
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    gap: 32, padding: "14px 24px",
-                    background: "var(--card-bg)",
-                    borderRadius: 12,
-                    border: "1px solid var(--border-color)",
-                    marginBottom: 36,
-                    flexWrap: "wrap",
-                }}>
-                    {[
-                        { n: `${active.length}+`, l: "Certificates" },
-                        { n: `${new Set(active.map(c => c.issuedBy)).size}`, l: "Issuers" },
-                        { n: `${new Set(active.map(c => c.category)).size || "3"}`, l: "Domains" },
-                    ].map((s, i) => (
-                        <React.Fragment key={i}>
-                            {i > 0 && <div style={{ width: 1, height: 32, background: "var(--border-color)" }} />}
-                            <div style={{ textAlign: "center" }}>
-                                <span style={{ fontSize: "1.4rem", fontWeight: 600, color: "var(--primary-color)", display: "block" }}>{s.n}</span>
-                                <span style={{ fontSize: 11, color: "var(--muted-color)" }}>{s.l}</span>
-                            </div>
-                        </React.Fragment>
-                    ))}
-                </div>
+                .cert-card {
+                    background: var(--card-bg);
+                    border-radius: var(--radius-lg);
+                    border: 1px solid var(--card-border);
+                    overflow: hidden;
+                    transition: transform var(--ease-smooth), border-color var(--ease-smooth), box-shadow var(--ease-smooth);
+                    position: relative;
+                    display: flex;
+                    flex-direction: column;
+                    box-shadow: var(--shadow-sm);
+                }
 
-                {/* ── Grid ── */}
-                <div style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(auto-fill, minmax(210px, 1fr))",
-                    gap: 18,
-                }}>
-                    {active.map((cert, index) => (
-                        <div
-                            key={cert._id}
-                            data-aos="fade-up"
-                            data-aos-delay={index * 70}
-                            onMouseEnter={() => setHovered(cert._id)}
-                            onMouseLeave={() => setHovered(null)}
-                            style={{
-                                background: "var(--card-bg)",
-                                borderRadius: 14,
-                                border: `1px solid ${hovered === cert._id ? "var(--primary-color)" : "var(--border-color)"}`,
-                                overflow: "hidden",
-                                transition: "transform 0.22s, border-color 0.22s",
-                                transform: hovered === cert._id ? "translateY(-7px)" : "translateY(0)",
-                                position: "relative",
-                                display: "flex",
-                                flexDirection: "column",
-                            }}
-                        >
-                            {/* Verified ribbon */}
-                            <div style={{
-                                position: "absolute", top: 12, right: 0,
-                                background: "var(--primary-color)", color: "#fff",
-                                fontSize: 10, fontWeight: 500,
-                                padding: "3px 10px 3px 8px",
-                                borderRadius: "4px 0 0 4px",
-                                zIndex: 2, display: "flex", alignItems: "center", gap: 4,
-                            }}>
-                                <i className="bi bi-patch-check-fill" style={{ fontSize: 10 }}></i>
-                                Verified
-                            </div>
+                .cert-card:hover {
+                    transform: translateY(-8px);
+                    border-color: var(--primary-color);
+                    box-shadow: var(--shadow-lg), 0 0 25px rgba(var(--accent-rgb), 0.15);
+                }
 
-                            {/* Image */}
-                            <Link href={cert.pic} target="_blank" style={{ display: "block", position: "relative", overflow: "hidden", height: 155 }}>
-                                <img
-                                    src={cert.pic}
-                                    alt={cert.name}
-                                    loading="lazy"
-                                    style={{
-                                        width: "100%", height: "100%",
-                                        objectFit: "cover", display: "block",
-                                        transition: "transform 0.3s",
-                                        transform: hovered === cert._id ? "scale(1.06)" : "scale(1)",
-                                        backgroundColor: "var(--card-bg)",
-                                    }}
-                                />
-                                <div style={{
-                                    position: "absolute", inset: 0,
-                                    background: "rgba(10,18,45,0.6)",
-                                    opacity: hovered === cert._id ? 1 : 0,
-                                    transition: "opacity 0.22s",
-                                    display: "flex", alignItems: "center", justifyContent: "center",
-                                }}>
-                                    <span style={{
-                                        background: "#fff", color: "#111",
-                                        fontSize: 11, fontWeight: 500,
-                                        padding: "5px 14px", borderRadius: 999,
-                                        display: "flex", alignItems: "center", gap: 5,
-                                    }}>
-                                        <i className="bi bi-box-arrow-up-right" style={{ fontSize: 12 }}></i>
-                                        View Certificate
-                                    </span>
-                                </div>
-                            </Link>
+                .cert-ribbon {
+                    position: absolute; top: 12px; right: 0;
+                    background: var(--primary-color); color: #ffffff;
+                    font-size: 0.72rem; font-weight: 600;
+                    padding: 4px 12px 4px 10px;
+                    border-radius: 4px 0 0 4px;
+                    z-index: 2; display: flex; align-items: center; gap: 5px;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+                }
 
-                            {/* Body */}
-                            <div style={{ padding: "12px 14px 14px", flex: 1, display: "flex", flexDirection: "column" }}>
+                .cert-img-wrap {
+                    display: block;
+                    position: relative;
+                    overflow: hidden;
+                    height: 180px;
+                    cursor: pointer;
+                    background: var(--bg-alt);
+                }
 
-                                {/* Issuer row */}
-                                <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 6 }}>
-                                    <span style={{
-                                        width: 6, height: 6, borderRadius: "50%",
-                                        background: "var(--primary-color)", flexShrink: 0,
-                                    }} />
-                                    <span style={{
-                                        fontSize: 11, color: "var(--primary-color)", fontWeight: 500,
-                                        whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
-                                    }}>
-                                        {cert.issuedBy}
-                                    </span>
-                                </div>
+                .cert-img-wrap img {
+                    width: 100%; height: 100%;
+                    object-fit: cover; display: block;
+                    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+                }
 
-                                {/* Name */}
-                                <p style={{
-                                    fontSize: 13, fontWeight: 600, color: "var(--text-color)",
-                                    margin: "0 0 auto", lineHeight: 1.4,
-                                    display: "-webkit-box",
-                                    WebkitLineClamp: 2,
-                                    WebkitBoxOrient: "vertical",
-                                    overflow: "hidden",
-                                    paddingBottom: 10,
-                                }}>
-                                    {cert.name}
-                                </p>
+                .cert-card:hover .cert-img-wrap img { transform: scale(1.08); }
 
-                                {/* Footer */}
-                                <div style={{
-                                    display: "flex", alignItems: "center", justifyContent: "space-between",
-                                    paddingTop: 10,
-                                    borderTop: "1px solid var(--border-color)",
-                                    marginTop: 10,
-                                }}>
-                                    <span style={{
-                                        fontSize: 10, fontWeight: 500,
-                                        background: "var(--primary-color)", color: "#fff",
-                                        padding: "2px 9px", borderRadius: 999,
-                                    }}>
-                                        {cert.category || "Certified"}
-                                    </span>
-                                    <Link href={cert.pic} target="_blank" style={{
-                                        fontSize: 11, color: "var(--primary-color)",
-                                        textDecoration: "none",
-                                        display: "flex", alignItems: "center", gap: 3,
-                                    }}>
-                                        Open <i className="bi bi-arrow-right"></i>
-                                    </Link>
-                                </div>
-                            </div>
+                .cert-img-overlay {
+                    position: absolute; inset: 0;
+                    background: rgba(10, 14, 35, 0.65);
+                    opacity: 0;
+                    transition: opacity var(--ease-quick);
+                    display: flex; align-items: center; justify-content: center;
+                    backdrop-filter: blur(3px);
+                }
+                .cert-card:hover .cert-img-overlay { opacity: 1; }
+
+                .cert-overlay-btn {
+                    background: #ffffff; color: #0f111a;
+                    font-size: 0.82rem; font-weight: 600;
+                    padding: 8px 18px; border-radius: var(--radius-pill);
+                    display: flex; align-items: center; gap: 6px;
+                    box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+                }
+
+                .cert-body {
+                    padding: 16px 18px;
+                    flex: 1; display: flex; flex-direction: column;
+                }
+
+                .cert-issuer-name {
+                    font-size: 0.82rem; color: var(--primary-color); font-weight: 700;
+                    text-transform: uppercase; letter-spacing: 0.04em;
+                }
+
+                .cert-name {
+                    font-size: 0.98rem; font-weight: 700; color: var(--text-color);
+                    margin: 6px 0 12px; line-height: 1.4;
+                    display: -webkit-box;
+                    -webkit-line-clamp: 2;
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
+                }
+
+                .cert-footer {
+                    display: flex; align-items: center; justify-content: space-between;
+                    padding-top: 12px;
+                    border-top: 1px solid var(--border-color);
+                    margin-top: auto;
+                }
+
+                .cert-badge {
+                    font-size: 0.74rem; font-weight: 600;
+                    background: rgba(var(--accent-rgb), 0.1); color: var(--primary-color);
+                    padding: 4px 12px; border-radius: var(--radius-pill);
+                    border: 1px solid rgba(var(--accent-rgb), 0.2);
+                }
+
+                .cert-open-btn {
+                    font-size: 0.84rem; font-weight: 600; color: var(--text-color);
+                    cursor: pointer; background: transparent; border: none;
+                    display: flex; align-items: center; gap: 4px;
+                    transition: color var(--ease-quick);
+                }
+                .cert-open-btn:hover { color: var(--primary-color); }
+
+                /* Lightbox Modal */
+                .cert-lightbox-backdrop {
+                    position: fixed; inset: 0;
+                    background: rgba(0, 0, 0, 0.85);
+                    backdrop-filter: blur(8px);
+                    z-index: 3000;
+                    display: flex; align-items: center; justify-content: center;
+                    padding: 20px;
+                    animation: fadeIn 0.25s ease-out;
+                }
+
+                .cert-lightbox-card {
+                    background: var(--card-bg);
+                    border: 1px solid var(--card-border);
+                    border-radius: var(--radius-lg);
+                    max-width: 760px; width: 100%;
+                    overflow: hidden;
+                    box-shadow: 0 25px 70px rgba(0,0,0,0.6);
+                    position: relative;
+                }
+
+                .cert-lightbox-img-wrap {
+                    position: relative;
+                    width: 100%;
+                    height: 70vh;
+                    background: #000;
+                }
+
+                @keyframes fadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+            `}</style>
+
+            <section id="certificate" className="cert-section">
+                <div className="container">
+
+                    {/* Header */}
+                    <div className="text-center mb-5" data-aos="fade-up">
+                        <span className="section-badge">
+                            <i className="bi bi-patch-check-fill"></i>
+                            Credentials
+                        </span>
+                        <h2 className="section-title">Certifications</h2>
+                        <div className="title-shape">
+                            <svg viewBox="0 0 200 20" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M 0,10 C 40,0 60,20 100,10 C 140,0 160,20 200,10" fill="none" stroke="currentColor" strokeWidth="2"></path>
+                            </svg>
                         </div>
-                    ))}
-                </div>
+                        <p className="section-subtitle">
+                            Industry-recognized certifications and professional credentials validating technical competence.
+                        </p>
+                    </div>
 
-            </div>
-        </section>
+                    {/* Grid */}
+                    <div className="cert-grid">
+                        {active.map((cert, index) => (
+                            <div
+                                key={cert._id || index}
+                                className="cert-card"
+                                data-aos="fade-up"
+                                data-aos-delay={(index % 3) * 100}
+                            >
+                                {/* Verified ribbon */}
+                                <div className="cert-ribbon">
+                                    <i className="bi bi-shield-check"></i>
+                                    Verified
+                                </div>
+
+                                {/* Image with Lightbox click */}
+                                <div 
+                                    className="cert-img-wrap"
+                                    onClick={() => setPreviewCert(cert)}
+                                    role="button"
+                                    tabIndex={0}
+                                >
+                                    <Image
+                                        src={cert.pic && typeof cert.pic === "string" && (cert.pic.startsWith("http") || cert.pic.startsWith("/")) ? cert.pic : "/img/portfolio/portfolio-1.webp"}
+                                        alt={cert.name}
+                                        fill
+                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 45vw, 280px"
+                                        style={{ objectFit: "cover" }}
+                                    />
+                                    <div className="cert-img-overlay">
+                                        <span className="cert-overlay-btn">
+                                            <i className="bi bi-arrows-fullscreen"></i>
+                                            View Certificate
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* Body */}
+                                <div className="cert-body">
+                                    <div className="d-flex align-items-center gap-2 mb-1">
+                                        <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--primary-color)" }} />
+                                        <span className="cert-issuer-name">{cert.issuedBy || "Accredited"}</span>
+                                    </div>
+                                    <h4 className="cert-name">{cert.name}</h4>
+                                    
+                                    <div className="cert-footer">
+                                        <span className="cert-badge">{cert.category || "Certification"}</span>
+                                        <button 
+                                            type="button" 
+                                            className="cert-open-btn"
+                                            onClick={() => setPreviewCert(cert)}
+                                        >
+                                            Preview <i className="bi bi-arrow-right"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {active.length === 0 && (
+                        <div className="text-center py-5 text-muted">
+                            No certificates listed yet.
+                        </div>
+                    )}
+
+                </div>
+            </section>
+
+            {/* Lightbox Preview Modal */}
+            {previewCert && (
+                <div 
+                    className="cert-lightbox-backdrop"
+                    onClick={() => setPreviewCert(null)}
+                >
+                    <div 
+                        className="cert-lightbox-card"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="d-flex justify-content-between align-items-center p-3 border-bottom" style={{ borderColor: "var(--border-color)" }}>
+                            <div>
+                                <h5 className="m-0 fw-bold" style={{ color: "var(--text-color)" }}>{previewCert.name}</h5>
+                                <small className="text-muted">{previewCert.issuedBy} • {previewCert.category || "Certificate"}</small>
+                            </div>
+                            <button 
+                                type="button" 
+                                className="btn-close" 
+                                onClick={() => setPreviewCert(null)}
+                                aria-label="Close"
+                            ></button>
+                        </div>
+                        <div className="cert-lightbox-img-wrap">
+                            <Image
+                                src={previewCert.pic && typeof previewCert.pic === "string" && (previewCert.pic.startsWith("http") || previewCert.pic.startsWith("/")) ? previewCert.pic : "/img/portfolio/portfolio-1.webp"}
+                                alt={previewCert.name}
+                                fill
+                                sizes="(max-width: 768px) 100vw, 760px"
+                                style={{ objectFit: "contain" }}
+                            />
+                        </div>
+                        <div className="p-3 d-flex justify-content-end gap-2 bg-body-tertiary">
+                            <a 
+                                href={previewCert.pic} 
+                                target="_blank" 
+                                rel="noreferrer" 
+                                className="btn btn-sm btn-primary"
+                            >
+                                <i className="bi bi-box-arrow-up-right me-1"></i>
+                                Open Full Size
+                            </a>
+                            <button 
+                                type="button" 
+                                className="btn btn-sm btn-outline-secondary" 
+                                onClick={() => setPreviewCert(null)}
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </>
     );
 }

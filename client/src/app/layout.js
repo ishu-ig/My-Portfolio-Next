@@ -59,8 +59,12 @@ export const metadata = {
   },
 
   icons: {
-    icon: "/favicon.ico",
-    apple: "/apple-touch-icon.png",
+    icon: [
+      { url: "/img/favicon.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon.ico" }
+    ],
+    apple: "/img/apple-touch-icon.png",
+    shortcut: "/favicon.ico",
   },
 
   robots: {
@@ -144,11 +148,6 @@ export default function RootLayout({ children }) {
 
         {/* BOOTSTRAP JS */}
         <Script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" />
-
-        {/* AOS JS */}
-        <Script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js" />
-
-        <Script id="init-aos">{`AOS.init();`}</Script>
 
         {/* CUSTOM JS */}
         <Script src="/js/index.js" />

@@ -11,6 +11,9 @@ import BlogReducer from "./BlogReducer"
 import ResumeReducer from "./ResumeReducer"
 import NewsletterReducer from "./NewsletterReducer"
 import CommentReducer from "./CommentReducer"
+import AchievementReducer from "./AchievementReducer"
+import AboutReducer from "./AboutReducer"
+
 
 
 export default combineReducers({
@@ -25,5 +28,7 @@ export default combineReducers({
     BlogStateData: BlogReducer,
     ResumeStateData : ResumeReducer,
     NewsletterStateData : NewsletterReducer,
-    CommentStateData : CommentReducer
+    CommentStateData : CommentReducer,
+    AchievementStateData : AchievementReducer,
+    AboutStateData : AboutReducer
 })

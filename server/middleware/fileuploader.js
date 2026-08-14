@@ -36,4 +36,6 @@ module.exports = {
     testimonialUploader: createUploader("testimonial"),
     userUploader: createUploader("user"),
     blogUploader: createUploader("blog"),
+    aboutUploader: createUploader("about"),
+    noteUploader: createUploader("notes"),
 };

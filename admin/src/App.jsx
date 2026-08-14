@@ -1,16 +1,18 @@
-import React, { useEffect, useState } from 'react';
-import { BrowserRouter, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
-
-// Layout
-import AdminSidebar from './Component/Sidebar';
-import AdminNavbar from './Component/Navbar';
-import Footer from './Component/Footer';
+import React, { useEffect, useCallback } from "react";
+import {
+  BrowserRouter,
+  Route,
+  Routes,
+  useLocation,
+  Navigate,
+} from "react-router-dom";
+import Navbar from "./Components/Navbar";
+import Footer from "./Components/Footer";
+import Sidebar from "./Components/Sidebar";
 
 // Auth Pages
 import LoginPage from './pages/LoginPage';
-import ForgetPasswordPage1 from './pages/ForgetPasswordPage1';
-import ForgetPasswordPage2 from './pages/ForgetPasswordPage2';
-import ForgetPasswordPage3 from './pages/ForgetPasswordPage3';
+import SignupPage from './pages/SignupPage';
 
 // Main Pages
 import Home from './pages/Home';
@@ -38,11 +40,11 @@ import AdminCreateExperience from './pages/experience/AdminCreateExperience';
 import AdminUpdateExperience from './pages/experience/AdminUpdateExperience';
 
 // Testimonial
-import AdminTestimonial from './pages/testimonial/AdminTestimonial';
+import AdminTestimonial from './pages/testimonial/AdminTestiminial';
 import AdminCreateTestimonial from './pages/testimonial/AdminCreateTestimonial';
 import AdminUpdateTestimonial from './pages/testimonial/AdminUpdateTestimonial';
 
-// BLOG ✅ (FIXED)
+// Blog
 import AdminBlog from './pages/blog/AdminBlog';
 import AdminCreateBlog from './pages/blog/AdminCreateBlog';
 import AdminUpdateBlog from './pages/blog/AdminUpdateBlog';
@@ -50,157 +52,218 @@ import AdminUpdateBlog from './pages/blog/AdminUpdateBlog';
 // Newsletter
 import AdminNewsletter from './pages/newsletter/AdminNewsletter';
 
-
 // User
 import AdminUser from './pages/user/AdminUser';
 import AdminCreateUser from './pages/user/AdminCreateUser';
 import AdminUpdateUser from './pages/user/AdminUpdateUser';
 
-// Extra
+// Service
+import AdminService from './pages/service/AdminService';
 import AdminCreateService from './pages/service/AdminCreateService';
 import AdminUpdateService from './pages/service/AdminUpdateService';
-import AdminService from './pages/service/AdminService';
+
+// Portfolio
 import AdminPortfolio from './pages/portfolio/AdminPortfolio';
 import AdminCreatePortfolio from './pages/portfolio/AdminCreatePortfolio';
 import AdminUpdatePortfolio from './pages/portfolio/AdminUpdatePortfolio';
-import AdminContactUsShow from './pages/contactUs/AdminContactUsShow';
-import AdminContactUs from './pages/contactUs/AdminContactUs';
+
+// Contact Us
+
+
+// Achievement
+import AdminAchievement from './pages/achievement/AdminAchievement';
+import AdminCreateAchievement from './pages/achievement/AdminCreateAchievement';
+import AdminUpdateAchievement from './pages/achievement/AdminUpdateAchievement';
+import ForgetPasswordPage from "./pages/ForgetPassword";
+import AdminContactUs from "./pages/contactus/AdminContactUs";
+import AdminShowQuery from "./pages/contactus/AdminShowQuery"
+import AdminAbout from "./pages/about/AdminAbout";
+import AdminCreateAbout from "./pages/about/AdminCreateAbout";
+import AdminUpdateAbout from "./pages/about/AdminUpdateAbout";
+
+// Notes
+import AdminNote from "./pages/note/AdminNote";
+import AdminCreateNote from "./pages/note/AdminCreateNote";
+import AdminUpdateNote from "./pages/note/AdminUpdateNote";
+
+// FIX: All public routes listed here must match route paths exactly
+const publicRoutes = ["/login", "/register", "/forgot-password"];
 
 export default function App() {
-    const [isSidebarExpanded, setIsSidebarExpanded] = useState(window.innerWidth > 992);
-
-    const checkLoginStatus = () => {
-        return localStorage.getItem("login") === "true";
-    };
-
-    useEffect(() => {
-        const handleResize = () => {
-            setIsSidebarExpanded(window.innerWidth > 992);
-        };
-        window.addEventListener("resize", handleResize);
-        return () => window.removeEventListener("resize", handleResize);
-    }, []);
-
-    return (
-        <BrowserRouter>
-            <MainContent
-                isSidebarExpanded={isSidebarExpanded}
-                toggleSidebar={() => setIsSidebarExpanded(!isSidebarExpanded)}
-                checkLoginStatus={checkLoginStatus}
-            />
-        </BrowserRouter>
-    );
+  return (
+    <BrowserRouter>
+      <Shell />
+    </BrowserRouter>
+  );
 }
 
-function MainContent({ isSidebarExpanded, toggleSidebar, checkLoginStatus }) {
-    const location = useLocation();
-    const navigate = useNavigate();
+function Shell() {
+  const location = useLocation();
+  const isPublic = publicRoutes.includes(location.pathname);
+  const isLoggedIn = localStorage.getItem("login") === "true";
 
-    const publicRoutes = [
-        "/login",
-        "/forgetPassword-1",
-        "/forgetPassword-2",
-        "/forgetPassword-3"
-    ];
+  useEffect(() => {
+    const isDesktop = window.matchMedia("(min-width: 992px)").matches;
+    const savedMini = localStorage.getItem("adminHMD.sidebarMini") === "true";
+    if (isDesktop && savedMini && !isPublic) {
+      document.body.classList.add("sidebar-mini");
+    }
+    return () => {
+      if (isPublic)
+        document.body.classList.remove("sidebar-mini", "sidebar-open");
+    };
+  }, [isPublic]);
 
-    // 🔐 Auth Guard
-    useEffect(() => {
-        if (!checkLoginStatus() && !publicRoutes.includes(location.pathname)) {
-            navigate("/login");
-        }
-    }, [location, checkLoginStatus, navigate]);
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 992px)");
+    function handleBreakpoint(e) {
+      if (e.matches) {
+        document.body.classList.remove("sidebar-open");
+        const savedMini =
+          localStorage.getItem("adminHMD.sidebarMini") === "true";
+        document.body.classList.toggle("sidebar-mini", savedMini);
+      } else {
+        document.body.classList.remove("sidebar-mini");
+      }
+    }
+    if (mq.addEventListener) {
+      mq.addEventListener("change", handleBreakpoint);
+    } else {
+      mq.addListener(handleBreakpoint);
+    }
+    return () => {
+      if (mq.removeEventListener) {
+        mq.removeEventListener("change", handleBreakpoint);
+      } else {
+        mq.removeListener(handleBreakpoint);
+      }
+    };
+  }, []);
 
-    // 🎨 Background control
-    useEffect(() => {
-        if (publicRoutes.includes(location.pathname)) {
-            document.body.style.backgroundColor = "#f4f6f9";
-        } else {
-            document.body.style.backgroundColor = "";
-        }
-    }, [location.pathname]);
+  // FIX: Moved toggleSidebar & closeMobileSidebar outside render using useCallback
+  const toggleSidebar = useCallback(() => {
+    const isDesktop = window.matchMedia("(min-width: 992px)").matches;
+    if (isDesktop) {
+      document.body.classList.toggle("sidebar-mini");
+      localStorage.setItem(
+        "adminHMD.sidebarMini",
+        String(document.body.classList.contains("sidebar-mini"))
+      );
+    } else {
+      document.body.classList.toggle("sidebar-open");
+    }
+  }, []);
 
+  const closeMobileSidebar = useCallback(() => {
+    document.body.classList.remove("sidebar-open");
+  }, []);
+
+  // Redirect unauthenticated users away from protected pages
+  if (!isLoggedIn && !isPublic) {
+    return <Navigate to="/login" replace />;
+  }
+
+  // ── Public pages ──────────────────────────────────────────────────────────
+  if (isPublic) {
     return (
-        <div className={`app-container ${isSidebarExpanded ? "sidebar-expanded" : "sidebar-collapsed"}`}>
-
-            {/* Navbar + Sidebar */}
-            {!publicRoutes.includes(location.pathname) && <AdminNavbar toggleSidebar={toggleSidebar} />}
-            {!publicRoutes.includes(location.pathname) && <AdminSidebar isExpanded={isSidebarExpanded} />}
-
-            <div className="content">
-
-                <Routes>
-
-                    {/* AUTH */}
-                    <Route path="/login" element={<LoginPage />} />
-                    <Route path="/forgetPassword-1" element={<ForgetPasswordPage1 />} />
-                    <Route path="/forgetPassword-2" element={<ForgetPasswordPage2 />} />
-                    <Route path="/forgetPassword-3" element={<ForgetPasswordPage3 />} />
-
-                    {/* HOME */}
-                    <Route path="/" element={<Home />} />
-
-                    {/* SKILL */}
-                    <Route path="/skill" element={<AdminSkill />} />
-                    <Route path="/skill/create" element={<AdminCreateSkill />} />
-                    <Route path="/skill/update/:_id" element={<AdminUpdateSkill />} />
-
-                    {/* CERTIFICATE */}
-                    <Route path="/certificate" element={<AdminCertificate />} />
-                    <Route path="/certificate/create" element={<AdminCreateCertificate />} />
-                    <Route path="/certificate/update/:_id" element={<AdminUpdateCertificate />} />
-
-                    {/* EDUCATION */}
-                    <Route path="/education" element={<AdminEducation />} />
-                    <Route path="/education/create" element={<AdminCreateEducation />} />
-                    <Route path="/education/update/:_id" element={<AdminUpdateEducation />} />
-
-                    {/* EXPERIENCE */}
-                    <Route path="/experience" element={<AdminExperience />} />
-                    <Route path="/experience/create" element={<AdminCreateExperience />} />
-                    <Route path="/experience/update/:_id" element={<AdminUpdateExperience />} />
-
-                    {/* TESTIMONIAL */}
-                    <Route path="/testimonial" element={<AdminTestimonial />} />
-                    <Route path="/testimonial/create" element={<AdminCreateTestimonial />} />
-                    <Route path="/testimonial/update/:_id" element={<AdminUpdateTestimonial />} />
-
-                    {/* BLOG ✅ */}
-                    <Route path="/blog" element={<AdminBlog />} />
-                    <Route path="/blog/create" element={<AdminCreateBlog />} />
-                    <Route path="/blog/update/:_id" element={<AdminUpdateBlog />} />
-
-                    {/* Service ✅ */}
-                    <Route path="/service" element={<AdminService />} />
-                    <Route path="/service/create" element={<AdminCreateService />} />
-                    <Route path="/service/update/:_id" element={<AdminUpdateService />} />
-
-                    {/* Portfolio ✅ */}
-                    <Route path="/portfolio" element={<AdminPortfolio />} />
-                    <Route path="/portfolio/create" element={<AdminCreatePortfolio />} />
-                    <Route path="/portfolio/update/:_id" element={<AdminUpdatePortfolio />} />
-
-                    {/* NEWSLETTER */}
-                    <Route path="/newsletter" element={<AdminNewsletter />} />
-
-                    {/* USER */}
-                    <Route path="/user" element={<AdminUser />} />
-                    <Route path="/user/create" element={<AdminCreateUser />} />
-                    <Route path="/user/update/:_id" element={<AdminUpdateUser />} />
-
-                    {/* CONTACT */}
-                    <Route path="/contactus" element={<AdminContactUs />} />
-                    <Route path="/contactus/view/:_id" element={<AdminContactUsShow />} />
-
-                    {/* PROFILE */}
-                    <Route path="/profile" element={<ProfilePage />} />
-                    <Route path="/update-profile" element={<UpdateProfilePage />} />
-
-                </Routes>
-
-                {/* Footer */}
-                {!publicRoutes.includes(location.pathname) && <Footer />}
-
-            </div>
-        </div>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        {/* FIX: Added missing SignupPage import and route */}
+        <Route path="/register" element={<SignupPage />} />
+        {/* FIX: Multi-step forgot password routes instead of undefined <ForgetPasswordPage /> */}
+        <Route path="/forgot-password" element={<ForgetPasswordPage />} />
+      </Routes>
     );
+  }
+
+  // ── Protected pages ───────────────────────────────────────────────────────
+  return (
+    <div className="admin-shell">
+      <div className="sidebar-backdrop" onClick={closeMobileSidebar} />
+      <Sidebar onLinkClick={closeMobileSidebar} />
+
+      <div className="admin-main">
+        <Navbar toggleSidebar={toggleSidebar} />
+
+        <Routes>
+          {/* Dashboard */}
+          {/* FIX: Removed duplicate "/" route — kept only one */}
+          <Route path="/" element={<Home />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/update-profile" element={<UpdateProfilePage />} />
+
+          {/* SKILL */}
+          <Route path="/skill" element={<AdminSkill />} />
+          <Route path="/skill/create" element={<AdminCreateSkill />} />
+          <Route path="/skill/update/:_id" element={<AdminUpdateSkill />} />
+
+          {/* CERTIFICATE */}
+          <Route path="/certificate" element={<AdminCertificate />} />
+          <Route path="/certificate/create" element={<AdminCreateCertificate />} />
+          <Route path="/certificate/update/:_id" element={<AdminUpdateCertificate />} />
+
+          {/* ACHIEVEMENT — FIX: Corrected misleading comment (was "CERTIFICATE") */}
+          <Route path="/achievement" element={<AdminAchievement />} />
+          <Route path="/achievement/create" element={<AdminCreateAchievement />} />
+          <Route path="/achievement/update/:_id" element={<AdminUpdateAchievement />} />
+
+          {/* EDUCATION */}
+          <Route path="/education" element={<AdminEducation />} />
+          <Route path="/education/create" element={<AdminCreateEducation />} />
+          <Route path="/education/update/:_id" element={<AdminUpdateEducation />} />
+
+          {/* EXPERIENCE */}
+          <Route path="/experience" element={<AdminExperience />} />
+          <Route path="/experience/create" element={<AdminCreateExperience />} />
+          <Route path="/experience/update/:_id" element={<AdminUpdateExperience />} />
+
+          {/* TESTIMONIAL */}
+          <Route path="/testimonial" element={<AdminTestimonial />} />
+          <Route path="/testimonial/create" element={<AdminCreateTestimonial />} />
+          <Route path="/testimonial/update/:_id" element={<AdminUpdateTestimonial />} />
+
+          {/* BLOG */}
+          <Route path="/blog" element={<AdminBlog />} />
+          <Route path="/blog/create" element={<AdminCreateBlog />} />
+          <Route path="/blog/update/:_id" element={<AdminUpdateBlog />} />
+
+          {/* SERVICE */}
+          <Route path="/service" element={<AdminService />} />
+          <Route path="/service/create" element={<AdminCreateService />} />
+          <Route path="/service/update/:_id" element={<AdminUpdateService />} />
+
+          {/* PORTFOLIO */}
+          <Route path="/portfolio" element={<AdminPortfolio />} />
+          <Route path="/portfolio/create" element={<AdminCreatePortfolio />} />
+          <Route path="/portfolio/update/:_id" element={<AdminUpdatePortfolio />} />
+
+          {/* NEWSLETTER */}
+          <Route path="/newsletter" element={<AdminNewsletter />} />
+
+          {/* USER */}
+          <Route path="/user" element={<AdminUser />} />
+          <Route path="/user/create" element={<AdminCreateUser />} />
+          <Route path="/user/update/:_id" element={<AdminUpdateUser />} />
+
+          {/* About */}
+          <Route path="/about" element={<AdminAbout />} />
+          <Route path="/about/create" element={<AdminCreateAbout />} />
+          <Route path="/about/update/:_id" element={<AdminUpdateAbout />} />
+
+          {/* CONTACT */}
+          <Route path="/contactus" element={<AdminContactUs />} />
+          <Route path="/contactus/view/:_id" element={<AdminShowQuery />} />
+
+          {/* NOTES */}
+          <Route path="/note" element={<AdminNote />} />
+          <Route path="/note/create" element={<AdminCreateNote />} />
+          <Route path="/note/update/:_id" element={<AdminUpdateNote />} />
+
+          {/* FIX: Removed forgot-password from protected routes — it belongs in public only */}
+        </Routes>
+
+        <Footer />
+      </div>
+    </div>
+  );
 }

@@ -11,6 +11,9 @@ import blogSagas from "./BlogSagas"
 import resumeSagas from "./ResumeSagas"
 import newsletterSagas from "./NewsletterSagas"
 import commentSagas from "./CommentSagas"
+import achievementSagas from "./AchievementSagas"
+import aboutSagas from "./AboutSaga"
+
 
 
 export default function* RootSaga() {
@@ -26,6 +29,8 @@ export default function* RootSaga() {
         blogSagas(),
         resumeSagas(),
         newsletterSagas(),
-        commentSagas()
+        commentSagas(),
+        achievementSagas(),
+        aboutSagas()
     ])
 }

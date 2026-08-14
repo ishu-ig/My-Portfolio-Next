@@ -1,108 +1,261 @@
-import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import $ from 'jquery';
-import 'datatables.net-dt/css/dataTables.dataTables.min.css';
-import 'datatables.net';
-
-import { deleteService, getService } from "../../Redux/ActionCreators/ServiceActionCreators";
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  getService,
+  deleteService,
+  updateService,
+} from "../../Redux/ActionCreators/ServiceActionCreators";
 
 export default function AdminService() {
-    let ServiceStateData = useSelector(state => state.ServiceStateData);
-    let dispatch = useDispatch();
-    let [flag, setFlag] = useState(false)
+  let ServiceStateData = useSelector((state) => state.ServiceStateData);
+  let dispatch = useDispatch();
+  let [flag, setFlag] = useState(false);
+  let [search, setSearch] = useState("");
 
-    function deleteRecord(_id) {
-        if (window.confirm("Are you sure you want to delete this service?")) {
-            dispatch(deleteService({ _id: _id }));
-            getAPIData();
-            setFlag(!flag)
+  const totalCount    = ServiceStateData ? ServiceStateData.length : 0;
+  const activeCount   = ServiceStateData ? ServiceStateData.filter((i) => i.active).length : 0;
+  const inactiveCount = totalCount - activeCount;
+
+  function deleteRecord(_id) {
+    if (window.confirm("Are you sure you want to delete this item?")) {
+      dispatch(deleteService({ _id }));
+      setFlag(!flag);
+    }
+  }
+
+  function updateRecord(_id) {
+    const item = ServiceStateData.find((s) => s._id === _id);
+    if (!item) return;
+    dispatch(updateService({ ...item, active: !item.active }));
+    setFlag(!flag);
+  }
+
+  function getAPIData() {
+    dispatch(getService());
+  }
+
+  useEffect(() => {
+    getAPIData();
+  }, [flag]);
+
+  const filteredData = ServiceStateData
+    ? ServiceStateData.filter(
+        (item) =>
+          item.name.toLowerCase().includes(search.toLowerCase()) ||
+          item.category?.toLowerCase().includes(search.toLowerCase()) ||
+          item.technology?.toLowerCase().includes(search.toLowerCase())
+      )
+    : [];
+
+  return (
+    <>
+      <style>{`
+        .act-strip {
+          display: inline-flex; align-items: center; gap: 2px;
+          background: #f8f9fa; border: 1px solid #dee2e6;
+          border-radius: 8px; padding: 3px;
         }
-    }
+        .act-btn {
+          display: inline-flex; align-items: center; justify-content: center;
+          width: 30px; height: 30px; border-radius: 6px;
+          border: none; background: transparent; cursor: pointer;
+          font-size: 0.88rem; color: #6c757d;
+          transition: background .13s, color .13s, transform .1s;
+          text-decoration: none; position: relative;
+        }
+        .act-btn:hover { transform: scale(1.1); }
+        .act-btn-edit:hover  { background: #cfe2ff; color: #0d6efd; }
+        .act-btn-on:hover    { background: #d1e7dd; color: #198754; }
+        .act-btn-off:hover   { background: #fff3cd; color: #856404; }
+        .act-btn-del:hover   { background: #f8d7da; color: #dc3545; }
+        .act-sep { width: 1px; height: 16px; background: #dee2e6; flex-shrink: 0; }
+        .act-btn::after {
+          content: attr(data-tip);
+          position: absolute; bottom: calc(100% + 6px); left: 50%;
+          transform: translateX(-50%);
+          background: #212529; color: #fff;
+          font-size: 0.67rem; font-weight: 600;
+          padding: 3px 7px; border-radius: 4px; white-space: nowrap;
+          pointer-events: none; z-index: 20;
+          opacity: 0; transition: opacity .12s;
+        }
+        .act-btn:hover::after { opacity: 1; }
+      `}</style>
 
-    function getAPIData() {
-        dispatch(getService());
-        let time = setTimeout(() => {
-            if (!$.fn.DataTable.isDataTable('#DataTable')) {
-                $('#DataTable').DataTable();
-            }
-        }, 500);
-        return time;
-    }
+      <main className="dashboard-content">
+        <div className="container-fluid px-3 px-lg-4 py-4">
 
-    useEffect(() => {
-        let time = getAPIData();
-        return () => {
-            clearTimeout(time);
-            if ($.fn.DataTable.isDataTable('#DataTable')) {
-                $('#DataTable').DataTable().destroy();
-            }
-        };
-    }, [ServiceStateData.length]);
-
-    return (
-        <>
-            <div className="container-fluid">
-                {/* Header */}
-                <h5 className="text-center text-light bg-primary p-3">
-                    Service{' '}
-                    <Link to="/service/create"><i className="fa fa-plus text-light float-end pt-1"></i></Link>
-                </h5>
-
-                {/* Table */}
-                <div className="table-responsive mt-3">
-                    <table id="DataTable" className="table table-striped table-hover table-bordered text-center">
-                        <thead className="text-light" style={{ backgroundColor: "#1F2A40" }}>
-                            <tr>
-                                <th>Id</th>
-                                <th>Name</th>
-                                <th>Icon</th>
-                                <th>Short Description</th>
-                                <th>Price</th>
-                                <th>Duration</th>
-                                <th>Category</th>
-                                <th>Technology</th>
-                                <th>Active</th>
-                                <th>Update</th>
-                                {localStorage.getItem("role") === "Super Admin" ? <th>Delete</th> : ""}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {ServiceStateData.map((item) => (
-                                <tr key={item._id}>
-                                    <td>{item._id}</td>
-                                    <td>{item.name}</td>
-                                    <td>
-                                        <i className={`${item.icon} fs-4`} title={item.icon}></i>
-                                    </td>
-                                    <td style={{ maxWidth: "200px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                                        {item.shortDescription}
-                                    </td>
-                                    <td><span className="badge bg-success fs-6">₹{item.price}</span></td>
-                                    <td>{item.duration}</td>
-                                    <td>{item.category}</td>
-                                    <td>{item.technology}</td>
-                                    <td className={item.active ? 'text-success fw-bold' : 'text-danger fw-bold'}>
-                                        {item.active ? "Yes" : "No"}
-                                    </td>
-                                    <td>
-                                        <Link to={`/service/update/${item._id}`} className="btn btn-primary text-light btn-sm">
-                                            <i className="fa fa-edit fs-5"></i>
-                                        </Link>
-                                    </td>
-                                    {localStorage.getItem("role") === "Super Admin" ?
-                                        <td>
-                                            <button className="btn btn-danger btn-sm" onClick={() => deleteRecord(item._id)}>
-                                                <i className="fa fa-trash fs-5"></i>
-                                            </button>
-                                        </td> : ""
-                                    }
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+          {/* Page Heading */}
+          <div className="page-heading">
+            <div className="page-heading-copy">
+              <span className="page-icon">
+                <i className="bi bi-briefcase" aria-hidden="true"></i>
+              </span>
+              <div>
+                <p className="eyebrow mb-1">Management</p>
+                <h1 className="h3 mb-1">Services</h1>
+                <p className="text-muted mb-0">Review and manage your services.</p>
+              </div>
             </div>
-        </>
-    );
+            <div className="heading-actions">
+              <Link className="btn btn-primary btn-sm" to="/service/create">
+                <i className="bi bi-plus-circle" aria-hidden="true"></i> Add Service
+              </Link>
+            </div>
+          </div>
+
+          {/* Metric Cards */}
+          <section className="row g-3 mt-2 mb-1" aria-label="Service summary">
+            <div className="col-12 col-sm-6 col-xl-4">
+              <article className="metric-card text-white">
+                <div className="metric-top">
+                  <span className="metric-label">Total</span>
+                  <span className="metric-icon"><i className="bi bi-briefcase-fill"></i></span>
+                </div>
+                <div className="metric-value">{totalCount}</div>
+                <div className="metric-meta"><span>all</span><span>services</span></div>
+              </article>
+            </div>
+            <div className="col-12 col-sm-6 col-xl-4">
+              <article className="metric-card text-white">
+                <div className="metric-top">
+                  <span className="metric-label">Active</span>
+                  <span className="metric-icon"><i className="bi bi-check-circle-fill"></i></span>
+                </div>
+                <div className="metric-value">{activeCount}</div>
+                <div className="metric-meta"><span>published</span><span>on site</span></div>
+              </article>
+            </div>
+            <div className="col-12 col-sm-6 col-xl-4">
+              <article className="metric-card">
+                <div className="metric-top">
+                  <span className="metric-label">Inactive</span>
+                  <span className="metric-icon"><i className="bi bi-eye-slash-fill"></i></span>
+                </div>
+                <div className="metric-value">{inactiveCount}</div>
+                <div className="metric-meta"><span>hidden</span><span>from site</span></div>
+              </article>
+            </div>
+          </section>
+
+          {/* Table Panel */}
+          <section className="panel mt-3">
+            <div className="panel-header">
+              <div>
+                <h2 className="h5 mb-1 section-title">
+                  <i className="bi bi-table" aria-hidden="true"></i>
+                  <span>Service List</span>
+                </h2>
+                <p className="text-muted mb-0">Search, review, and manage services.</p>
+              </div>
+              <div className="ms-auto" style={{ minWidth: 220 }}>
+                <div className="input-group input-group-sm">
+                  <span className="input-group-text bg-white">
+                    <i className="bi bi-search text-muted"></i>
+                  </span>
+                  <input
+                    type="text"
+                    className="form-control border-start-0"
+                    placeholder="Search services..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                  />
+                  {search && (
+                    <button
+                      className="btn btn-outline-secondary"
+                      type="button"
+                      onClick={() => setSearch("")}
+                      title="Clear search"
+                    >
+                      <i className="bi bi-x"></i>
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="table-responsive">
+              <table className="table align-middle mb-0" id="serviceTable">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Name</th>
+                    <th>Icon</th>
+                    <th>Price</th>
+                    <th>Duration</th>
+                    <th>Category</th>
+                    <th>Technology</th>
+                    <th>Status</th>
+                    <th className="text-end">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredData.length > 0 ? (
+                    filteredData.map((item, index) => (
+                      <tr key={item._id}>
+                        <td>{index + 1}</td>
+                        <td className="fw-semibold">{item.name}</td>
+                        <td>
+                          <i className={`${item.icon} fs-5`} title={item.icon}></i>
+                        </td>
+                        <td>
+                          <span className="badge text-bg-success">₹{item.price}</span>
+                        </td>
+                        <td>{item.duration}</td>
+                        <td>{item.category}</td>
+                        <td>{item.technology}</td>
+                        <td>
+                          <span className={`badge ${item.active ? "text-bg-success" : "text-bg-secondary"}`}>
+                            {item.active ? "Active" : "Inactive"}
+                          </span>
+                        </td>
+                        <td className="text-end">
+                          <div className="act-strip">
+                            <Link
+                              className="act-btn act-btn-edit"
+                              to={`/service/update/${item._id}`}
+                              data-tip="Edit"
+                            >
+                              <i className="bi bi-pencil-square"></i>
+                            </Link>
+                            <span className="act-sep"></span>
+                            <button
+                              className={`act-btn ${item.active ? "act-btn-off" : "act-btn-on"}`}
+                              onClick={() => updateRecord(item._id)}
+                              data-tip={item.active ? "Deactivate" : "Activate"}
+                            >
+                              <i className={`bi ${item.active ? "bi-pause-fill" : "bi-play-fill"}`}></i>
+                            </button>
+                            {localStorage.getItem("role") === "Super Admin" && (
+                              <>
+                                <span className="act-sep"></span>
+                                <button
+                                  className="act-btn act-btn-del"
+                                  onClick={() => deleteRecord(item._id)}
+                                  data-tip="Delete"
+                                >
+                                  <i className="bi bi-trash3-fill"></i>
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="9" className="text-center text-muted py-4">
+                        {search ? `No services found for "${search}"` : "No services available."}
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+      </main>
+    </>
+  );
 }
