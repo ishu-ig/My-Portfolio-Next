@@ -199,7 +199,23 @@ export default function Testimonials() {
   );
 }
 
-function resolveImageSrc(src, fallback = "/img/person/person-m-7.webp") {
+const FALLBACK_AVATARS = [
+  "/img/person/person-m-7.webp",
+  "/img/person/person-f-5.webp",
+  "/img/person/person-m-9.webp",
+  "/img/person/person-f-8.webp",
+  "/img/person/person-f-10.webp",
+];
+
+function getFallbackAvatar(name = "") {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = (hash + name.charCodeAt(i)) % FALLBACK_AVATARS.length;
+  }
+  return FALLBACK_AVATARS[hash] || FALLBACK_AVATARS[0];
+}
+
+function resolveImageSrc(src, fallback) {
   if (!src) return fallback;
   if (Array.isArray(src)) src = src[0];
   if (typeof src === "object" && src !== null) src = src.url || src.path || src.src || "";
@@ -209,14 +225,21 @@ function resolveImageSrc(src, fallback = "/img/person/person-m-7.webp") {
   if (trimmed.startsWith("http://") || trimmed.startsWith("https://") || trimmed.startsWith("/")) {
     return trimmed;
   }
+  const backend = process.env.NEXT_PUBLIC_BACKEND_SERVER || "";
   if (trimmed.startsWith("public/")) {
-    return "/" + trimmed.slice(7);
+    return backend ? `${backend}/${trimmed.slice(7)}` : `/${trimmed.slice(7)}`;
   }
-  return `/${trimmed}`;
+  return backend ? `${backend}/${trimmed}` : `/${trimmed}`;
 }
 
 function TestimonialCard({ t }) {
-  const imgSrc = resolveImageSrc(t.pic, "/img/person/person-m-7.webp");
+  const fallback = getFallbackAvatar(t.name || "");
+  const initialSrc = resolveImageSrc(t.pic, fallback);
+  const [imgSrc, setImgSrc] = useState(initialSrc);
+
+  useEffect(() => {
+    setImgSrc(resolveImageSrc(t.pic, fallback));
+  }, [t.pic, fallback]);
 
   return (
     <div className="tcard">
@@ -242,12 +265,16 @@ function TestimonialCard({ t }) {
           alt={t.name || "Client"}
           width={48}
           height={48}
+          unoptimized={typeof imgSrc === "string" && imgSrc.startsWith("http")}
+          onError={() => setImgSrc(fallback)}
           style={{
             borderRadius: "50%",
             objectFit: "cover",
             border: "2px solid var(--primary-color)",
             boxShadow: "0 2px 10px rgba(var(--accent-rgb), 0.3)",
             flexShrink: 0,
+            width: 48,
+            height: 48,
           }}
         />
         <div>

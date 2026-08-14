@@ -28,9 +28,23 @@ export default function Certificates() {
 
                 .cert-grid {
                     display: grid;
-                    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+                    grid-template-columns: repeat(3, 1fr);
                     gap: 24px;
                     justify-content: center;
+                }
+
+                @media (max-width: 991.98px) {
+                    .cert-grid {
+                        grid-template-columns: repeat(2, 1fr);
+                        gap: 20px;
+                    }
+                }
+
+                @media (max-width: 639.98px) {
+                    .cert-grid {
+                        grid-template-columns: 1fr;
+                        gap: 18px;
+                    }
                 }
 
                 .cert-card {
@@ -217,7 +231,8 @@ export default function Certificates() {
                                         src={cert.pic && typeof cert.pic === "string" && (cert.pic.startsWith("http") || cert.pic.startsWith("/")) ? cert.pic : "/img/portfolio/portfolio-1.webp"}
                                         alt={cert.name}
                                         fill
-                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 45vw, 280px"
+                                        sizes="(max-width: 640px) 100vw, (max-width: 992px) 50vw, 33vw"
+                                        unoptimized={typeof cert.pic === "string" && cert.pic.startsWith("http")}
                                         style={{ objectFit: "cover" }}
                                     />
                                     <div className="cert-img-overlay">
