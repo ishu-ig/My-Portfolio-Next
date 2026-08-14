@@ -33,6 +33,10 @@ const PortfolioSchema = new mongoose.Schema({
         type: String,
         default: ""
     },
+    adminUrl: {
+        type: String,
+        default: ""
+    },
     githubRepo: {
         type: String,
         default: ""

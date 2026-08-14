@@ -95,6 +95,7 @@ async function updateRecord(req, res) {
         data.category         = req.body.category         ?? data.category
         data.tech             = req.body.tech             ?? data.tech
         data.liveUrl          = req.body.liveUrl          ?? data.liveUrl
+        data.adminUrl         = req.body.adminUrl         ?? data.adminUrl
         data.githubRepo       = req.body.githubRepo       ?? data.githubRepo
         data.active           = req.body.active           ?? data.active
 

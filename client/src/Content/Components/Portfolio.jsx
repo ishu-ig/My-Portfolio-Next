@@ -247,7 +247,7 @@ export default function Portfolio() {
 
             <section id="portfolio" className="pf-section">
                 <div className="container">
-                    
+
                     {/* Header */}
                     <div className="text-center mb-5" data-aos="fade-up">
                         <span className="section-badge">
@@ -299,7 +299,7 @@ export default function Portfolio() {
                                             loading={index < 3 ? undefined : "lazy"}
                                         />
                                         <span className="pf-badge">{item.category || "Project"}</span>
-                                        
+
                                         <div className="pf-overlay">
                                             {item.liveUrl && (
                                                 <a
@@ -324,7 +324,7 @@ export default function Portfolio() {
 
                                     <div className="pf-card-body">
                                         <h3 className="pf-card-name text-truncate">{item.name}</h3>
-                                        
+
                                         {/* Tech Stack Chips if available */}
                                         {item.tech && (
                                             <div className="mb-2">
@@ -343,17 +343,30 @@ export default function Portfolio() {
                                             >
                                                 Case Study <i className="bi bi-arrow-right"></i>
                                             </Link>
-                                            {item.liveUrl && (
-                                                <a
-                                                    href={item.liveUrl}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="pf-live-link"
-                                                    title="Open live site"
-                                                >
-                                                    <i className="bi bi-globe2"></i>
-                                                </a>
-                                            )}
+                                            <div className="d-flex align-items-center gap-2">
+                                                {item.liveUrl && (
+                                                    <a
+                                                        href={item.liveUrl}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="pf-live-link"
+                                                        title="Open live site"
+                                                    >
+                                                        <i className="bi bi-globe2"></i>
+                                                    </a>
+                                                )}
+                                                {item.adminUrl && (
+                                                    <a
+                                                        href={item.adminUrl}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="pf-live-link"
+                                                        title="Open admin panel"
+                                                    >
+                                                        <i className="bi bi-shield-lock"></i>
+                                                    </a>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

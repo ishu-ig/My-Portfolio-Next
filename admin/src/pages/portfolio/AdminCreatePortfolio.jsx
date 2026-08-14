@@ -13,7 +13,7 @@ const checklist = [
 export default function AdminCreatePortfolio() {
   const [data, setData] = useState({
     name: "", shortDescription: "", longDescription: "",
-    category: "", tech: "", liveUrl: "", githubRepo: "", active: true,
+    category: "", tech: "", liveUrl: "", adminUrl: "", githubRepo: "", active: true,
   });
   const [error, setError] = useState({
     name:             "Name Field is Mandatory",
@@ -37,7 +37,7 @@ export default function AdminCreatePortfolio() {
   function getInputData(e) {
     const name = e.target.name;
     const value = e.target.value;
-    if (name !== "active" && name !== "liveUrl" && name !== "githubRepo") {
+    if (name !== "active" && name !== "liveUrl" && name !== "adminUrl" && name !== "githubRepo") {
       setError((old) => ({ ...old, [name]: formValidator(e) }));
     }
     setData((old) => ({
@@ -105,8 +105,9 @@ export default function AdminCreatePortfolio() {
     formData.append("longDescription",  data.longDescription);
     formData.append("category",         data.category);
     formData.append("tech",             data.tech);
-    formData.append("liveUrl",          data.liveUrl);
-    formData.append("githubRepo",       data.githubRepo);
+    formData.append("liveUrl",          data.liveUrl || "");
+    formData.append("adminUrl",         data.adminUrl || "");
+    formData.append("githubRepo",       data.githubRepo || "");
     formData.append("active",           data.active);
     // ✅ Append every file under the same field name "pic"
     picFiles.forEach((file) => formData.append("pic", file));
@@ -206,15 +207,22 @@ export default function AdminCreatePortfolio() {
                   {show && error.tech && <div className="text-danger small mt-1">{error.tech}</div>}
                 </div>
 
-                {/* Live URL & GitHub */}
-                <div className="col-md-6">
+                {/* Live URL, Admin URL, and GitHub */}
+                <div className="col-md-4">
                   <label className="form-label" htmlFor="liveUrl">
                     Live URL <span className="text-muted fw-normal">(optional)</span>
                   </label>
                   <input id="liveUrl" type="text" name="liveUrl" className="form-control"
                     placeholder="https://yourproject.com" value={data.liveUrl} onChange={getInputData} />
                 </div>
-                <div className="col-md-6">
+                <div className="col-md-4">
+                  <label className="form-label" htmlFor="adminUrl">
+                    Admin URL <span className="text-muted fw-normal">(optional)</span>
+                  </label>
+                  <input id="adminUrl" type="text" name="adminUrl" className="form-control"
+                    placeholder="https://admin.yourproject.com" value={data.adminUrl} onChange={getInputData} />
+                </div>
+                <div className="col-md-4">
                   <label className="form-label" htmlFor="githubRepo">
                     GitHub Repo <span className="text-muted fw-normal">(optional)</span>
                   </label>

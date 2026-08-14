@@ -18,7 +18,7 @@ export default function AdminUpdatePortfolio() {
 
   const [data, setData] = useState({
     name: "", shortDescription: "", longDescription: "",
-    category: "", tech: "", liveUrl: "", githubRepo: "", active: true,
+    category: "", tech: "", liveUrl: "", adminUrl: "", githubRepo: "", active: true,
   });
   const [error, setError] = useState({
     name: "", pic: "", shortDescription: "", longDescription: "", category: "", tech: "",
@@ -38,7 +38,7 @@ export default function AdminUpdatePortfolio() {
   function getInputData(e) {
     const name  = e.target.name;
     const value = e.target.value;
-    if (name !== "active" && name !== "liveUrl" && name !== "githubRepo") {
+    if (name !== "active" && name !== "liveUrl" && name !== "adminUrl" && name !== "githubRepo") {
       setError((old) => ({ ...old, [name]: formValidator(e) }));
     }
     setData((old) => ({
@@ -121,8 +121,9 @@ export default function AdminUpdatePortfolio() {
     formData.append("longDescription", data.longDescription);
     formData.append("category",        data.category);
     formData.append("tech",            data.tech);
-    formData.append("liveUrl",         data.liveUrl);
-    formData.append("githubRepo",      data.githubRepo);
+    formData.append("liveUrl",         data.liveUrl || "");
+    formData.append("adminUrl",        data.adminUrl || "");
+    formData.append("githubRepo",      data.githubRepo || "");
     formData.append("active",          data.active);
 
     // ✅ Send existing URLs to keep (backend will delete the rest)
@@ -140,7 +141,7 @@ export default function AdminUpdatePortfolio() {
     if (PortfolioStateData.length) {
       const item = PortfolioStateData.find((x) => x._id === _id);
       if (item) {
-        setData({ ...item });
+        setData({ ...item, adminUrl: item.adminUrl || "" });
         // ✅ Populate existing images
         setKeepPic(item.pic ?? (item.pic ? [item.pic] : []));
       }
@@ -234,15 +235,22 @@ export default function AdminUpdatePortfolio() {
                   {show && error.tech && <div className="text-danger small mt-1">{error.tech}</div>}
                 </div>
 
-                {/* Live URL & GitHub */}
-                <div className="col-md-6">
+                {/* Live URL, Admin URL & GitHub */}
+                <div className="col-md-4">
                   <label className="form-label" htmlFor="liveUrl">
                     Live URL <span className="text-muted fw-normal">(optional)</span>
                   </label>
                   <input id="liveUrl" type="text" name="liveUrl" className="form-control"
                     placeholder="https://yourproject.com" value={data.liveUrl} onChange={getInputData} />
                 </div>
-                <div className="col-md-6">
+                <div className="col-md-4">
+                  <label className="form-label" htmlFor="adminUrl">
+                    Admin URL <span className="text-muted fw-normal">(optional)</span>
+                  </label>
+                  <input id="adminUrl" type="text" name="adminUrl" className="form-control"
+                    placeholder="https://admin.yourproject.com" value={data.adminUrl} onChange={getInputData} />
+                </div>
+                <div className="col-md-4">
                   <label className="form-label" htmlFor="githubRepo">
                     GitHub Repo <span className="text-muted fw-normal">(optional)</span>
                   </label>

@@ -61,8 +61,8 @@ export default function Skills() {
   const dispatch = useDispatch();
   const [activeTab, setActiveTab] = useState("all");
   const [hoveredSkill, setHoveredSkill] = useState(null);
-  const [modalPos, setModalPos] = useState({ top: 0, left: 0 });
-  const [modalVisible, setModalVisible] = useState(false);
+  const [popoverStyle, setPopoverStyle] = useState({ top: 0, left: 0, showAbove: false });
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     dispatch(getSkill());
@@ -95,15 +95,38 @@ export default function Skills() {
 
   function handleMouseEnter(e, skill) {
     const rect = e.currentTarget.getBoundingClientRect();
+    const popoverHeight = 180;
+    const popoverWidth = 320;
+    
+    // Check if there's room below or if it should show above
+    const showAbove = rect.bottom + popoverHeight > window.innerHeight && rect.top > popoverHeight;
+    
+    // Calculate clamped horizontal position
+    let left = rect.left + rect.width / 2;
+    if (left - popoverWidth / 2 < 16) {
+      left = popoverWidth / 2 + 16;
+    } else if (left + popoverWidth / 2 > window.innerWidth - 16) {
+      left = window.innerWidth - popoverWidth / 2 - 16;
+    }
+
+    const top = showAbove ? rect.top - 12 : rect.bottom + 12;
+
+    setPopoverStyle({ top, left, showAbove });
     setHoveredSkill(skill);
-    setModalPos({ top: rect.bottom + window.scrollY + 10, left: rect.left + window.scrollX + rect.width / 2 });
-    setModalVisible(true);
+    setIsVisible(true);
   }
 
   function handleMouseLeave() {
-    setModalVisible(false);
+    setIsVisible(false);
     setHoveredSkill(null);
   }
+
+  const getProficiencyLabel = (lvl) => {
+    if (lvl >= 90) return "Mastery";
+    if (lvl >= 80) return "Advanced";
+    if (lvl >= 70) return "Proficient";
+    return "Familiar";
+  };
 
   return (
     <section id="skills" className="skills-section">
@@ -119,7 +142,7 @@ export default function Skills() {
           </svg>
         </div>
         <p className="section-subtitle mb-4">
-          Core technical stack, modern frameworks, and engineering tools.
+          Core technical stack, modern frameworks, and engineering tools. Hover over any skill to learn more.
         </p>
 
         {/* Category Filter Pills */}
@@ -156,6 +179,10 @@ export default function Skills() {
                   className="skill-card-minimal"
                   onMouseEnter={(e) => handleMouseEnter(e, skill)}
                   onMouseLeave={handleMouseLeave}
+                  onClick={(e) => handleMouseEnter(e, skill)}
+                  tabIndex={0}
+                  role="button"
+                  aria-label={`${skill.name}: ${skill.level}% proficiency`}
                   style={{ cursor: "pointer", position: "relative" }}
                 >
                   {/* Minimal Icon Badge */}
@@ -197,44 +224,51 @@ export default function Skills() {
         </div>
       </div>
 
-      {/* Floating Minimal Description Tooltip */}
-      {modalVisible && hoveredSkill && (
+      {/* Floating Hover Description Modal / Popover */}
+      {isVisible && hoveredSkill && (
         <div
-          className="skill-hover-modal"
+          className="skill-hover-popover"
           style={{
-            position: "absolute",
-            top: modalPos.top,
-            left: modalPos.left,
-            transform: "translateX(-50%)",
-            zIndex: 9999,
+            position: "fixed",
+            top: popoverStyle.top,
+            left: popoverStyle.left,
+            transform: popoverStyle.showAbove ? "translate(-50%, -100%)" : "translate(-50%, 0)",
+            zIndex: 99999,
             pointerEvents: "none",
           }}
         >
-          <div
-            style={{
-              background: "var(--card-bg)",
-              border: "1px solid var(--card-border)",
-              borderRadius: "var(--radius-sm, 10px)",
-              boxShadow: "var(--shadow-lg)",
-              padding: "12px 16px",
-              maxWidth: 280,
-              minWidth: 200,
-              backdropFilter: "blur(12px)",
-              animation: "modalIn 0.15s ease-out",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-              <i className={getSkillIcon(hoveredSkill)} style={{ fontSize: "1.1rem", color: "var(--primary-color)" }}></i>
-              <div style={{ fontWeight: 700, fontSize: "0.9rem", color: "var(--text-color)" }}>
-                {hoveredSkill.name}
+          <div className="skill-popover-card">
+            {/* Header */}
+            <div className="d-flex align-items-center gap-3 mb-2">
+              <div className="skill-popover-icon">
+                <i className={getSkillIcon(hoveredSkill)}></i>
               </div>
-              <span style={{ marginLeft: "auto", fontSize: "0.76rem", fontWeight: 700, color: "var(--text-muted)", fontFamily: "'DM Mono', monospace" }}>
-                {hoveredSkill.level}%
-              </span>
+              <div style={{ flex: 1, minWidth: 0, textAlign: "left" }}>
+                <div className="d-flex align-items-center justify-content-between gap-2">
+                  <h4 className="skill-popover-title text-truncate m-0">
+                    {hoveredSkill.name}
+                  </h4>
+                  <span className="skill-popover-badge">
+                    {getProficiencyLabel(hoveredSkill.level)}
+                  </span>
+                </div>
+                <div className="d-flex align-items-center gap-2 mt-1">
+                  <div className="skill-popover-bar-wrap">
+                    <div
+                      className="skill-popover-bar"
+                      style={{ width: `${hoveredSkill.level}%` }}
+                    ></div>
+                  </div>
+                  <span className="skill-popover-pct">
+                    {hoveredSkill.level}%
+                  </span>
+                </div>
+              </div>
             </div>
 
-            <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", lineHeight: 1.5, margin: 0 }}>
-              {hoveredSkill.description || "Core technical proficiency."}
+            {/* Description Body */}
+            <p className="skill-popover-desc m-0 text-start">
+              {hoveredSkill.description || `Extensive hands-on experience and production competence with ${hoveredSkill.name}.`}
             </p>
           </div>
         </div>
@@ -303,9 +337,96 @@ export default function Skills() {
           border-radius: var(--radius-pill);
           transition: width 0.8s ease-out;
         }
-        @keyframes modalIn {
-          from { opacity: 0; transform: translateX(-50%) translateY(-4px); }
-          to   { opacity: 1; transform: translateX(-50%) translateY(0);    }
+
+        /* Hover Popover Modal Card */
+        .skill-hover-popover {
+          width: 320px;
+          max-width: calc(100vw - 32px);
+          animation: popoverFadeIn 0.2s cubic-bezier(0.34, 1.4, 0.64, 1) forwards;
+        }
+
+        .skill-popover-card {
+          background: var(--card-bg);
+          border: 1px solid var(--card-border);
+          border-radius: var(--radius-md, 14px);
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(var(--accent-rgb), 0.15);
+          padding: 16px 18px;
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+        }
+
+        .skill-popover-icon {
+          width: 42px;
+          height: 42px;
+          border-radius: 10px;
+          background: rgba(var(--accent-rgb), 0.12);
+          border: 1px solid rgba(var(--accent-rgb), 0.25);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 1.25rem;
+          color: var(--primary-color);
+          flex-shrink: 0;
+        }
+
+        .skill-popover-title {
+          font-size: 0.95rem;
+          font-weight: 800;
+          color: var(--text-color);
+        }
+
+        .skill-popover-badge {
+          font-size: 0.68rem;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          padding: 2px 8px;
+          border-radius: var(--radius-pill);
+          background: var(--primary-gradient);
+          color: #ffffff;
+          box-shadow: 0 2px 8px rgba(var(--accent-rgb), 0.3);
+        }
+
+        .skill-popover-bar-wrap {
+          flex: 1;
+          height: 5px;
+          background: var(--border-color);
+          border-radius: var(--radius-pill);
+          overflow: hidden;
+        }
+
+        .skill-popover-bar {
+          height: 100%;
+          background: var(--primary-gradient);
+          border-radius: var(--radius-pill);
+          transition: width 0.4s ease;
+        }
+
+        .skill-popover-pct {
+          font-family: 'DM Mono', monospace;
+          font-size: 0.76rem;
+          font-weight: 700;
+          color: var(--primary-color);
+        }
+
+        .skill-popover-desc {
+          font-size: 0.84rem;
+          line-height: 1.6;
+          color: var(--text-muted);
+          margin-top: 8px;
+          border-top: 1px solid var(--border-color);
+          padding-top: 10px;
+        }
+
+        @keyframes popoverFadeIn {
+          from {
+            opacity: 0;
+            transform: scale(0.92);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
         }
       `}</style>
     </section>

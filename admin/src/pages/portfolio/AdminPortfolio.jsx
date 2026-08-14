@@ -213,16 +213,21 @@ export default function AdminPortfolio() {
                           <td>{item.category}</td>
                           <td>{item.tech}</td>
                           <td>
-                            <div className="d-flex gap-1">
-                              {item.liveUrl ? (
+                            <div className="d-flex flex-wrap gap-1">
+                              {item.liveUrl && (
                                 <a href={item.liveUrl} target="_blank" rel="noreferrer"
                                   className="badge text-bg-success text-decoration-none">Live</a>
-                              ) : (
-                                <span className="text-muted small">—</span>
+                              )}
+                              {item.adminUrl && (
+                                <a href={item.adminUrl} target="_blank" rel="noreferrer"
+                                  className="badge text-bg-primary text-decoration-none">Admin</a>
                               )}
                               {item.githubRepo && (
                                 <a href={item.githubRepo} target="_blank" rel="noreferrer"
                                   className="badge text-bg-dark text-decoration-none">Code</a>
+                              )}
+                              {!item.liveUrl && !item.adminUrl && !item.githubRepo && (
+                                <span className="text-muted small">—</span>
                               )}
                             </div>
                           </td>
