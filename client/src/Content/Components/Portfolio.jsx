@@ -85,90 +85,95 @@ export default function Portfolio() {
                 @media (max-width: 991.98px) {
                     .pf-grid {
                         grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-                        gap: 18px;
+                        gap: 16px;
                     }
                 }
 
                 @media (max-width: 576px) {
                     .pf-section {
-                        padding: 50px 0;
+                        padding: 45px 0;
                     }
                     .pf-filters {
                         gap: 6px;
-                        margin-bottom: 28px;
+                        margin-bottom: 24px;
                     }
                     .pf-pill {
-                        padding: 6px 14px;
-                        font-size: 0.76rem;
+                        padding: 5px 12px;
+                        font-size: 0.74rem;
                     }
                     .pf-grid {
                         grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
                         gap: 10px;
                     }
+                    .pf-grid > :last-child:nth-child(odd) {
+                        grid-column: 1 / -1 !important;
+                        justify-self: center !important;
+                        width: calc(50% - 5px) !important;
+                        max-width: calc(50% - 5px) !important;
+                    }
                     .pf-img-wrap {
-                        height: 120px;
+                        height: 110px;
                     }
                     .pf-badge {
-                        top: 6px;
-                        left: 6px;
-                        font-size: 0.58rem;
+                        top: 5px;
+                        left: 5px;
+                        font-size: 0.55rem;
                         padding: 2px 6px;
-                        max-width: calc(100% - 12px);
+                        max-width: calc(100% - 10px);
                         white-space: nowrap;
                         overflow: hidden;
                         text-overflow: ellipsis;
-                    }
-                    .pf-card-body {
-                        padding: 10px 8px;
-                    }
-                    .pf-card-name {
-                        font-size: 0.84rem;
-                        margin-bottom: 4px;
-                        line-height: 1.25;
-                        white-space: nowrap;
-                        overflow: hidden;
-                        text-overflow: ellipsis;
-                        width: 100%;
-                    }
-                    .pf-tech-pill {
-                        font-size: 0.58rem;
-                        padding: 1px 4px;
-                        margin-right: 2px;
-                        margin-bottom: 2px;
-                        white-space: nowrap;
-                    }
-                    .pf-card-footer {
-                        padding-top: 8px;
-                        min-width: 0;
-                    }
-                    .pf-view-link {
-                        font-size: 0.72rem;
-                        gap: 2px;
-                        white-space: nowrap;
-                    }
-                    .pf-live-link {
-                        font-size: 0.82rem;
-                        flex-shrink: 0;
-                    }
-                    .pf-action-btn {
-                        width: 32px;
-                        height: 32px;
-                        font-size: 0.8rem;
-                    }
-                }
-
-                @media (max-width: 360px) {
-                    .pf-grid {
-                        gap: 8px;
-                    }
-                    .pf-img-wrap {
-                        height: 100px;
                     }
                     .pf-card-body {
                         padding: 8px 6px;
                     }
                     .pf-card-name {
+                        font-size: 0.8rem;
+                        margin-bottom: 4px;
+                        line-height: 1.2;
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        width: 100%;
+                    }
+                    .pf-tech-wrap {
+                        display: none !important;
+                    }
+                    .pf-card-footer {
+                        padding-top: 6px;
+                        margin-top: auto;
+                    }
+                    .pf-view-link {
+                        font-size: 0.7rem;
+                        gap: 2px;
+                        white-space: nowrap;
+                    }
+                    .pf-live-link {
                         font-size: 0.78rem;
+                        flex-shrink: 0;
+                    }
+                    .pf-action-btn {
+                        width: 28px;
+                        height: 28px;
+                        font-size: 0.75rem;
+                    }
+                }
+
+                @media (max-width: 360px) {
+                    .pf-grid {
+                        gap: 6px;
+                    }
+                    .pf-img-wrap {
+                        height: 95px;
+                    }
+                    .pf-card-body {
+                        padding: 6px 4px;
+                    }
+                    .pf-card-name {
+                        font-size: 0.74rem;
+                    }
+                    .pf-view-link {
+                        font-size: 0.66rem;
                     }
                 }
 
@@ -412,7 +417,7 @@ export default function Portfolio() {
 
                                         {/* Tech Stack Chips if available */}
                                         {item.tech && (
-                                            <div className="mb-2">
+                                            <div className="pf-tech-wrap mb-2">
                                                 {item.tech.split(',').slice(0, 3).map((t, idx) => (
                                                     <span key={idx} className="pf-tech-pill">
                                                         {t.trim()}

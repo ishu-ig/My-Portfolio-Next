@@ -48,6 +48,12 @@ export default function Certificates() {
                         grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
                         gap: 10px;
                     }
+                    .cert-grid > :last-child:nth-child(odd) {
+                        grid-column: 1 / -1 !important;
+                        justify-self: center !important;
+                        width: calc(50% - 5px) !important;
+                        max-width: calc(50% - 5px) !important;
+                    }
                     .cert-img-wrap {
                         height: 115px;
                     }

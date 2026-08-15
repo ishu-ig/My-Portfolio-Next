@@ -732,7 +732,23 @@ a {
 
 @media (max-width: 576px) {
     .about-info-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 8px !important;
+    }
+    .about-info-tile {
+        padding: 8px 8px !important;
+        gap: 8px !important;
+    }
+    .about-tile-icon {
+        width: 28px !important;
+        height: 28px !important;
+        font-size: 0.9rem !important;
+    }
+    .about-tile-label {
+        font-size: 0.65rem !important;
+    }
+    .about-tile-val {
+        font-size: 0.76rem !important;
     }
 }
 
@@ -1047,7 +1063,7 @@ a {
    ============================================================ */
 .achievement-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 20px;
     max-width: 1000px;
     margin: 40px auto 0;
@@ -1061,6 +1077,9 @@ a {
     text-align: center;
     position: relative;
     overflow: hidden;
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
     transition: transform var(--ease-smooth), box-shadow var(--ease-smooth), border-color var(--ease-smooth);
 }
 
@@ -1121,6 +1140,44 @@ a {
     margin: 0;
 }
 
+@media (max-width: 991.98px) {
+    .achievement-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 14px;
+    }
+}
+
+@media (max-width: 576px) {
+    .achievement-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 8px !important;
+        margin-top: 20px;
+    }
+    .achievement-card-v2 {
+        padding: 12px 6px !important;
+        border-radius: var(--radius-md) !important;
+    }
+    .achievement-icon-circle {
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 0.95rem !important;
+        margin-bottom: 6px !important;
+        border-radius: 8px !important;
+    }
+    .achievement-number {
+        font-size: 1.25rem !important;
+        margin-bottom: 2px !important;
+    }
+    .achievement-label {
+        font-size: 0.64rem !important;
+        letter-spacing: 0.02em !important;
+        line-height: 1.2 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+}
+
 /* ============================================================
    SERVICES SECTION
    ============================================================ */
@@ -1128,6 +1185,35 @@ a {
     padding: 100px 0;
     background-color: var(--bg-alt);
     position: relative;
+}
+
+.services-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+    justify-content: center;
+    width: 100%;
+}
+
+@media (max-width: 991.98px) {
+    .services-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 16px;
+    }
+}
+
+@media (max-width: 768px) {
+    .services-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 12px !important;
+    }
+}
+
+@media (max-width: 576px) {
+    .services-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 8px !important;
+    }
 }
 
 .service-card {
@@ -1205,34 +1291,34 @@ a {
 
 @media (max-width: 576px) {
     .services-section {
-        padding: 50px 0;
+        padding: 45px 0;
     }
     .service-card {
-        padding: 14px 10px !important;
+        padding: 10px 8px !important;
         border-radius: var(--radius-md) !important;
         min-width: 0 !important;
         width: 100% !important;
     }
     .service-icon-box {
-        width: 38px !important;
-        height: 38px !important;
-        font-size: 1.1rem !important;
-        margin-bottom: 10px !important;
-        border-radius: 10px !important;
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 0.95rem !important;
+        margin-bottom: 6px !important;
+        border-radius: 8px !important;
     }
     .service-title {
-        font-size: 0.88rem !important;
-        margin-bottom: 4px !important;
-        line-height: 1.25 !important;
+        font-size: 0.8rem !important;
+        margin-bottom: 3px !important;
+        line-height: 1.2 !important;
         white-space: nowrap !important;
         overflow: hidden !important;
         text-overflow: ellipsis !important;
         width: 100% !important;
     }
     .service-description {
-        font-size: 0.74rem !important;
-        line-height: 1.4 !important;
-        margin-bottom: 10px !important;
+        font-size: 0.7rem !important;
+        line-height: 1.3 !important;
+        margin-bottom: 6px !important;
         display: -webkit-box !important;
         -webkit-line-clamp: 2 !important;
         -webkit-box-orient: vertical !important;
@@ -1240,17 +1326,17 @@ a {
         flex-grow: 1 !important;
     }
     .service-card-footer {
-        padding-top: 8px !important;
+        padding-top: 6px !important;
         min-width: 0 !important;
     }
     .service-action-link {
-        font-size: 0.72rem !important;
+        font-size: 0.68rem !important;
         gap: 2px !important;
         white-space: nowrap !important;
     }
     .service-price-badge {
-        font-size: 0.66rem !important;
-        padding: 2px 6px !important;
+        font-size: 0.62rem !important;
+        padding: 1px 5px !important;
         border-radius: 999px !important;
         flex-shrink: 0 !important;
     }
@@ -1258,15 +1344,15 @@ a {
 
 @media (max-width: 360px) {
     .service-card {
-        padding: 10px 8px !important;
+        padding: 8px 6px !important;
     }
     .service-icon-box {
-        width: 32px !important;
-        height: 32px !important;
-        font-size: 0.95rem !important;
+        width: 28px !important;
+        height: 28px !important;
+        font-size: 0.85rem !important;
     }
     .service-title {
-        font-size: 0.82rem !important;
+        font-size: 0.75rem !important;
     }
     .service-action-link {
         font-size: 0.68rem !important;
@@ -1395,6 +1481,37 @@ footer .social-icon-btn:hover {
 }
 
 /* ============================================================
+   BLOG SECTION & GRID
+   ============================================================ */
+.blog-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+    width: 100%;
+}
+
+@media (max-width: 991.98px) {
+    .blog-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 16px;
+    }
+}
+
+@media (max-width: 768px) {
+    .blog-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 12px !important;
+    }
+}
+
+@media (max-width: 576px) {
+    .blog-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 8px !important;
+    }
+}
+
+/* ============================================================
    SCROLL TO TOP PROGRESS BUTTON
    ============================================================ */
 .scroll-top-progress {
@@ -1470,25 +1587,66 @@ footer .social-icon-btn:hover {
 }
 
 /* ============================================================
-   MOBILE RESPONSIVE 2-IN-A-ROW (PORTFOLIO, CERTIFICATES, SERVICES, TESTIMONIALS)
+   MOBILE RESPONSIVE 2-IN-A-ROW (PORTFOLIO, CERTIFICATES, SERVICES, TESTIMONIALS, ACHIEVEMENTS, BLOG, ABOUT)
    ============================================================ */
 @media (max-width: 768px) {
     .pf-grid,
-    .cert-grid {
+    .cert-grid,
+    .achievement-grid,
+    .services-grid,
+    .blog-grid,
+    .sd-related-grid,
+    .about-info-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
         gap: 12px !important;
+    }
+
+    .pf-grid > :last-child:nth-child(odd),
+    .cert-grid > :last-child:nth-child(odd),
+    .achievement-grid > :last-child:nth-child(odd),
+    .services-grid > :last-child:nth-child(odd),
+    .blog-grid > :last-child:nth-child(odd),
+    .sd-related-grid > :last-child:nth-child(odd),
+    .about-info-grid > :last-child:nth-child(odd) {
+        grid-column: 1 / -1 !important;
+        justify-self: center !important;
+        width: calc(50% - 6px) !important;
+        max-width: calc(50% - 6px) !important;
     }
 }
 
 @media (max-width: 576px) {
     .pf-grid,
-    .cert-grid {
+    .cert-grid,
+    .achievement-grid,
+    .services-grid,
+    .blog-grid,
+    .sd-related-grid,
+    .about-info-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
         gap: 8px !important;
     }
     .pf-card,
-    .cert-card {
+    .cert-card,
+    .achievement-card-v2,
+    .service-card,
+    .blog-card-v2,
+    .sd-related-card,
+    .about-info-tile {
         min-width: 0 !important;
         width: 100% !important;
+    }
+
+    .pf-grid > :last-child:nth-child(odd),
+    .cert-grid > :last-child:nth-child(odd),
+    .achievement-grid > :last-child:nth-child(odd),
+    .services-grid > :last-child:nth-child(odd),
+    .blog-grid > :last-child:nth-child(odd),
+    .sd-related-grid > :last-child:nth-child(odd),
+    .about-info-grid > :last-child:nth-child(odd) {
+        grid-column: 1 / -1 !important;
+        justify-self: center !important;
+        width: calc(50% - 4px) !important;
+        max-width: calc(50% - 4px) !important;
     }
 }

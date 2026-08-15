@@ -119,7 +119,113 @@ export default function ServiceDetail() {
 
     return (
         <>
-            <section style={{ padding: "70px 16px 60px", backgroundColor: "var(--bg-color)", color: "var(--text-color)" }}>
+            <style>{`
+                .sd-meta-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                    gap: 16px;
+                    margin-bottom: 36px;
+                }
+                .sd-related-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+                    gap: 20px;
+                    max-width: 960px;
+                    margin: 0 auto;
+                }
+                .sd-related-card {
+                    background: var(--card-bg);
+                    border: 1px solid var(--card-border);
+                    border-radius: var(--radius-lg);
+                    padding: 24px;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 12px;
+                    box-shadow: var(--shadow-sm);
+                    min-width: 0;
+                    width: 100%;
+                    box-sizing: border-box;
+                }
+                .sd-related-icon {
+                    width: 44px;
+                    height: 44px;
+                    border-radius: 12px;
+                    background: var(--primary-gradient);
+                    color: #ffffff;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 1.3rem;
+                    flex-shrink: 0;
+                }
+                .sd-related-title {
+                    font-size: 1.1rem;
+                    font-weight: 700;
+                    color: var(--text-color);
+                    margin: 0;
+                }
+                .sd-related-desc {
+                    font-size: 0.88rem;
+                    color: var(--text-muted);
+                    margin: 0;
+                    line-height: 1.6;
+                    display: -webkit-box;
+                    -webkit-line-clamp: 2;
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
+                }
+                @media (max-width: 576px) {
+                    .sd-meta-grid {
+                        grid-template-columns: repeat(2, minmax(0, 1fr));
+                        gap: 10px;
+                        margin-bottom: 24px;
+                    }
+                    .sd-related-grid {
+                        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                        gap: 10px;
+                    }
+                    .sd-related-grid > :last-child:nth-child(odd) {
+                        grid-column: 1 / -1 !important;
+                        justify-self: center !important;
+                        width: calc(50% - 5px) !important;
+                        max-width: calc(50% - 5px) !important;
+                    }
+                    .sd-related-card {
+                        padding: 12px 10px;
+                        gap: 8px;
+                    }
+                    .sd-related-icon {
+                        width: 34px;
+                        height: 34px;
+                        font-size: 1rem;
+                        border-radius: 8px;
+                    }
+                    .sd-related-title {
+                        font-size: 0.84rem;
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                    }
+                    .sd-related-desc {
+                        font-size: 0.72rem;
+                        line-height: 1.35;
+                        -webkit-line-clamp: 2;
+                    }
+                }
+                @media (max-width: 360px) {
+                    .sd-related-grid {
+                        gap: 6px;
+                    }
+                    .sd-related-card {
+                        padding: 8px 6px;
+                    }
+                    .sd-related-title {
+                        font-size: 0.78rem;
+                    }
+                }
+            `}</style>
+
+            <section style={{ padding: "70px 16px 50px", backgroundColor: "var(--bg-color)", color: "var(--text-color)" }}>
                 <div style={{ maxWidth: 900, margin: "0 auto" }}>
 
                     {/* Breadcrumbs */}
@@ -131,34 +237,32 @@ export default function ServiceDetail() {
                         <span className="text-primary fw-bold text-truncate">{data.name}</span>
                     </div>
 
+                    {/* Header Banner */}
                     <div className="text-center mb-5">
-                        <span className="section-badge">
-                            <i className="bi bi-gear-fill"></i>
-                            Service Solution
+                        <div style={{ width: 68, height: 68, borderRadius: 20, background: "var(--primary-gradient)", color: "#ffffff", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: "2rem", marginBottom: 16, boxShadow: "0 10px 25px rgba(var(--accent-rgb), 0.35)" }}>
+                            <i className={data.icon || "bi bi-gear-wide-connected"}></i>
+                        </div>
+                        <span className="section-badge d-inline-flex">
+                            <i className="bi bi-patch-check-fill"></i> Professional Service
                         </span>
                         <h1 style={{ fontSize: "clamp(1.8rem, 4vw, 2.6rem)", fontWeight: 800, color: "var(--text-color)", margin: "8px 0 14px", lineHeight: 1.2 }}>
                             {data.name}
                         </h1>
-                        <div className="title-shape">
-                            <svg viewBox="0 0 200 20" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M 0,10 C 40,0 60,20 100,10 C 140,0 160,20 200,10" fill="none" stroke="currentColor" strokeWidth="2"></path>
-                            </svg>
-                        </div>
-                        <p style={{ fontSize: "1.1rem", color: "var(--text-muted)", lineHeight: 1.75, maxWidth: 660, margin: "0 auto" }}>
+                        <p style={{ fontSize: "1.05rem", color: "var(--text-muted)", maxWidth: 640, margin: "0 auto", lineHeight: 1.7 }}>
                             {data.shortDescription}
                         </p>
                     </div>
 
                     {/* Meta cards */}
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16, marginBottom: 36 }}>
+                    <div className="sd-meta-grid">
                         {metaItems.map((m, i) => (
-                            <div key={i} style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: "var(--radius-md)", padding: "16px 20px", display: "flex", alignItems: "center", gap: 14, boxShadow: "var(--shadow-sm)" }}>
-                                <div style={{ width: 44, height: 44, borderRadius: 12, background: "rgba(var(--accent-rgb), 0.12)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "var(--primary-color)", fontSize: "1.2rem" }}>
+                            <div key={i} style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: "var(--radius-md)", padding: "12px 14px", display: "flex", alignItems: "center", gap: 10, boxShadow: "var(--shadow-sm)", minWidth: 0 }}>
+                                <div style={{ width: 38, height: 38, borderRadius: 10, background: "rgba(var(--accent-rgb), 0.12)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "var(--primary-color)", fontSize: "1.1rem" }}>
                                     <i className={`bi ${m.icon}`}></i>
                                 </div>
-                                <div>
-                                    <p style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--primary-color)", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 2px" }}>{m.label}</p>
-                                    <p style={{ fontSize: "0.95rem", fontWeight: 600, color: "var(--text-color)", margin: 0 }}>{m.value}</p>
+                                <div style={{ minWidth: 0 }}>
+                                    <p style={{ fontSize: "0.68rem", fontWeight: 700, color: "var(--primary-color)", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 1px" }}>{m.label}</p>
+                                    <p style={{ fontSize: "0.86rem", fontWeight: 600, color: "var(--text-color)", margin: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{m.value}</p>
                                 </div>
                             </div>
                         ))}
@@ -166,10 +270,10 @@ export default function ServiceDetail() {
 
                     {/* Service Description Box */}
                     {data.longDescription && (
-                        <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: "var(--radius-lg)", padding: "32px", marginBottom: 36, boxShadow: "var(--shadow-sm)" }}>
-                            <h3 className="fw-bold mb-3" style={{ fontSize: "1.3rem", color: "var(--text-color)" }}>Service Scope & Execution</h3>
+                        <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: "var(--radius-lg)", padding: "24px", marginBottom: 36, boxShadow: "var(--shadow-sm)" }}>
+                            <h3 className="fw-bold mb-3" style={{ fontSize: "1.2rem", color: "var(--text-color)" }}>Service Scope & Execution</h3>
                             <div
-                                style={{ fontSize: "0.96rem", lineHeight: 1.85, color: "var(--text-muted)" }}
+                                style={{ fontSize: "0.94rem", lineHeight: 1.8, color: "var(--text-muted)" }}
                                 dangerouslySetInnerHTML={{ __html: data.longDescription }}
                             />
                         </div>
@@ -177,10 +281,10 @@ export default function ServiceDetail() {
 
                     {/* CTA */}
                     <div className="d-flex gap-3 justify-content-center flex-wrap">
-                        <button onClick={openModal} className="btn btn-primary" style={{ padding: "12px 32px" }}>
+                        <button onClick={openModal} className="btn btn-primary" style={{ padding: "10px 26px" }}>
                             <i className="bi bi-lightning-charge-fill"></i> Request This Service
                         </button>
-                        <Link href="/" className="btn btn-outline-dark">
+                        <Link href="/" className="btn btn-outline-dark" style={{ padding: "10px 20px" }}>
                             <i className="bi bi-arrow-left"></i> Back to Home
                         </Link>
                     </div>
@@ -189,25 +293,23 @@ export default function ServiceDetail() {
 
             {/* Related Services */}
             {relatedData.length > 0 && (
-                <section style={{ padding: "60px 16px 80px", backgroundColor: "var(--bg-alt)" }}>
+                <section style={{ padding: "50px 16px 70px", backgroundColor: "var(--bg-alt)" }}>
                     <div className="container">
                         <div className="text-center mb-4">
-                            <h3 className="fw-bold" style={{ fontSize: "1.6rem", color: "var(--text-color)" }}>Explore Other Services</h3>
-                            <p className="text-muted" style={{ fontSize: "0.9rem" }}>Additional specialized solutions and offerings</p>
+                            <h3 className="fw-bold" style={{ fontSize: "1.4rem", color: "var(--text-color)" }}>Explore Other Services</h3>
+                            <p className="text-muted" style={{ fontSize: "0.85rem" }}>Additional specialized solutions and offerings</p>
                         </div>
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 20, maxWidth: 960, margin: "0 auto" }}>
+                        <div className="sd-related-grid">
                             {relatedData.map(service => (
-                                <div key={service._id}
-                                    style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: "var(--radius-lg)", padding: "24px", display: "flex", flexDirection: "column", gap: 12, boxShadow: "var(--shadow-sm)" }}
-                                >
-                                    <div style={{ width: 44, height: 44, borderRadius: 12, background: "var(--primary-gradient)", color: "#ffffff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.3rem" }}>
+                                <div key={service._id} className="sd-related-card">
+                                    <div className="sd-related-icon">
                                         <i className={service.icon || "bi bi-gear"}></i>
                                     </div>
-                                    <h4 style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--text-color)", margin: 0 }}>{service.name}</h4>
-                                    <p style={{ fontSize: "0.88rem", color: "var(--text-muted)", margin: 0, lineHeight: 1.6, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                                    <h4 className="sd-related-title">{service.name}</h4>
+                                    <p className="sd-related-desc">
                                         {service.shortDescription}
                                     </p>
-                                    <Link href={`/serviceDetail/${service._id}`} style={{ fontSize: "0.86rem", color: "var(--primary-color)", fontWeight: 700, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 4, marginTop: "auto" }}>
+                                    <Link href={`/serviceDetail/${service._id}`} style={{ fontSize: "0.78rem", color: "var(--primary-color)", fontWeight: 700, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 4, marginTop: "auto", whiteSpace: "nowrap" }}>
                                         View Details <i className="bi bi-arrow-right"></i>
                                     </Link>
                                 </div>

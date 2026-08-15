@@ -43,6 +43,36 @@ export default function BlogPage() {
             className="py-5"
             style={{ backgroundColor: "var(--bg-color)", color: "var(--text-color)", minHeight: "85vh" }}
         >
+            <style>{`
+                .blog-grid {
+                    display: grid;
+                    grid-template-columns: repeat(3, minmax(0, 1fr));
+                    gap: 24px;
+                }
+                @media (max-width: 991.98px) {
+                    .blog-grid {
+                        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                        gap: 16px;
+                    }
+                }
+                @media (max-width: 576px) {
+                    .blog-grid {
+                        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                        gap: 10px !important;
+                    }
+                    .blog-grid > :last-child:nth-child(odd) {
+                        grid-column: 1 / -1 !important;
+                        justify-self: center !important;
+                        width: calc(50% - 5px) !important;
+                        max-width: calc(50% - 5px) !important;
+                    }
+                }
+                @media (max-width: 360px) {
+                    .blog-grid {
+                        gap: 8px !important;
+                    }
+                }
+            `}</style>
             <div className="container text-center">
 
                 {/* Breadcrumb */}
@@ -116,20 +146,20 @@ export default function BlogPage() {
                 </div>
 
                 {/* Blog Grid */}
-                <div className="row g-4 justify-content-center">
+                <div className="blog-grid">
                     {filteredBlogs.map((blog, index) => (
                         <div
                             key={blog._id || index}
-                            className="col-12 col-md-6 col-lg-4"
                             data-aos="fade-up"
                             data-aos-delay={(index % 3) * 80}
+                            style={{ minWidth: 0, width: "100%" }}
                         >
                             <BlogCard blog={blog} index={index} />
                         </div>
                     ))}
 
                     {filteredBlogs.length === 0 && (
-                        <div className="col-12 py-5 text-muted">
+                        <div className="col-12 py-5 text-muted" style={{ gridColumn: "1 / -1" }}>
                             <i className="bi bi-file-earmark-x display-4 d-block mb-3 opacity-50"></i>
                             <h5>No articles found</h5>
                             <p>Try searching for a different keyword or select another category.</p>

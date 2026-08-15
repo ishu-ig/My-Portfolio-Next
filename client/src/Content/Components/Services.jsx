@@ -19,6 +19,37 @@ export default function Service() {
 
   return (
     <section id="services" className="services-section">
+      <style>{`
+        .services-grid {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 24px;
+          justify-content: center;
+        }
+        @media (max-width: 991.98px) {
+          .services-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            gap: 16px;
+          }
+        }
+        @media (max-width: 576px) {
+          .services-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            gap: 10px !important;
+          }
+          .services-grid > :last-child:nth-child(odd) {
+            grid-column: 1 / -1 !important;
+            justify-self: center !important;
+            width: calc(50% - 5px) !important;
+            max-width: calc(50% - 5px) !important;
+          }
+        }
+        @media (max-width: 360px) {
+          .services-grid {
+            gap: 8px !important;
+          }
+        }
+      `}</style>
       <div className="container text-center">
         
         {/* Section Header */}
@@ -46,13 +77,13 @@ export default function Service() {
         </div>
 
         {/* Services Grid */}
-        <div className="row g-2 g-sm-3 g-md-4 mt-2 justify-content-center">
+        <div className="services-grid mt-2">
           {activeServices.map((service, index) => (
             <div
-              className="col-6 col-lg-4"
               key={service._id || index}
               data-aos="fade-up"
               data-aos-delay={(index % 3) * 100}
+              style={{ minWidth: 0, width: "100%" }}
             >
               <div className="service-card">
                 <div className="service-icon-box">
@@ -84,7 +115,7 @@ export default function Service() {
           ))}
 
           {activeServices.length === 0 && (
-            <div className="col-12 py-5 text-muted">
+            <div className="py-5 text-muted" style={{ gridColumn: "1 / -1" }}>
               No services listed currently.
             </div>
           )}

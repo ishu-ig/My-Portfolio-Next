@@ -67,10 +67,89 @@ export default function Achievement() {
 
   return (
     <section ref={sectionRef} id="achievements" style={{ padding: "80px 0", backgroundColor: "var(--bg-color)" }}>
+      <style>{`
+        .achievement-grid {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 20px;
+          max-width: 1000px;
+          margin: 40px auto 0;
+        }
+
+        @media (max-width: 991.98px) {
+          .achievement-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            gap: 16px;
+          }
+        }
+
+        @media (max-width: 576px) {
+          #achievements {
+            padding: 45px 0 !important;
+          }
+          .achievement-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            gap: 10px !important;
+            margin-top: 24px;
+          }
+          .achievement-grid > :last-child:nth-child(odd) {
+            grid-column: 1 / -1 !important;
+            justify-self: center !important;
+            width: calc(50% - 5px) !important;
+            max-width: calc(50% - 5px) !important;
+          }
+          .achievement-card-v2 {
+            padding: 14px 8px !important;
+            border-radius: var(--radius-md) !important;
+            min-width: 0 !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+          }
+          .achievement-icon-circle {
+            width: 36px !important;
+            height: 36px !important;
+            font-size: 1.05rem !important;
+            margin-bottom: 8px !important;
+            border-radius: 10px !important;
+          }
+          .achievement-number {
+            font-size: 1.35rem !important;
+            margin-bottom: 2px !important;
+          }
+          .achievement-label {
+            font-size: 0.68rem !important;
+            letter-spacing: 0.03em !important;
+            line-height: 1.2 !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+          }
+        }
+
+        @media (max-width: 360px) {
+          .achievement-grid {
+            gap: 8px !important;
+          }
+          .achievement-card-v2 {
+            padding: 10px 6px !important;
+          }
+          .achievement-icon-circle {
+            width: 32px !important;
+            height: 32px !important;
+            font-size: 0.95rem !important;
+          }
+          .achievement-number {
+            font-size: 1.2rem !important;
+          }
+          .achievement-label {
+            font-size: 0.62rem !important;
+          }
+        }
+      `}</style>
       <div className="container">
 
         {/* Header */}
-        <div className="text-center mb-5" data-aos="fade-up">
+        <div className="text-center mb-4" data-aos="fade-up">
           <span className="section-badge">
             <i className="bi bi-trophy-fill"></i>
             Key Milestones
@@ -83,7 +162,7 @@ export default function Achievement() {
               <path d="M 0,10 C 40,0 60,20 100,10 C 140,0 160,20 200,10" fill="none" stroke="currentColor" strokeWidth="2"></path>
             </svg>
           </div>
-          <p className="section-subtitle">
+          <p className="section-subtitle mb-0">
             Measurable results, key achievements, and performance metrics delivered across multiple domains.
           </p>
         </div>
@@ -108,7 +187,7 @@ export default function Achievement() {
                   ) : (
                     <>
                       {counter.value}
-                      <span style={{ fontSize: "1.3rem", fontWeight: 700 }}>+</span>
+                      <span style={{ fontSize: "1.1rem", fontWeight: 700 }}>+</span>
                     </>
                   )}
                 </div>

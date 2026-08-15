@@ -29,6 +29,13 @@ export default function Blog() {
             id="blog"
             style={{ padding: "95px 0", backgroundColor: "var(--bg-color)", color: "var(--text-color)" }}
         >
+            <style>{`
+                @media (max-width: 576px) {
+                    #blog {
+                        padding: 45px 0 !important;
+                    }
+                }
+            `}</style>
             <div className="container text-center">
 
                 {/* Header */}
@@ -50,7 +57,7 @@ export default function Blog() {
                             />
                         </svg>
                     </div>
-                    <p className="section-subtitle mb-5">
+                    <p className="section-subtitle mb-4">
                         Deep dives into full-stack architecture, React performance patterns, modern CSS, and web development.
                     </p>
                 </div>
@@ -59,16 +66,17 @@ export default function Blog() {
                 <div data-aos="fade-up" data-aos-delay="100">
                     <Swiper
                         modules={[Autoplay, Pagination]}
-                        slidesPerView={1}
-                        spaceBetween={24}
-                        loop={activeBlogs.length > 3}
+                        slidesPerView={2}
+                        spaceBetween={8}
+                        loop={activeBlogs.length > 2}
                         speed={600}
                         autoplay={{ delay: 5000, disableOnInteraction: false, pauseOnMouseEnter: true }}
                         pagination={{ clickable: true }}
                         breakpoints={{
-                            640:  { slidesPerView: 1, spaceBetween: 20 },
-                            768:  { slidesPerView: 2, spaceBetween: 24 },
-                            1024: { slidesPerView: 3, spaceBetween: 28 },
+                            0:    { slidesPerView: 2, spaceBetween: 8 },
+                            576:  { slidesPerView: 2, spaceBetween: 12 },
+                            768:  { slidesPerView: 2, spaceBetween: 16 },
+                            1024: { slidesPerView: 3, spaceBetween: 24 },
                         }}
                         style={{ paddingBottom: 20 }}
                     >
