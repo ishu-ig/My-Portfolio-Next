@@ -224,10 +224,10 @@ export default function Skills() {
         </div>
       </div>
 
-      {/* Floating Hover Description Modal / Popover */}
+      {/* Desktop Floating Hover Popover (>=768px) */}
       {isVisible && hoveredSkill && (
         <div
-          className="skill-hover-popover"
+          className="skill-hover-popover d-none d-md-block"
           style={{
             position: "fixed",
             top: popoverStyle.top,
@@ -270,6 +270,70 @@ export default function Skills() {
             <p className="skill-popover-desc m-0 text-start">
               {hoveredSkill.description || `Extensive hands-on experience and production competence with ${hoveredSkill.name}.`}
             </p>
+          </div>
+        </div>
+      )}
+
+      {/* Mobile Modal Dialog (<768px) */}
+      {isVisible && hoveredSkill && (
+        <div
+          className="skill-mobile-modal-overlay d-md-none"
+          onClick={() => setIsVisible(false)}
+        >
+          <div
+            className="skill-mobile-modal-card"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close Button */}
+            <button
+              className="skill-mobile-modal-close"
+              onClick={() => setIsVisible(false)}
+              aria-label="Close modal"
+            >
+              <i className="bi bi-x-lg"></i>
+            </button>
+
+            {/* Header */}
+            <div className="d-flex align-items-center gap-3 mb-3">
+              <div className="skill-popover-icon">
+                <i className={getSkillIcon(hoveredSkill)}></i>
+              </div>
+              <div style={{ flex: 1, minWidth: 0, textAlign: "left" }}>
+                <div className="d-flex align-items-center justify-content-between gap-2">
+                  <h4 className="skill-popover-title text-truncate m-0" style={{ fontSize: "1.1rem" }}>
+                    {hoveredSkill.name}
+                  </h4>
+                  <span className="skill-popover-badge">
+                    {getProficiencyLabel(hoveredSkill.level)}
+                  </span>
+                </div>
+                <div className="d-flex align-items-center gap-2 mt-2">
+                  <div className="skill-popover-bar-wrap" style={{ height: "6px" }}>
+                    <div
+                      className="skill-popover-bar"
+                      style={{ width: `${hoveredSkill.level}%` }}
+                    ></div>
+                  </div>
+                  <span className="skill-popover-pct" style={{ fontSize: "0.85rem" }}>
+                    {hoveredSkill.level}%
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Description Body */}
+            <p className="skill-popover-desc m-0 text-start" style={{ fontSize: "0.88rem", lineHeight: "1.65" }}>
+              {hoveredSkill.description || `Extensive hands-on experience and production competence with ${hoveredSkill.name}.`}
+            </p>
+
+            {/* Dismiss Button */}
+            <button
+              className="btn btn-primary btn-sm w-100 mt-3"
+              style={{ borderRadius: "var(--radius-pill)", fontWeight: 600, padding: "8px 16px" }}
+              onClick={() => setIsVisible(false)}
+            >
+              Got it
+            </button>
           </div>
         </div>
       )}
@@ -338,7 +402,7 @@ export default function Skills() {
           transition: width 0.8s ease-out;
         }
 
-        /* Hover Popover Modal Card */
+        /* Hover Popover Modal Card (Desktop) */
         .skill-hover-popover {
           width: 320px;
           max-width: calc(100vw - 32px);
@@ -418,6 +482,56 @@ export default function Skills() {
           padding-top: 10px;
         }
 
+        /* Mobile Modal Styles (<768px) */
+        .skill-mobile-modal-overlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(10, 12, 28, 0.75);
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
+          z-index: 99999;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 16px;
+          animation: modalFadeIn 0.22s ease-out forwards;
+        }
+
+        .skill-mobile-modal-card {
+          background: var(--card-bg);
+          border: 1px solid var(--card-border);
+          border-radius: var(--radius-lg, 20px);
+          box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(var(--accent-rgb), 0.2);
+          padding: 22px 20px 18px;
+          width: 100%;
+          max-width: 360px;
+          position: relative;
+          animation: modalSlideUp 0.25s cubic-bezier(0.34, 1.4, 0.64, 1) forwards;
+        }
+
+        .skill-mobile-modal-close {
+          position: absolute;
+          top: 12px;
+          right: 12px;
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          background: var(--bg-alt);
+          border: 1px solid var(--border-color);
+          color: var(--text-muted);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 0.82rem;
+          cursor: pointer;
+          transition: all var(--ease-quick);
+        }
+
+        .skill-mobile-modal-close:hover {
+          color: var(--text-color);
+          border-color: var(--primary-color);
+        }
+
         @keyframes popoverFadeIn {
           from {
             opacity: 0;
@@ -426,6 +540,26 @@ export default function Skills() {
           to {
             opacity: 1;
             transform: scale(1);
+          }
+        }
+
+        @keyframes modalFadeIn {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+
+        @keyframes modalSlideUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px) scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
           }
         }
       `}</style>
