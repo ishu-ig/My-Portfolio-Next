@@ -77,15 +77,98 @@ export default function Portfolio() {
 
                 .pf-grid {
                     display: grid;
-                    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+                    grid-template-columns: repeat(3, minmax(0, 1fr));
                     gap: 28px;
                     justify-content: center;
                 }
 
-                @media (max-width: 576px) {
+                @media (max-width: 991.98px) {
                     .pf-grid {
-                        grid-template-columns: 1fr;
-                        gap: 20px;
+                        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                        gap: 18px;
+                    }
+                }
+
+                @media (max-width: 576px) {
+                    .pf-section {
+                        padding: 50px 0;
+                    }
+                    .pf-filters {
+                        gap: 6px;
+                        margin-bottom: 28px;
+                    }
+                    .pf-pill {
+                        padding: 6px 14px;
+                        font-size: 0.76rem;
+                    }
+                    .pf-grid {
+                        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                        gap: 10px;
+                    }
+                    .pf-img-wrap {
+                        height: 120px;
+                    }
+                    .pf-badge {
+                        top: 6px;
+                        left: 6px;
+                        font-size: 0.58rem;
+                        padding: 2px 6px;
+                        max-width: calc(100% - 12px);
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                    }
+                    .pf-card-body {
+                        padding: 10px 8px;
+                    }
+                    .pf-card-name {
+                        font-size: 0.84rem;
+                        margin-bottom: 4px;
+                        line-height: 1.25;
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        width: 100%;
+                    }
+                    .pf-tech-pill {
+                        font-size: 0.58rem;
+                        padding: 1px 4px;
+                        margin-right: 2px;
+                        margin-bottom: 2px;
+                        white-space: nowrap;
+                    }
+                    .pf-card-footer {
+                        padding-top: 8px;
+                        min-width: 0;
+                    }
+                    .pf-view-link {
+                        font-size: 0.72rem;
+                        gap: 2px;
+                        white-space: nowrap;
+                    }
+                    .pf-live-link {
+                        font-size: 0.82rem;
+                        flex-shrink: 0;
+                    }
+                    .pf-action-btn {
+                        width: 32px;
+                        height: 32px;
+                        font-size: 0.8rem;
+                    }
+                }
+
+                @media (max-width: 360px) {
+                    .pf-grid {
+                        gap: 8px;
+                    }
+                    .pf-img-wrap {
+                        height: 100px;
+                    }
+                    .pf-card-body {
+                        padding: 8px 6px;
+                    }
+                    .pf-card-name {
+                        font-size: 0.78rem;
                     }
                 }
 
@@ -100,6 +183,8 @@ export default function Portfolio() {
                                 box-shadow var(--ease-smooth);
                     display: flex;
                     flex-direction: column;
+                    min-width: 0;
+                    width: 100%;
                 }
 
                 .pf-card:hover {
@@ -294,7 +379,7 @@ export default function Portfolio() {
                                             src={imgSrc}
                                             alt={item.name}
                                             fill
-                                            sizes="(max-width: 576px) 100vw, (max-width: 1024px) 50vw, 320px"
+                                            sizes="(max-width: 768px) 50vw, (max-width: 1024px) 50vw, 320px"
                                             style={{ objectFit: "cover" }}
                                             loading={index < 3 ? undefined : "lazy"}
                                         />

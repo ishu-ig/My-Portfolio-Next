@@ -46,10 +46,10 @@ export default function Service() {
         </div>
 
         {/* Services Grid */}
-        <div className="row g-4 mt-2 justify-content-center">
+        <div className="row g-2 g-sm-3 g-md-4 mt-2 justify-content-center">
           {activeServices.map((service, index) => (
             <div
-              className="col-12 col-md-6 col-lg-4"
+              className="col-6 col-lg-4"
               key={service._id || index}
               data-aos="fade-up"
               data-aos-delay={(index % 3) * 100}
@@ -65,16 +65,16 @@ export default function Service() {
                   {service.shortDescription}
                 </p>
 
-                <div className="d-flex align-items-center justify-content-between w-100 mt-auto pt-3 border-top" style={{ borderColor: "var(--border-color)" }}>
+                <div className="service-card-footer d-flex align-items-center justify-content-between w-100 mt-auto pt-3 border-top" style={{ borderColor: "var(--border-color)" }}>
                   <Link
                     href={`/serviceDetail/${service._id}`}
                     className="service-action-link"
                   >
-                    Explore Service <i className="bi bi-arrow-right"></i>
+                    <span>Explore</span> <i className="bi bi-arrow-right"></i>
                   </Link>
 
                   {service.price && (
-                    <span className="badge bg-body-secondary text-body" style={{ fontSize: "0.8rem", padding: "6px 12px", borderRadius: "999px" }}>
+                    <span className="service-price-badge badge bg-body-secondary text-body" style={{ fontSize: "0.8rem", padding: "4px 8px", borderRadius: "999px" }}>
                       ₹{service.price}
                     </span>
                   )}

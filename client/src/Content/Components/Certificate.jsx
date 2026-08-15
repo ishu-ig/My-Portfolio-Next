@@ -28,22 +28,88 @@ export default function Certificates() {
 
                 .cert-grid {
                     display: grid;
-                    grid-template-columns: repeat(3, 1fr);
+                    grid-template-columns: repeat(3, minmax(0, 1fr));
                     gap: 24px;
                     justify-content: center;
                 }
 
                 @media (max-width: 991.98px) {
                     .cert-grid {
-                        grid-template-columns: repeat(2, 1fr);
-                        gap: 20px;
+                        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                        gap: 18px;
                     }
                 }
 
-                @media (max-width: 639.98px) {
+                @media (max-width: 576px) {
+                    .cert-section {
+                        padding: 50px 0;
+                    }
                     .cert-grid {
-                        grid-template-columns: 1fr;
-                        gap: 18px;
+                        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                        gap: 10px;
+                    }
+                    .cert-img-wrap {
+                        height: 115px;
+                    }
+                    .cert-ribbon {
+                        font-size: 0.56rem;
+                        padding: 2px 6px 2px 5px;
+                        top: 6px;
+                    }
+                    .cert-body {
+                        padding: 10px 8px;
+                    }
+                    .cert-issuer-name {
+                        font-size: 0.64rem;
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                    }
+                    .cert-name {
+                        font-size: 0.8rem;
+                        margin: 2px 0 6px;
+                        line-height: 1.25;
+                        display: -webkit-box;
+                        -webkit-line-clamp: 2;
+                        -webkit-box-orient: vertical;
+                        overflow: hidden;
+                    }
+                    .cert-footer {
+                        padding-top: 6px;
+                        min-width: 0;
+                    }
+                    .cert-badge {
+                        font-size: 0.6rem;
+                        padding: 2px 5px;
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        max-width: 55%;
+                    }
+                    .cert-open-btn {
+                        font-size: 0.7rem;
+                        white-space: nowrap;
+                        flex-shrink: 0;
+                    }
+                    .cert-overlay-btn {
+                        font-size: 0.68rem;
+                        padding: 4px 10px;
+                        white-space: nowrap;
+                    }
+                }
+
+                @media (max-width: 360px) {
+                    .cert-grid {
+                        gap: 8px;
+                    }
+                    .cert-img-wrap {
+                        height: 95px;
+                    }
+                    .cert-body {
+                        padding: 8px 6px;
+                    }
+                    .cert-name {
+                        font-size: 0.76rem;
                     }
                 }
 
@@ -57,6 +123,8 @@ export default function Certificates() {
                     display: flex;
                     flex-direction: column;
                     box-shadow: var(--shadow-sm);
+                    min-width: 0;
+                    width: 100%;
                 }
 
                 .cert-card:hover {
@@ -231,7 +299,7 @@ export default function Certificates() {
                                         src={cert.pic && typeof cert.pic === "string" && (cert.pic.startsWith("http") || cert.pic.startsWith("/")) ? cert.pic : "/img/portfolio/portfolio-1.webp"}
                                         alt={cert.name}
                                         fill
-                                        sizes="(max-width: 640px) 100vw, (max-width: 992px) 50vw, 33vw"
+                                        sizes="(max-width: 992px) 50vw, 33vw"
                                         unoptimized={typeof cert.pic === "string" && cert.pic.startsWith("http")}
                                         style={{ objectFit: "cover" }}
                                     />

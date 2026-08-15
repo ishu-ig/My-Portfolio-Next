@@ -37,6 +37,9 @@ const STYLES = `
     position: relative;
     overflow: hidden;
     box-shadow: var(--shadow-sm);
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
   }
   .tcard::before {
     content: '';
@@ -56,6 +59,113 @@ const STYLES = `
 
   .t-stars { display: flex; gap: 4px; margin-bottom: 14px; }
   .t-star { color: #f59e0b; font-size: 1rem; filter: drop-shadow(0 0 4px rgba(245, 158, 11, 0.4)); }
+
+  .t-msg {
+    font-size: 0.95rem;
+    line-height: 1.75;
+    color: var(--text-color);
+    font-style: italic;
+    flex: 1;
+    margin: 0 0 24px;
+  }
+
+  .t-author-wrap {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .t-author-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--primary-color);
+    box-shadow: 0 2px 10px rgba(var(--accent-rgb), 0.3);
+    flex-shrink: 0;
+  }
+
+  .t-author-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-color);
+    margin: 0;
+  }
+
+  .t-author-badge {
+    font-size: 0.78rem;
+    color: var(--primary-color);
+    font-weight: 600;
+    margin: 2px 0 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  @media (max-width: 576px) {
+    .testimonials-section {
+      padding: 50px 0;
+    }
+    .tcard {
+      padding: 14px 10px;
+      border-radius: var(--radius-md);
+    }
+    .t-stars {
+      gap: 2px;
+      margin-bottom: 6px;
+    }
+    .t-star {
+      font-size: 0.72rem;
+    }
+    .t-msg {
+      font-size: 0.76rem;
+      line-height: 1.4;
+      margin: 0 0 10px;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .t-author-wrap {
+      gap: 6px;
+      min-width: 0;
+    }
+    .t-author-avatar {
+      width: 32px !important;
+      height: 32px !important;
+      border-width: 1.5px;
+    }
+    .t-author-name {
+      font-size: 0.8rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 85px;
+    }
+    .t-author-badge {
+      font-size: 0.64rem;
+      gap: 2px;
+      white-space: nowrap;
+    }
+  }
+
+  @media (max-width: 360px) {
+    .tcard {
+      padding: 10px 8px;
+    }
+    .t-msg {
+      font-size: 0.72rem;
+      -webkit-line-clamp: 2;
+    }
+    .t-author-avatar {
+      width: 28px !important;
+      height: 28px !important;
+    }
+    .t-author-name {
+      font-size: 0.75rem;
+      max-width: 70px;
+    }
+  }
 
   .t-input {
     width: 100%; padding: 11px 16px;
@@ -155,15 +265,16 @@ export default function Testimonials() {
           <Swiper
             key={active.length}
             modules={[Autoplay, Pagination]}
-            slidesPerView={1}
-            spaceBetween={24}
-            loop={active.length > 1}
+            slidesPerView={2}
+            spaceBetween={14}
+            loop={active.length > 2}
             speed={600}
             autoplay={{ delay: 4500, disableOnInteraction: false, pauseOnMouseEnter: true }}
             pagination={{ clickable: true }}
             breakpoints={{
-              640: { slidesPerView: 1, spaceBetween: 20 },
-              768: { slidesPerView: 2, spaceBetween: 24 },
+              0: { slidesPerView: 2, spaceBetween: 10 },
+              576: { slidesPerView: 2, spaceBetween: 14 },
+              768: { slidesPerView: 2, spaceBetween: 20 },
               1024: { slidesPerView: 3, spaceBetween: 28 },
             }}
             style={{ paddingBottom: 12 }}
@@ -249,17 +360,11 @@ function TestimonialCard({ t }) {
         ))}
       </div>
 
-      <p style={{
-        fontSize: "0.95rem", lineHeight: 1.75,
-        color: "var(--text-color)",
-        fontStyle: "italic",
-        flex: 1,
-        margin: "0 0 24px",
-      }}>
+      <p className="t-msg">
         &ldquo;{t.message}&rdquo;
       </p>
 
-      <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+      <div className="t-author-wrap">
         <Image
           src={imgSrc}
           alt={t.name || "Client"}
@@ -267,25 +372,11 @@ function TestimonialCard({ t }) {
           height={48}
           unoptimized={typeof imgSrc === "string" && imgSrc.startsWith("http")}
           onError={() => setImgSrc(fallback)}
-          style={{
-            borderRadius: "50%",
-            objectFit: "cover",
-            border: "2px solid var(--primary-color)",
-            boxShadow: "0 2px 10px rgba(var(--accent-rgb), 0.3)",
-            flexShrink: 0,
-            width: 48,
-            height: 48,
-          }}
+          className="t-author-avatar"
         />
-        <div>
-          <h4 style={{
-            fontSize: "1rem", fontWeight: 700,
-            color: "var(--text-color)", margin: 0,
-          }}>{t.name}</h4>
-          <p style={{
-            fontSize: "0.78rem", color: "var(--primary-color)", fontWeight: 600,
-            margin: "2px 0 0", display: "flex", alignItems: "center", gap: 4,
-          }}>
+        <div style={{ minWidth: 0 }}>
+          <h4 className="t-author-name">{t.name}</h4>
+          <p className="t-author-badge">
             <i className="bi bi-patch-check-fill" />
             Verified Client
           </p>
