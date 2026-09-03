@@ -154,34 +154,18 @@ async function sentRequest(req, res) {
         let data = new ContactUs(req.body)
         await data.save()
         mailer.sendMail({
-            from: process.env.MAIL_SENDER,
+            from: process.env.RESEND_FROM || process.env.MAIL_SENDER,
             to: data.email,
-            subject: "Your Query Submission - " + process.env.SITE_NAME,
-            html: `
-                <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f9f9f9;">
-                    <h2 style="color: #333;">Hello,</h2>
-                    <p style="color: #555;">
-                        Thank you for reaching out to us. Here are the details of your query:
-                    </p>
-                    <table style="border-collapse: collapse; width: 100%;">
-                        <tr>
-                            <td style="padding: 8px; border: 1px solid #ddd;"><strong>Subject:</strong></td>
-                            <td style="padding: 8px; border: 1px solid #ddd;">${data.subject}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 8px; border: 1px solid #ddd;"><strong>Message:</strong></td>
-                            <td style="padding: 8px; border: 1px solid #ddd;">${data.message}</td>
-                        </tr>
-                    </table>
-                    <p style="color: #555;">
-                        We will get back to you as soon as possible. If you need immediate assistance, visit our
-                        <a href="${process.env.SERVER}/contact" style="color: #007bff;">Contact Page</a>.
-                    </p>
-                    <p style="color: #555;">Best Regards, <br> Team ${process.env.SITE_NAME}</p>
-                </div>
-            `,
+            subject: "Your Query Submission - " + (process.env.SITE_NAME || "Portfolio"),
+            html: mailer.templates.getContactQueryReceivedTemplate({
+                name: data.name,
+                email: data.email,
+                phone: data.phone,
+                subject: data.subject,
+                message: data.message
+            }),
         }, (error) => {
-            if (error) console.log(error);
+            if (error) console.log("Service sentRequest Mail Error:", error);
         })
 
         res.send({

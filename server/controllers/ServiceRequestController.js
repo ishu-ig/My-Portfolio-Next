@@ -13,46 +13,18 @@ async function createRecord(req, res) {
         await data.populate("servicename", SERVICE_POPULATE)
 
         mailer.sendMail({
-            from: process.env.MAIL_SENDER,
+            from: process.env.RESEND_FROM || process.env.MAIL_SENDER,
             to: data.email,
-            subject: "Your Query Submission - " + process.env.SITE_NAME,
-            html: `
-                <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f9f9f9;">
-                    <h2 style="color: #333;">Hello ${data.name},</h2>
-                    <p style="color: #555;">
-                        Thank you for reaching out to us. Here are the details of your query:
-                    </p>
-                    <table style="border-collapse: collapse; width: 100%;">
-                        <tr>
-                            <td style="padding: 8px; border: 1px solid #ddd;"><strong>Service:</strong></td>
-                            <td style="padding: 8px; border: 1px solid #ddd;">${data.servicename?.name}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 8px; border: 1px solid #ddd;"><strong>Category:</strong></td>
-                            <td style="padding: 8px; border: 1px solid #ddd;">${data.servicename?.category}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 8px; border: 1px solid #ddd;"><strong>Price:</strong></td>
-                            <td style="padding: 8px; border: 1px solid #ddd;">$${data.servicename?.price}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 8px; border: 1px solid #ddd;"><strong>Duration:</strong></td>
-                            <td style="padding: 8px; border: 1px solid #ddd;">${data.servicename?.duration}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 8px; border: 1px solid #ddd;"><strong>Your Message:</strong></td>
-                            <td style="padding: 8px; border: 1px solid #ddd;">${data.message}</td>
-                        </tr>
-                    </table>
-                    <p style="color: #555;">
-                        We will get back to you as soon as possible. If you need immediate assistance, visit our
-                        <a href="${process.env.SERVER}/contact" style="color: #007bff;">Contact Page</a>.
-                    </p>
-                    <p style="color: #555;">Best Regards, <br> Team ${process.env.SITE_NAME}</p>
-                </div>
-            `,
+            subject: `Service Request Confirmation - ${process.env.SITE_NAME || "Portfolio"}`,
+            html: mailer.templates.getServiceRequestReceivedTemplate({
+                name: data.name,
+                email: data.email,
+                phone: data.phone,
+                service: data.servicename,
+                message: data.message
+            }),
         }, (error) => {
-            if (error) console.log(error)
+            if (error) console.log("ServiceRequest Mail Error:", error)
         })
 
         res.status(201).send({
@@ -137,31 +109,15 @@ async function updateRecord(req, res) {
 
             if (data.active === false) {
                 mailer.sendMail({
-                    from: process.env.MAIL_SENDER,
+                    from: process.env.RESEND_FROM || process.env.MAIL_SENDER,
                     to: data.email,
-                    subject: `Query Resolved - Team ${process.env.SITE_NAME}`,
-                    html: `
-                        <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f9f9f9;">
-                            <h2 style="color: #28a745;">Hello ${data.name},</h2>
-                            <p style="color: #555; font-size: 15px; line-height: 1.6;">
-                                We are happy to inform you that your query for 
-                                <strong>${data.servicename?.name}</strong> has been resolved.
-                            </p>
-                            <p style="color: #555; font-size: 15px; line-height: 1.6;">
-                                If you have any urgent concerns, feel free to contact us anytime.
-                            </p>
-                            <p style="color: #555;">
-                                <a href="${process.env.SERVER}/contact" style="color: #007bff;">Click here</a> 
-                                to submit a new query if required.
-                            </p>
-                            <p style="color: #555; margin-top: 20px;">
-                                Best Regards,<br>
-                                Team ${process.env.SITE_NAME}
-                            </p>
-                        </div>
-                    `,
+                    subject: `Service Request Resolved - Team ${process.env.SITE_NAME || "Portfolio"}`,
+                    html: mailer.templates.getServiceRequestResolvedTemplate({
+                        name: data.name,
+                        serviceName: data.servicename?.name
+                    }),
                 }, (error) => {
-                    if (error) console.log(error)
+                    if (error) console.log("ServiceRequest Mail Error:", error)
                 })
             }
 
