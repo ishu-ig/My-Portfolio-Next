@@ -14,7 +14,8 @@ var whitelist = [
     'http://localhost:4000',
     'http://localhost:5000',
     'https://my-portfolio-next-vszt.onrender.com',
-    'https://my-portfolio-next-sigma.vercel.app'
+    'https://my-portfolio-next-sigma.vercel.app',
+    'https://www.ishaanportfolio.com'
 ]
 
 var corsOptions = {
