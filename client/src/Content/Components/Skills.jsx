@@ -59,6 +59,7 @@ function getSkillIcon(skill) {
 export default function Skills() {
   const SkillStateData = useSelector((state) => state.SkillStateData);
   const dispatch = useDispatch();
+  const [loading, setLoading] = useState(!SkillStateData?.length);
   const [activeTab, setActiveTab] = useState("all");
   const [hoveredSkill, setHoveredSkill] = useState(null);
   const [popoverStyle, setPopoverStyle] = useState({ top: 0, left: 0, showAbove: false });
@@ -68,6 +69,12 @@ export default function Skills() {
     dispatch(getSkill());
     AOS.init({ duration: 900, once: true });
   }, [dispatch]);
+
+  useEffect(() => {
+    if (SkillStateData) {
+      setLoading(false);
+    }
+  }, [SkillStateData]);
 
   const activeSkills = useMemo(() => {
     return Array.isArray(SkillStateData) ? SkillStateData.filter((x) => x.active) : [];
@@ -165,58 +172,69 @@ export default function Skills() {
 
         {/* Skills Grid */}
         <div className="row g-3 justify-content-center mt-2">
-          {categorizedSkills.map((skill, index) => {
-            const iconClass = getSkillIcon(skill);
-
-            return (
-              <div
-                key={skill._id || index}
-                className="col-6 col-sm-4 col-md-3 col-lg-2"
-                data-aos="fade-up"
-                data-aos-delay={(index % 6) * 40}
-              >
-                <div
-                  className="skill-card-minimal"
-                  onMouseEnter={(e) => handleMouseEnter(e, skill)}
-                  onMouseLeave={handleMouseLeave}
-                  onClick={(e) => handleMouseEnter(e, skill)}
-                  tabIndex={0}
-                  role="button"
-                  aria-label={`${skill.name}: ${skill.level}% proficiency`}
-                  style={{ cursor: "pointer", position: "relative" }}
-                >
-                  {/* Minimal Icon Badge */}
-                  <div className="skill-minimal-icon">
-                    <i className={iconClass}></i>
-                  </div>
-
-                  {/* Skill Name */}
-                  <h3 className="skill-minimal-name">
-                    {skill.name}
-                  </h3>
-
-                  {/* Level text */}
-                  <span className="skill-minimal-level">
-                    {skill.level}%
-                  </span>
-
-                  {/* Minimal Progress Bar */}
-                  <div className="skill-minimal-progress-wrap">
-                    <div
-                      className="skill-minimal-progress-bar"
-                      role="progressbar"
-                      style={{ width: `${skill.level}%` }}
-                      aria-valuenow={skill.level}
-                      aria-valuemin="0"
-                      aria-valuemax="100"
-                    ></div>
-                  </div>
+          {loading ? (
+            [...Array(12)].map((_, i) => (
+              <div key={i} className="col-6 col-sm-4 col-md-3 col-lg-2">
+                <div className="skill-card-minimal skeleton-shimmer" style={{ height: "138px" }}>
+                  <div className="skeleton-pill mb-2 mx-auto" style={{ width: "42px", height: "42px", borderRadius: "10px" }}></div>
+                  <div className="skeleton-bar mb-2 mx-auto" style={{ height: "14px", width: "70%" }}></div>
+                  <div className="skeleton-bar mb-2 mx-auto" style={{ height: "10px", width: "40%" }}></div>
+                  <div className="skeleton-bar mx-auto" style={{ height: "4px", width: "90%" }}></div>
                 </div>
               </div>
-            );
-          })}
+            ))
+          ) : categorizedSkills.length > 0 ? (
+            categorizedSkills.map((skill, index) => {
+              const iconClass = getSkillIcon(skill);
 
-          {categorizedSkills.length === 0 && (
+              return (
+                <div
+                  key={skill._id || index}
+                  className="col-6 col-sm-4 col-md-3 col-lg-2"
+                  data-aos="fade-up"
+                  data-aos-delay={(index % 6) * 40}
+                >
+                  <div
+                    className="skill-card-minimal"
+                    onMouseEnter={(e) => handleMouseEnter(e, skill)}
+                    onMouseLeave={handleMouseLeave}
+                    onClick={(e) => handleMouseEnter(e, skill)}
+                    tabIndex={0}
+                    role="button"
+                    aria-label={`${skill.name}: ${skill.level}% proficiency`}
+                    style={{ cursor: "pointer", position: "relative" }}
+                  >
+                    {/* Minimal Icon Badge */}
+                    <div className="skill-minimal-icon">
+                      <i className={iconClass}></i>
+                    </div>
+
+                    {/* Skill Name */}
+                    <h3 className="skill-minimal-name">
+                      {skill.name}
+                    </h3>
+
+                    {/* Level text */}
+                    <span className="skill-minimal-level">
+                      {skill.level}%
+                    </span>
+
+                    {/* Minimal Progress Bar */}
+                    <div className="skill-minimal-progress-wrap">
+                      <div
+                        className="skill-minimal-progress-bar"
+                        role="progressbar"
+                        style={{ width: `${skill.level}%` }}
+                        aria-valuenow={skill.level}
+                        aria-valuemin="0"
+                        aria-valuemax="100"
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          ) : (
             <div className="col-12 py-4 text-muted">
               No skills found in this category.
             </div>

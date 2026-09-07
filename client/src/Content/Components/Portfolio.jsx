@@ -10,12 +10,19 @@ import AOS from "aos";
 export default function Portfolio() {
     const PortfolioStateData = useSelector(state => state.PortfolioStateData);
     const dispatch = useDispatch();
+    const [loading, setLoading] = useState(!PortfolioStateData?.length);
     const [activeFilter, setActiveFilter] = useState('all');
 
     useEffect(() => {
         dispatch(getPortfolio());
         AOS.init({ duration: 900, once: true });
     }, [dispatch]);
+
+    useEffect(() => {
+        if (PortfolioStateData) {
+            setLoading(false);
+        }
+    }, [PortfolioStateData]);
 
     const activeItems = useMemo(() => {
         return Array.isArray(PortfolioStateData) ? PortfolioStateData.filter(x => x.active) : [];
@@ -370,105 +377,122 @@ export default function Portfolio() {
 
                     {/* Projects Grid */}
                     <div className="pf-grid">
-                        {filtered.map((item, index) => {
-                            const imgSrc = Array.isArray(item.pic) ? item.pic[0] : (item.pic || "/img/portfolio/portfolio-1.webp");
-                            return (
-                                <div
-                                    key={item._id || index}
-                                    className="pf-card"
-                                    data-aos="fade-up"
-                                    data-aos-delay={(index % 3) * 100}
-                                >
-                                    <div className="pf-img-wrap">
-                                        <Image
-                                            src={imgSrc}
-                                            alt={item.name}
-                                            fill
-                                            sizes="(max-width: 768px) 50vw, (max-width: 1024px) 50vw, 320px"
-                                            style={{ objectFit: "cover" }}
-                                            loading={index < 3 ? undefined : "lazy"}
-                                        />
-                                        <span className="pf-badge">{item.category || "Project"}</span>
-
-                                        <div className="pf-overlay">
-                                            {item.liveUrl && (
-                                                <a
-                                                    href={item.liveUrl}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="pf-action-btn"
-                                                    title="Live Preview"
-                                                >
-                                                    <i className="bi bi-box-arrow-up-right"></i>
-                                                </a>
-                                            )}
-                                            <Link
-                                                href={`/projectDetail/${item._id}`}
-                                                className="pf-action-btn"
-                                                title="View Case Study"
-                                            >
-                                                <i className="bi bi-arrow-right"></i>
-                                            </Link>
+                        {loading ? (
+                            [1, 2, 3, 4, 5, 6].map((n) => (
+                                <div key={n} className="pf-card skeleton-shimmer" style={{ minHeight: "360px" }}>
+                                    <div style={{ height: "220px", background: "rgba(255,255,255,0.03)" }}></div>
+                                    <div className="pf-card-body">
+                                        <div className="skeleton-bar mb-2" style={{ height: "22px", width: "75%" }}></div>
+                                        <div className="d-flex gap-2 mb-3">
+                                            <div className="skeleton-pill" style={{ height: "18px", width: "50px" }}></div>
+                                            <div className="skeleton-pill" style={{ height: "18px", width: "65px" }}></div>
+                                        </div>
+                                        <div className="pf-card-footer mt-auto pt-3 d-flex justify-content-between align-items-center">
+                                            <div className="skeleton-bar" style={{ height: "14px", width: "85px" }}></div>
+                                            <div className="skeleton-pill" style={{ height: "22px", width: "22px" }}></div>
                                         </div>
                                     </div>
+                                </div>
+                            ))
+                        ) : filtered.length > 0 ? (
+                            filtered.map((item, index) => {
+                                const imgSrc = Array.isArray(item.pic) ? item.pic[0] : (item.pic || "/img/portfolio/portfolio-1.webp");
+                                return (
+                                    <div
+                                        key={item._id || index}
+                                        className="pf-card"
+                                        data-aos="fade-up"
+                                        data-aos-delay={(index % 3) * 100}
+                                    >
+                                        <div className="pf-img-wrap">
+                                            <Image
+                                                src={imgSrc}
+                                                alt={item.name}
+                                                fill
+                                                sizes="(max-width: 768px) 50vw, (max-width: 1024px) 50vw, 320px"
+                                                style={{ objectFit: "cover" }}
+                                                loading={index < 3 ? undefined : "lazy"}
+                                            />
+                                            <span className="pf-badge">{item.category || "Project"}</span>
 
-                                    <div className="pf-card-body">
-                                        <h3 className="pf-card-name text-truncate">{item.name}</h3>
-
-                                        {/* Tech Stack Chips if available */}
-                                        {item.tech && (
-                                            <div className="pf-tech-wrap mb-2">
-                                                {item.tech.split(',').slice(0, 3).map((t, idx) => (
-                                                    <span key={idx} className="pf-tech-pill">
-                                                        {t.trim()}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        )}
-
-                                        <div className="pf-card-footer">
-                                            <Link
-                                                href={`/projectDetail/${item._id}`}
-                                                className="pf-view-link"
-                                            >
-                                                Case Study <i className="bi bi-arrow-right"></i>
-                                            </Link>
-                                            <div className="d-flex align-items-center gap-2">
+                                            <div className="pf-overlay">
                                                 {item.liveUrl && (
                                                     <a
                                                         href={item.liveUrl}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
-                                                        className="pf-live-link"
-                                                        title="Open live site"
+                                                        className="pf-action-btn"
+                                                        title="Live Preview"
                                                     >
-                                                        <i className="bi bi-globe2"></i>
+                                                        <i className="bi bi-box-arrow-up-right"></i>
                                                     </a>
                                                 )}
-                                                {item.adminUrl && (
-                                                    <a
-                                                        href={item.adminUrl}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="pf-live-link"
-                                                        title="Open admin panel"
-                                                    >
-                                                        <i className="bi bi-shield-lock"></i>
-                                                    </a>
-                                                )}
+                                                <Link
+                                                    href={`/projectDetail/${item._id}`}
+                                                    className="pf-action-btn"
+                                                    title="View Case Study"
+                                                >
+                                                    <i className="bi bi-arrow-right"></i>
+                                                </Link>
+                                            </div>
+                                        </div>
+
+                                        <div className="pf-card-body">
+                                            <h3 className="pf-card-name text-truncate">{item.name}</h3>
+
+                                            {/* Tech Stack Chips if available */}
+                                            {item.tech && (
+                                                <div className="pf-tech-wrap mb-2">
+                                                    {item.tech.split(',').slice(0, 3).map((t, idx) => (
+                                                        <span key={idx} className="pf-tech-pill">
+                                                            {t.trim()}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            )}
+
+                                            <div className="pf-card-footer">
+                                                <Link
+                                                    href={`/projectDetail/${item._id}`}
+                                                    className="pf-view-link"
+                                                >
+                                                    Case Study <i className="bi bi-arrow-right"></i>
+                                                </Link>
+                                                <div className="d-flex align-items-center gap-2">
+                                                    {item.liveUrl && (
+                                                        <a
+                                                            href={item.liveUrl}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="pf-live-link"
+                                                            title="Open live site"
+                                                        >
+                                                            <i className="bi bi-globe2"></i>
+                                                        </a>
+                                                    )}
+                                                    {item.adminUrl && (
+                                                        <a
+                                                            href={item.adminUrl}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="pf-live-link"
+                                                            title="Open admin panel"
+                                                        >
+                                                            <i className="bi bi-shield-lock"></i>
+                                                        </a>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            );
-                        })}
+                                );
+                            })
+                        ) : (
+                            <div className="text-center py-5 text-muted" style={{ gridColumn: "1 / -1" }}>
+                                No projects found in this category.
+                            </div>
+                        )}
                     </div>
-
-                    {filtered.length === 0 && (
-                        <div className="text-center py-5 text-muted">
-                            No projects found in this category.
-                        </div>
-                    )}
 
                 </div>
             </section>

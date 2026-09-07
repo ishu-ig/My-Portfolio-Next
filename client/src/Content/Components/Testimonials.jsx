@@ -190,6 +190,7 @@ const STYLES = `
 export default function Testimonials() {
   const testimonials = useSelector((state) => state.TestimonialStateData);
   const dispatch = useDispatch();
+  const [loading, setLoading] = useState(!testimonials?.length);
   const [showModal, setShowModal] = useState(false);
   const [show, setShow] = useState(false);
   const [data, setData] = useState({ name: "", pic: "", message: "", active: true });
@@ -203,6 +204,12 @@ export default function Testimonials() {
     dispatch(getTestimonial());
     AOS.init({ duration: 900, once: true });
   }, [dispatch]);
+
+  useEffect(() => {
+    if (testimonials) {
+      setLoading(false);
+    }
+  }, [testimonials]);
 
   const getInputData = (e) => {
     const { name } = e.target;
@@ -260,31 +267,61 @@ export default function Testimonials() {
           </p>
         </div>
 
-        {/* Swiper Carousel */}
+        {/* Swiper Carousel / Skeletons */}
         <div data-aos="fade-up" data-aos-delay="100">
-          <Swiper
-            key={active.length}
-            modules={[Autoplay, Pagination]}
-            slidesPerView={2}
-            spaceBetween={14}
-            loop={active.length > 2}
-            speed={600}
-            autoplay={{ delay: 4500, disableOnInteraction: false, pauseOnMouseEnter: true }}
-            pagination={{ clickable: true }}
-            breakpoints={{
-              0: { slidesPerView: 2, spaceBetween: 10 },
-              576: { slidesPerView: 2, spaceBetween: 14 },
-              768: { slidesPerView: 2, spaceBetween: 20 },
-              1024: { slidesPerView: 3, spaceBetween: 28 },
-            }}
-            style={{ paddingBottom: 12 }}
-          >
-            {active.map((t) => (
-              <SwiperSlide key={t._id} style={{ height: "auto" }}>
-                <TestimonialCard t={t} />
-              </SwiperSlide>
-            ))}
-          </Swiper>
+          {loading ? (
+            <div className="row g-3 justify-content-center">
+              {[1, 2, 3].map((n) => (
+                <div key={n} className="col-12 col-md-6 col-lg-4">
+                  <div className="tcard skeleton-shimmer" style={{ minHeight: "220px" }}>
+                    <div className="d-flex gap-1 mb-3">
+                      {[1,2,3,4,5].map(s => (
+                        <div key={s} className="skeleton-bar" style={{ width: "14px", height: "14px", borderRadius: "3px" }}></div>
+                      ))}
+                    </div>
+                    <div className="skeleton-bar mb-2" style={{ height: "14px", width: "95%" }}></div>
+                    <div className="skeleton-bar mb-2" style={{ height: "14px", width: "80%" }}></div>
+                    <div className="skeleton-bar mb-4" style={{ height: "14px", width: "60%" }}></div>
+                    <div className="d-flex align-items-center gap-3 mt-auto">
+                      <div className="skeleton-pill" style={{ width: "42px", height: "42px", borderRadius: "50%" }}></div>
+                      <div style={{ flex: 1 }}>
+                        <div className="skeleton-bar mb-1" style={{ height: "14px", width: "60%" }}></div>
+                        <div className="skeleton-bar" style={{ height: "10px", width: "40%" }}></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : active.length > 0 ? (
+            <Swiper
+              key={active.length}
+              modules={[Autoplay, Pagination]}
+              slidesPerView={2}
+              spaceBetween={14}
+              loop={active.length > 2}
+              speed={600}
+              autoplay={{ delay: 4500, disableOnInteraction: false, pauseOnMouseEnter: true }}
+              pagination={{ clickable: true }}
+              breakpoints={{
+                0: { slidesPerView: 2, spaceBetween: 10 },
+                576: { slidesPerView: 2, spaceBetween: 14 },
+                768: { slidesPerView: 2, spaceBetween: 20 },
+                1024: { slidesPerView: 3, spaceBetween: 28 },
+              }}
+              style={{ paddingBottom: 12 }}
+            >
+              {active.map((t) => (
+                <SwiperSlide key={t._id} style={{ height: "auto" }}>
+                  <TestimonialCard t={t} />
+                </SwiperSlide>
+              ))}
+            </Swiper>
+          ) : (
+            <div className="text-center py-5 text-muted">
+              No testimonials published yet.
+            </div>
+          )}
         </div>
 
         {/* Add Testimonial Action */}

@@ -9,12 +9,19 @@ import "aos/dist/aos.css";
 export default function Certificates() {
     const CertificateStateData = useSelector(state => state.CertificateStateData);
     const dispatch = useDispatch();
+    const [loading, setLoading] = useState(!CertificateStateData?.length);
     const [previewCert, setPreviewCert] = useState(null);
 
     useEffect(() => {
         dispatch(getCertificate());
         AOS.init({ duration: 900, once: true });
     }, [dispatch]);
+
+    useEffect(() => {
+        if (CertificateStateData) {
+            setLoading(false);
+        }
+    }, [CertificateStateData]);
 
     const active = Array.isArray(CertificateStateData) ? CertificateStateData.filter(x => x.active) : [];
 
@@ -281,70 +288,84 @@ export default function Certificates() {
 
                     {/* Grid */}
                     <div className="cert-grid">
-                        {active.map((cert, index) => (
-                            <div
-                                key={cert._id || index}
-                                className="cert-card"
-                                data-aos="fade-up"
-                                data-aos-delay={(index % 3) * 100}
-                            >
-                                {/* Verified ribbon */}
-                                <div className="cert-ribbon">
-                                    <i className="bi bi-shield-check"></i>
-                                    Verified
+                        {loading ? (
+                            [1, 2, 3, 4, 5, 6].map((n) => (
+                                <div key={n} className="cert-card skeleton-shimmer" style={{ minHeight: "260px" }}>
+                                    <div style={{ height: "160px", background: "rgba(255,255,255,0.03)" }}></div>
+                                    <div className="cert-body">
+                                        <div className="skeleton-bar mb-2" style={{ height: "12px", width: "40%" }}></div>
+                                        <div className="skeleton-bar mb-3" style={{ height: "18px", width: "80%" }}></div>
+                                        <div className="d-flex justify-content-between align-items-center pt-2">
+                                            <div className="skeleton-pill" style={{ height: "16px", width: "50px" }}></div>
+                                            <div className="skeleton-bar" style={{ height: "14px", width: "60px" }}></div>
+                                        </div>
+                                    </div>
                                 </div>
-
-                                {/* Image with Lightbox click */}
-                                <div 
-                                    className="cert-img-wrap"
-                                    onClick={() => setPreviewCert(cert)}
-                                    role="button"
-                                    tabIndex={0}
+                            ))
+                        ) : active.length > 0 ? (
+                            active.map((cert, index) => (
+                                <div
+                                    key={cert._id || index}
+                                    className="cert-card"
+                                    data-aos="fade-up"
+                                    data-aos-delay={(index % 3) * 100}
                                 >
-                                    <Image
-                                        src={cert.pic && typeof cert.pic === "string" && (cert.pic.startsWith("http") || cert.pic.startsWith("/")) ? cert.pic : "/img/portfolio/portfolio-1.webp"}
-                                        alt={cert.name}
-                                        fill
-                                        sizes="(max-width: 992px) 50vw, 33vw"
-                                        unoptimized={typeof cert.pic === "string" && cert.pic.startsWith("http")}
-                                        style={{ objectFit: "cover" }}
-                                    />
-                                    <div className="cert-img-overlay">
-                                        <span className="cert-overlay-btn">
-                                            <i className="bi bi-arrows-fullscreen"></i>
-                                            View Certificate
-                                        </span>
+                                    {/* Verified ribbon */}
+                                    <div className="cert-ribbon">
+                                        <i className="bi bi-shield-check"></i>
+                                        Verified
                                     </div>
-                                </div>
 
-                                {/* Body */}
-                                <div className="cert-body">
-                                    <div className="d-flex align-items-center gap-2 mb-1">
-                                        <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--primary-color)" }} />
-                                        <span className="cert-issuer-name">{cert.issuedBy || "Accredited"}</span>
+                                    {/* Image with Lightbox click */}
+                                    <div 
+                                        className="cert-img-wrap"
+                                        onClick={() => setPreviewCert(cert)}
+                                        role="button"
+                                        tabIndex={0}
+                                    >
+                                        <Image
+                                            src={cert.pic && typeof cert.pic === "string" && (cert.pic.startsWith("http") || cert.pic.startsWith("/")) ? cert.pic : "/img/portfolio/portfolio-1.webp"}
+                                            alt={cert.name}
+                                            fill
+                                            sizes="(max-width: 992px) 50vw, 33vw"
+                                            unoptimized={typeof cert.pic === "string" && cert.pic.startsWith("http")}
+                                            style={{ objectFit: "cover" }}
+                                        />
+                                        <div className="cert-img-overlay">
+                                            <span className="cert-overlay-btn">
+                                                <i className="bi bi-arrows-fullscreen"></i>
+                                                View Certificate
+                                            </span>
+                                        </div>
                                     </div>
-                                    <h4 className="cert-name">{cert.name}</h4>
-                                    
-                                    <div className="cert-footer">
-                                        <span className="cert-badge">{cert.category || "Certification"}</span>
-                                        <button 
-                                            type="button" 
-                                            className="cert-open-btn"
-                                            onClick={() => setPreviewCert(cert)}
-                                        >
-                                            Preview <i className="bi bi-arrow-right"></i>
-                                        </button>
+
+                                    {/* Body */}
+                                    <div className="cert-body">
+                                        <div className="d-flex align-items-center gap-2 mb-1">
+                                            <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--primary-color)" }} />
+                                            <span className="cert-issuer-name">{cert.issuedBy || "Accredited"}</span>
+                                        </div>
+                                        <h4 className="cert-name">{cert.name}</h4>
+                                        
+                                        <div className="cert-footer">
+                                            <span className="cert-badge">{cert.category || "Certification"}</span>
+                                            <button 
+                                                type="button" 
+                                                className="cert-open-btn"
+                                                onClick={() => setPreviewCert(cert)}
+                                            >
+                                                Preview <i className="bi bi-arrow-right"></i>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
+                            ))
+                        ) : (
+                            <div className="text-center py-5 text-muted" style={{ gridColumn: "1 / -1" }}>
+                                No certificates listed yet.
                             </div>
-                        ))}
+                        )}
                     </div>
-
-                    {active.length === 0 && (
-                        <div className="text-center py-5 text-muted">
-                            No certificates listed yet.
-                        </div>
-                    )}
 
                 </div>
             </section>

@@ -1,5 +1,5 @@
 "use client"
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getEducation } from '../Redux/ActionCreators/EducationActionCreators';
 import { getExperience } from '../Redux/ActionCreators/ExperienceActionCreators';
@@ -10,12 +10,19 @@ export default function Resume() {
     const EducationStateData = useSelector(state => state.EducationStateData);
     const ExperienceStateData = useSelector(state => state.ExperienceStateData);
     const dispatch = useDispatch();
+    const [loading, setLoading] = useState(!ExperienceStateData?.length && !EducationStateData?.length);
 
     useEffect(() => {
         dispatch(getEducation());
         dispatch(getExperience());
         AOS.init({ duration: 900, once: true });
     }, [dispatch]);
+
+    useEffect(() => {
+        if (ExperienceStateData || EducationStateData) {
+            setLoading(false);
+        }
+    }, [ExperienceStateData, EducationStateData]);
 
     const activeExp = Array.isArray(ExperienceStateData) ? ExperienceStateData.filter(x => x.active) : [];
     const activeEdu = Array.isArray(EducationStateData) ? EducationStateData.filter(x => x.active) : [];
@@ -47,26 +54,38 @@ export default function Resume() {
                             Work Experience
                         </h3>
                         <div className="timeline-v2">
-                            {activeExp.map((item, index) => (
-                                <div key={item._id || index} className="timeline-node" data-aos="fade-up" data-aos-delay={index * 100}>
-                                    <div className="timeline-marker"></div>
-                                    <div className="timeline-card">
-                                        <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-1">
-                                            <span className="timeline-period-badge">
-                                                {item.startDate} — {item.endDate}
-                                            </span>
+                            {loading ? (
+                                [1, 2, 3].map((n) => (
+                                    <div key={n} className="timeline-node">
+                                        <div className="timeline-marker"></div>
+                                        <div className="timeline-card skeleton-shimmer" style={{ minHeight: "130px" }}>
+                                            <div className="skeleton-pill mb-2" style={{ height: "18px", width: "120px" }}></div>
+                                            <div className="skeleton-bar mb-2" style={{ height: "20px", width: "65%" }}></div>
+                                            <div className="skeleton-bar mb-2" style={{ height: "14px", width: "45%" }}></div>
+                                            <div className="skeleton-bar" style={{ height: "12px", width: "90%" }}></div>
                                         </div>
-                                        <h4 className="timeline-position">{item.jobTitle}</h4>
-                                        <p className="timeline-org">
-                                            <i className="bi bi-buildings me-1"></i>
-                                            {item.companyName}
-                                        </p>
-                                        <p className="timeline-desc">{item.description}</p>
                                     </div>
-                                </div>
-                            ))}
-
-                            {activeExp.length === 0 && (
+                                ))
+                            ) : activeExp.length > 0 ? (
+                                activeExp.map((item, index) => (
+                                    <div key={item._id || index} className="timeline-node" data-aos="fade-up" data-aos-delay={index * 100}>
+                                        <div className="timeline-marker"></div>
+                                        <div className="timeline-card">
+                                            <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-1">
+                                                <span className="timeline-period-badge">
+                                                    {item.startDate} — {item.endDate}
+                                                </span>
+                                            </div>
+                                            <h4 className="timeline-position">{item.jobTitle}</h4>
+                                            <p className="timeline-org">
+                                                <i className="bi bi-buildings me-1"></i>
+                                                {item.companyName}
+                                            </p>
+                                            <p className="timeline-desc">{item.description}</p>
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
                                 <div className="p-3 text-muted">No experience entries listed yet.</div>
                             )}
                         </div>
@@ -79,26 +98,38 @@ export default function Resume() {
                             Education & Degrees
                         </h3>
                         <div className="timeline-v2">
-                            {activeEdu.map((item, index) => (
-                                <div key={item._id || index} className="timeline-node" data-aos="fade-up" data-aos-delay={index * 100}>
-                                    <div className="timeline-marker"></div>
-                                    <div className="timeline-card">
-                                        <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-1">
-                                            <span className="timeline-period-badge">
-                                                {item.startDate} — {item.endDate}
-                                            </span>
+                            {loading ? (
+                                [1, 2, 3].map((n) => (
+                                    <div key={n} className="timeline-node">
+                                        <div className="timeline-marker"></div>
+                                        <div className="timeline-card skeleton-shimmer" style={{ minHeight: "130px" }}>
+                                            <div className="skeleton-pill mb-2" style={{ height: "18px", width: "120px" }}></div>
+                                            <div className="skeleton-bar mb-2" style={{ height: "20px", width: "65%" }}></div>
+                                            <div className="skeleton-bar mb-2" style={{ height: "14px", width: "45%" }}></div>
+                                            <div className="skeleton-bar" style={{ height: "12px", width: "90%" }}></div>
                                         </div>
-                                        <h4 className="timeline-position">{item.degreeName}</h4>
-                                        <p className="timeline-org">
-                                            <i className="bi bi-award me-1"></i>
-                                            {item.instituteName}
-                                        </p>
-                                        <p className="timeline-desc">{item.description}</p>
                                     </div>
-                                </div>
-                            ))}
-
-                            {activeEdu.length === 0 && (
+                                ))
+                            ) : activeEdu.length > 0 ? (
+                                activeEdu.map((item, index) => (
+                                    <div key={item._id || index} className="timeline-node" data-aos="fade-up" data-aos-delay={index * 100}>
+                                        <div className="timeline-marker"></div>
+                                        <div className="timeline-card">
+                                            <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-1">
+                                                <span className="timeline-period-badge">
+                                                    {item.startDate} — {item.endDate}
+                                                </span>
+                                            </div>
+                                            <h4 className="timeline-position">{item.degreeName}</h4>
+                                            <p className="timeline-org">
+                                                <i className="bi bi-award me-1"></i>
+                                                {item.instituteName}
+                                            </p>
+                                            <p className="timeline-desc">{item.description}</p>
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
                                 <div className="p-3 text-muted">No education records listed yet.</div>
                             )}
                         </div>

@@ -8,6 +8,7 @@ import AOS from "aos";
 export default function Achievement() {
   const dispatch = useDispatch();
   const AchievementStateData = useSelector(state => state.AchievementStateData);
+  const [loading, setLoading] = useState(!AchievementStateData?.length);
   const [counters, setCounters] = useState([]);
   const sectionRef = useRef(null);
   const animatedRef = useRef(false);
@@ -18,6 +19,9 @@ export default function Achievement() {
   }, [dispatch]);
 
   useEffect(() => {
+    if (AchievementStateData) {
+      setLoading(false);
+    }
     if (!AchievementStateData?.length) return;
     const active = [...AchievementStateData]
       .filter(item => item.active)
@@ -63,7 +67,7 @@ export default function Achievement() {
     };
   }, [counters]);
 
-  if (!counters.length) return null;
+  if (!loading && !counters.length) return null;
 
   return (
     <section ref={sectionRef} id="achievements" style={{ padding: "80px 0", backgroundColor: "var(--bg-color)" }}>
@@ -169,34 +173,44 @@ export default function Achievement() {
 
         {/* Cards Grid */}
         <div className="achievement-grid" data-aos="fade-up" data-aos-delay="100">
-          {counters.map((counter, index) => (
-            <div
-              key={counter._id || index}
-              className="achievement-card-v2"
-            >
-              {/* Icon Circle */}
-              <div className="achievement-icon-circle">
-                <i className={counter.icon || "bi bi-award-fill"} />
+          {loading ? (
+            [1, 2, 3, 4].map((n) => (
+              <div key={n} className="achievement-card-v2 skeleton-shimmer" style={{ minHeight: "130px" }}>
+                <div className="skeleton-pill mx-auto mb-2" style={{ width: "42px", height: "42px", borderRadius: "12px" }}></div>
+                <div className="skeleton-bar mx-auto mb-2" style={{ height: "24px", width: "50%" }}></div>
+                <div className="skeleton-bar mx-auto" style={{ height: "12px", width: "70%" }}></div>
               </div>
-
-              {/* Unified Counter / Stat Display */}
-              <div>
-                <div className="achievement-number">
-                  {counter.isStatic ? (
-                    <span>{counter.stat || counter.target || "100%"}</span>
-                  ) : (
-                    <>
-                      {counter.value}
-                      <span style={{ fontSize: "1.1rem", fontWeight: 700 }}>+</span>
-                    </>
-                  )}
+            ))
+          ) : (
+            counters.map((counter, index) => (
+              <div
+                key={counter._id || index}
+                className="achievement-card-v2"
+              >
+                {/* Icon Circle */}
+                <div className="achievement-icon-circle">
+                  <i className={counter.icon || "bi bi-award-fill"} />
                 </div>
-                <p className="achievement-label">
-                  {counter.label}
-                </p>
+
+                {/* Unified Counter / Stat Display */}
+                <div>
+                  <div className="achievement-number">
+                    {counter.isStatic ? (
+                      <span>{counter.stat || counter.target || "100%"}</span>
+                    ) : (
+                      <>
+                        {counter.value}
+                        <span style={{ fontSize: "1.1rem", fontWeight: 700 }}>+</span>
+                      </>
+                    )}
+                  </div>
+                  <p className="achievement-label">
+                    {counter.label}
+                  </p>
+                </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
 
       </div>

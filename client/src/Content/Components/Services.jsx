@@ -1,5 +1,5 @@
-"use client"
-import React, { useEffect } from "react";
+"use client";
+import React, { useEffect, useState } from "react";
 import { getService } from "../Redux/ActionCreators/ServiceActionCreators";
 import { useDispatch, useSelector } from "react-redux";
 import "aos/dist/aos.css";
@@ -9,11 +9,18 @@ import Link from "next/link";
 export default function Service() {
   const ServiceStateData = useSelector((state) => state.ServiceStateData);
   const dispatch = useDispatch();
+  const [loading, setLoading] = useState(!ServiceStateData?.length);
 
   useEffect(() => {
     dispatch(getService());
     AOS.init({ duration: 900, once: true });
   }, [dispatch]);
+
+  useEffect(() => {
+    if (ServiceStateData) {
+      setLoading(false);
+    }
+  }, [ServiceStateData]);
 
   const activeServices = Array.isArray(ServiceStateData) ? ServiceStateData.filter((x) => x.active) : [];
 
@@ -78,43 +85,58 @@ export default function Service() {
 
         {/* Services Grid */}
         <div className="services-grid mt-2">
-          {activeServices.map((service, index) => (
-            <div
-              key={service._id || index}
-              data-aos="fade-up"
-              data-aos-delay={(index % 3) * 100}
-              style={{ minWidth: 0, width: "100%" }}
-            >
-              <div className="service-card">
-                <div className="service-icon-box">
-                  <i className={service.icon || "bi bi-code-square"}></i>
-                </div>
-
-                <h3 className="service-title">{service.name}</h3>
-
-                <p className="service-description">
-                  {service.shortDescription}
-                </p>
-
-                <div className="service-card-footer d-flex align-items-center justify-content-between w-100 mt-auto pt-3 border-top" style={{ borderColor: "var(--border-color)" }}>
-                  <Link
-                    href={`/serviceDetail/${service._id}`}
-                    className="service-action-link"
-                  >
-                    <span>Explore</span> <i className="bi bi-arrow-right"></i>
-                  </Link>
-
-                  {service.price && (
-                    <span className="service-price-badge badge bg-body-secondary text-body" style={{ fontSize: "0.8rem", padding: "4px 8px", borderRadius: "999px" }}>
-                      ₹{service.price}
-                    </span>
-                  )}
+          {loading ? (
+            [1, 2, 3, 4, 5, 6].map((n) => (
+              <div key={n} style={{ minWidth: 0, width: "100%" }}>
+                <div className="service-card skeleton-shimmer" style={{ minHeight: "260px" }}>
+                  <div className="skeleton-pill mb-3" style={{ width: "48px", height: "48px", borderRadius: "12px" }}></div>
+                  <div className="skeleton-bar mb-2" style={{ height: "20px", width: "70%" }}></div>
+                  <div className="skeleton-bar mb-2" style={{ height: "14px", width: "90%" }}></div>
+                  <div className="skeleton-bar mb-3" style={{ height: "14px", width: "60%" }}></div>
+                  <div className="d-flex align-items-center justify-content-between w-100 mt-auto pt-3 border-top" style={{ borderColor: "var(--border-color)" }}>
+                    <div className="skeleton-bar" style={{ height: "14px", width: "60px" }}></div>
+                    <div className="skeleton-pill" style={{ height: "18px", width: "50px" }}></div>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))
+          ) : activeServices.length > 0 ? (
+            activeServices.map((service, index) => (
+              <div
+                key={service._id || index}
+                data-aos="fade-up"
+                data-aos-delay={(index % 3) * 100}
+                style={{ minWidth: 0, width: "100%" }}
+              >
+                <div className="service-card">
+                  <div className="service-icon-box">
+                    <i className={service.icon || "bi bi-code-square"}></i>
+                  </div>
 
-          {activeServices.length === 0 && (
+                  <h3 className="service-title">{service.name}</h3>
+
+                  <p className="service-description">
+                    {service.shortDescription}
+                  </p>
+
+                  <div className="service-card-footer d-flex align-items-center justify-content-between w-100 mt-auto pt-3 border-top" style={{ borderColor: "var(--border-color)" }}>
+                    <Link
+                      href={`/serviceDetail/${service._id}`}
+                      className="service-action-link"
+                    >
+                      <span>Explore</span> <i className="bi bi-arrow-right"></i>
+                    </Link>
+
+                    {service.price && (
+                      <span className="service-price-badge badge bg-body-secondary text-body" style={{ fontSize: "0.8rem", padding: "4px 8px", borderRadius: "999px" }}>
+                        ₹{service.price}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : (
             <div className="py-5 text-muted" style={{ gridColumn: "1 / -1" }}>
               No services listed currently.
             </div>

@@ -13,6 +13,7 @@ export default function About() {
     const dispatch = useDispatch();
     const AboutStateData = useSelector((state) => state.AboutStateData);
     const [data, setData] = useState(null);
+    const [loading, setLoading] = useState(true);
     const [copiedIndex, setCopiedIndex] = useState(null);
 
     useEffect(() => {
@@ -21,10 +22,58 @@ export default function About() {
     }, [dispatch]);
 
     useEffect(() => {
-        if (AboutStateData?.length) {
-            setData(AboutStateData[0]);
+        if (AboutStateData) {
+            setLoading(false);
+            if (AboutStateData.length) {
+                setData(AboutStateData[0]);
+            }
         }
     }, [AboutStateData]);
+
+    const handleCopy = (text, idx) => {
+        if (!navigator.clipboard) return;
+        navigator.clipboard.writeText(text);
+        setCopiedIndex(idx);
+        setTimeout(() => setCopiedIndex(null), 2000);
+    };
+
+    if (loading) {
+        return (
+            <section id="about" className="about-section">
+                <div className="container">
+                    <div className="text-center mb-5">
+                        <span className="section-badge"><i className="bi bi-person-lines-fill"></i> Background</span>
+                        <h2 className="section-title">About Me</h2>
+                        <div className="title-shape">
+                            <svg viewBox="0 0 200 20" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M 0,10 C 40,0 60,20 100,10 C 140,0 160,20 200,10" fill="none" stroke="currentColor" strokeWidth="2" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div className="about-card-container skeleton-shimmer p-4" style={{ minHeight: "420px", borderRadius: "var(--radius-xl, 24px)" }}>
+                        <div className="row align-items-center g-5">
+                            <div className="col-lg-5 text-center">
+                                <div className="skeleton-bar mx-auto" style={{ width: "100%", maxWidth: "360px", height: "340px", borderRadius: "20px" }}></div>
+                            </div>
+                            <div className="col-lg-7">
+                                <div className="skeleton-bar mb-3" style={{ height: "28px", width: "70%" }}></div>
+                                <div className="skeleton-bar mb-2" style={{ height: "16px", width: "95%" }}></div>
+                                <div className="skeleton-bar mb-2" style={{ height: "16px", width: "90%" }}></div>
+                                <div className="skeleton-bar mb-4" style={{ height: "16px", width: "80%" }}></div>
+                                <div className="row g-2">
+                                    {[1, 2, 3, 4].map(n => (
+                                        <div key={n} className="col-6">
+                                            <div className="skeleton-bar" style={{ height: "48px", borderRadius: "10px" }}></div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        );
+    }
 
     if (!data) return null;
 
@@ -36,13 +85,6 @@ export default function About() {
         { label: 'Age',         value: data.age ? `${data.age} Years` : null, icon: 'bi-calendar-event-fill', copyable: false },
         { label: 'Location',    value: data.nationality, icon: 'bi-geo-alt-fill',      copyable: false },
     ].filter((item) => item.value);
-
-    const handleCopy = (text, idx) => {
-        if (!navigator.clipboard) return;
-        navigator.clipboard.writeText(text);
-        setCopiedIndex(idx);
-        setTimeout(() => setCopiedIndex(null), 2000);
-    };
 
     return (
         <section id="about" className="about-section">
