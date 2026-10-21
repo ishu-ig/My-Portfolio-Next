@@ -45,7 +45,7 @@ function* getSaga() {
 
         yield put({
             type: GET_ACHIEVEMENT_RED,
-            payload: response
+            payload: Array.isArray(response) ? response : (response?.data || [])
         });
 
     } catch (error) {

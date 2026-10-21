@@ -16,25 +16,21 @@ import "swiper/css/pagination";
 export default function Blog() {
     const dispatch = useDispatch();
     const BlogStateData = useSelector((state) => state.BlogStateData);
-    const [loading, setLoading] = useState(!BlogStateData?.length);
+    const loading = !BlogStateData || BlogStateData.length === 0;
 
     useEffect(() => {
-        dispatch(getBlog());
-        AOS.init({ duration: 900, once: true });
-    }, [dispatch]);
-
-    useEffect(() => {
-        if (BlogStateData) {
-            setLoading(false);
+        if (!BlogStateData || !BlogStateData.length) {
+            dispatch(getBlog());
         }
-    }, [BlogStateData]);
+        AOS.init({ duration: 800, once: false, mirror: true });
+    }, [dispatch, BlogStateData]);
 
     const activeBlogs = Array.isArray(BlogStateData) ? BlogStateData.filter((b) => b.active) : [];
 
     return (
         <section
             id="blog"
-            style={{ padding: "95px 0", backgroundColor: "var(--bg-color)", color: "var(--text-color)" }}
+            style={{ padding: "95px 0", backgroundColor: "transparent", color: "var(--text-color)" }}
         >
             <style>{`
                 @media (max-width: 576px) {

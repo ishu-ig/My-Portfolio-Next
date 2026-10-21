@@ -15,7 +15,7 @@ export default function BlogPage() {
 
     useEffect(() => {
         dispatch(getBlog());
-        AOS.init({ duration: 900, once: true });
+        AOS.init({ duration: 800, once: false, mirror: true });
     }, [dispatch]);
 
     const activeBlogs = useMemo(() => {
@@ -41,7 +41,7 @@ export default function BlogPage() {
         <section
             id="blogs-page"
             className="py-5"
-            style={{ backgroundColor: "var(--bg-color)", color: "var(--text-color)", minHeight: "85vh" }}
+            style={{ backgroundColor: "transparent", color: "var(--text-color)", minHeight: "85vh" }}
         >
             <style>{`
                 .blog-grid {

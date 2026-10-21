@@ -1,4 +1,5 @@
 import "./globals.css";
+import "aos/dist/aos.css";
 import MasterLayout from "./MasterLayout";
 import Script from "next/script";
 
@@ -96,9 +97,47 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="en" data-theme="dark" data-bs-theme="dark" data-scroll-behavior="smooth" suppressHydrationWarning>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+
+        {/* Blocking inline script: reads localStorage BEFORE first paint so there
+            is never a flash-of-wrong-theme on any page load or route transition.
+            The MutationObserver guard catches Next.js DOM reconciliation and
+            immediately re-applies the correct theme before the browser paints. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){
+  try{
+    var t=localStorage.getItem('theme')||'dark';
+    function applyTheme(theme){
+      document.documentElement.setAttribute('data-theme',theme);
+      document.documentElement.setAttribute('data-bs-theme',theme);
+      document.documentElement.className=theme;
+      document.body&&(document.body.className=theme);
+    }
+    applyTheme(t);
+    /* MutationObserver: re-assert theme if Next.js DOM reconciliation
+       momentarily removes or changes the data-theme attribute */
+    var observer=new MutationObserver(function(mutations){
+      mutations.forEach(function(m){
+        if(m.type==='attributes'){
+          var stored=localStorage.getItem('theme')||'dark';
+          var cur=document.documentElement.getAttribute('data-theme');
+          if(cur!==stored){
+            applyTheme(stored);
+          }
+        }
+      });
+    });
+    observer.observe(document.documentElement,{
+      attributes:true,
+      attributeFilter:['data-theme','data-bs-theme','class']
+    });
+  }catch(e){}
+})();`,
+          }}
+        />
 
         {/* JSON-LD SCHEMA (SEO BOOST) */}
         <script
@@ -141,7 +180,7 @@ export default function RootLayout({ children }) {
         <link rel="stylesheet" href="/css/style.css" />
       </head>
 
-      <body>
+      <body className="dark" suppressHydrationWarning>
 
         {/* Scroll to top button */}
         <a

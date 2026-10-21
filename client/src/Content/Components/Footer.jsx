@@ -53,11 +53,11 @@ export default function Footer() {
             <div className="col-lg-6 text-center text-lg-start">
               <div className="d-flex align-items-center justify-content-center justify-content-lg-start gap-2 mb-2">
                 <span style={{ fontSize: "1.3rem" }}>📬</span>
-                <h3 className="fw-bold m-0" style={{ color: "#ffffff", fontSize: "1.4rem" }}>
+                <h3 className="fw-bold m-0" style={{ color: "var(--text-color, #ffffff)", fontSize: "1.4rem" }}>
                   Join the Tech Newsletter
                 </h3>
               </div>
-              <p className="mb-0" style={{ color: "#c8c5e6", fontSize: "0.92rem", lineHeight: 1.6 }}>
+              <p className="mb-0" style={{ color: "var(--text-muted, #c8c5e6)", fontSize: "0.92rem", lineHeight: 1.6 }}>
                 {message}
               </p>
             </div>
@@ -98,13 +98,13 @@ export default function Footer() {
           
           {/* Quick Navigation Links */}
           <div className="d-flex justify-content-center flex-wrap gap-4 mb-4" style={{ fontSize: "0.9rem" }}>
-            <a href="#home" className="text-decoration-none" style={{ color: "#a5a2cc" }}>Home</a>
-            <a href="#about" className="text-decoration-none" style={{ color: "#a5a2cc" }}>About</a>
-            <a href="#skills" className="text-decoration-none" style={{ color: "#a5a2cc" }}>Skills</a>
-            <a href="#portfolio" className="text-decoration-none" style={{ color: "#a5a2cc" }}>Portfolio</a>
-            <a href="#services" className="text-decoration-none" style={{ color: "#a5a2cc" }}>Services</a>
-            <a href="#blog" className="text-decoration-none" style={{ color: "#a5a2cc" }}>Blog</a>
-            <a href="#contact" className="text-decoration-none" style={{ color: "#a5a2cc" }}>Contact</a>
+            <a href="#home" className="text-decoration-none footer-link" style={{ color: "var(--text-muted, #a5a2cc)" }}>Home</a>
+            <a href="#about" className="text-decoration-none footer-link" style={{ color: "var(--text-muted, #a5a2cc)" }}>About</a>
+            <a href="#skills" className="text-decoration-none footer-link" style={{ color: "var(--text-muted, #a5a2cc)" }}>Skills</a>
+            <a href="#portfolio" className="text-decoration-none footer-link" style={{ color: "var(--text-muted, #a5a2cc)" }}>Portfolio</a>
+            <a href="#services" className="text-decoration-none footer-link" style={{ color: "var(--text-muted, #a5a2cc)" }}>Services</a>
+            <a href="#blog" className="text-decoration-none footer-link" style={{ color: "var(--text-muted, #a5a2cc)" }}>Blog</a>
+            <a href="#contact" className="text-decoration-none footer-link" style={{ color: "var(--text-muted, #a5a2cc)" }}>Contact</a>
           </div>
 
           {/* Social Links */}
@@ -139,10 +139,10 @@ export default function Footer() {
           </div>
 
           {/* Copyright & Credits */}
-          <p className="mb-1" style={{ color: "#8a85b3", fontSize: "0.86rem" }}>
-            © {new Date().getFullYear()} <strong style={{ color: "#ffffff" }}>Ishaan Gupta</strong>. All Rights Reserved.
+          <p className="mb-1" style={{ color: "var(--text-muted, #8a85b3)", fontSize: "0.86rem" }}>
+            © {new Date().getFullYear()} <strong style={{ color: "var(--text-color, #ffffff)" }}>Ishaan Gupta</strong>. All Rights Reserved.
           </p>
-          <p style={{ color: "#6a6594", fontSize: "0.82rem", margin: 0 }}>
+          <p style={{ color: "var(--text-muted, #6a6594)", opacity: 0.75, fontSize: "0.82rem", margin: 0 }}>
             Crafted with React, Redux, and modern Web Standards.
           </p>
         </div>

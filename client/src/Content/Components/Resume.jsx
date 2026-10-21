@@ -10,19 +10,17 @@ export default function Resume() {
     const EducationStateData = useSelector(state => state.EducationStateData);
     const ExperienceStateData = useSelector(state => state.ExperienceStateData);
     const dispatch = useDispatch();
-    const [loading, setLoading] = useState(!ExperienceStateData?.length && !EducationStateData?.length);
+    const loading = (!ExperienceStateData || ExperienceStateData.length === 0) && (!EducationStateData || EducationStateData.length === 0);
 
     useEffect(() => {
-        dispatch(getEducation());
-        dispatch(getExperience());
-        AOS.init({ duration: 900, once: true });
-    }, [dispatch]);
-
-    useEffect(() => {
-        if (ExperienceStateData || EducationStateData) {
-            setLoading(false);
+        if (!EducationStateData || !EducationStateData.length) {
+            dispatch(getEducation());
         }
-    }, [ExperienceStateData, EducationStateData]);
+        if (!ExperienceStateData || !ExperienceStateData.length) {
+            dispatch(getExperience());
+        }
+        AOS.init({ duration: 800, once: false, mirror: true });
+    }, [dispatch, EducationStateData, ExperienceStateData]);
 
     const activeExp = Array.isArray(ExperienceStateData) ? ExperienceStateData.filter(x => x.active) : [];
     const activeEdu = Array.isArray(EducationStateData) ? EducationStateData.filter(x => x.active) : [];

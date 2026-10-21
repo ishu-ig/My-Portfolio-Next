@@ -22,7 +22,7 @@ export default function ContactUs() {
 
     useEffect(() => {
         dispatch(getAbout());
-        AOS.init({ duration: 900, once: true });
+        AOS.init({ duration: 800, once: false, mirror: true });
     }, [dispatch]);
 
     const whatsappNumber = (about?.whatsapp || about?.phone || "").replace(/\D/g, "");
@@ -102,7 +102,7 @@ export default function ContactUs() {
     return (
         <section
             id="contact"
-            style={{ padding: "95px 0 60px", backgroundColor: "var(--bg-color)", color: "var(--text-color)" }}
+            style={{ padding: "95px 0 60px", backgroundColor: "transparent", color: "var(--text-color)" }}
         >
             <div className="container">
 

@@ -1,4 +1,4 @@
-const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_SERVER;
+const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_SERVER || "https://admin.ishaanportfolio.com";
 
 export async function createRecord(collection, payload) {
     try {

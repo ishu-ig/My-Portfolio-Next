@@ -237,8 +237,7 @@ export default function Navbar() {
     else { router.push(`/#${hash}`); setTimeout(() => scrollToSection(hash), 300); }
   };
 
-  const navItems = ["Home","About","Skills","Resume","Certificate","Portfolio","Testimonials","Services","Blog","Contact"];
-
+  const navItems = ["Home", "About", "Approach", "Skills", "Resume", "Certificate", "Portfolio", "Testimonials", "Services", "Blog", "Contact"];
   const socials = [
     { icon: "bi-github",    url: about?.gitLink      || "#" },
     { icon: "bi-linkedin",  url: about?.linkidinLink || "#" },

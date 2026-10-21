@@ -225,7 +225,7 @@ export default function ServiceDetail() {
                 }
             `}</style>
 
-            <section style={{ padding: "70px 16px 50px", backgroundColor: "var(--bg-color)", color: "var(--text-color)" }}>
+            <section style={{ padding: "70px 16px 50px", backgroundColor: "transparent", color: "var(--text-color)" }}>
                 <div style={{ maxWidth: 900, margin: "0 auto" }}>
 
                     {/* Breadcrumbs */}
@@ -293,7 +293,7 @@ export default function ServiceDetail() {
 
             {/* Related Services */}
             {relatedData.length > 0 && (
-                <section style={{ padding: "50px 16px 70px", backgroundColor: "var(--bg-alt)" }}>
+                <section style={{ padding: "50px 16px 70px", backgroundColor: "transparent" }}>
                     <div className="container">
                         <div className="text-center mb-4">
                             <h3 className="fw-bold" style={{ fontSize: "1.4rem", color: "var(--text-color)" }}>Explore Other Services</h3>

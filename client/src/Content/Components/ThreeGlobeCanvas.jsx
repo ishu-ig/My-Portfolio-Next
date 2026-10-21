@@ -153,11 +153,11 @@ export default function ThreeGlobeCanvas() {
 
     // Animation loop
     let animId;
-    let clock = new THREE.Clock();
+    const startTime = performance.now();
 
     const animate = () => {
       animId = requestAnimationFrame(animate);
-      const time = clock.getElapsedTime();
+      const time = (performance.now() - startTime) * 0.001;
 
       if (!isDragging) {
         globeGroup.rotation.y += 0.006;

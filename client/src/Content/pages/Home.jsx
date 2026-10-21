@@ -1,6 +1,7 @@
 import React from 'react'
 import HeroSection from '../Components/HeroSection'
 import About from '../Components/About'
+import Approach from '../Components/Approach'
 import Skills from '../Components/Skills'
 import Resume from '../Components/Resume'
 import Portfolio from '../Components/Portfolio'
@@ -17,6 +18,7 @@ export default function Home() {
     <>
     <HeroSection />
     <About />
+    <Approach />
     <Skills />
     <Resume />
     <Certificates />

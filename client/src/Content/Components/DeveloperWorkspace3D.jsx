@@ -26,7 +26,7 @@ export default function DeveloperWorkspace3D() {
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.shadowMap.type = THREE.PCFShadowMap;
     container.appendChild(renderer.domElement);
 
     const sceneGroup = new THREE.Group();
@@ -46,15 +46,15 @@ export default function DeveloperWorkspace3D() {
     // Neon Cyber & Lofi Accent Lights
     const neonCyan = new THREE.PointLight(0x38bdf8, 25, 6);
     neonCyan.position.set(-1.2, 1.8, 0.5);
-    scene.add(neonCyan);
+    sceneGroup.add(neonCyan);
 
     const neonPurple = new THREE.PointLight(0xa855f7, 28, 7);
     neonPurple.position.set(2.0, 1.5, -1.0);
-    scene.add(neonPurple);
+    sceneGroup.add(neonPurple);
 
     const screenLight = new THREE.PointLight(0x818cf8, 20, 4);
     screenLight.position.set(-0.3, 0.8, 0.8);
-    scene.add(screenLight);
+    sceneGroup.add(screenLight);
 
     // ── MATERIAL HELPERS ──────────────────────────────────────────────────
     const createMat = (color, roughness = 0.4, metalness = 0.1, emissive = null, emissiveIntensity = 0) => {
@@ -91,18 +91,68 @@ export default function DeveloperWorkspace3D() {
     const platformGrp = new THREE.Group();
     sceneGroup.add(platformGrp);
 
-    // Glowing circular room base
-    const baseFloor = makeCyl(2.6, 2.7, 0.16, 48, createMat(0x131127, 0.7, 0.2));
+    // Glowing translucent holographic room pedestal (merges with background)
+    const baseFloorMat = new THREE.MeshStandardMaterial({
+      color: 0x1e1b4b,
+      roughness: 0.2,
+      metalness: 0.8,
+      transparent: true,
+      opacity: 0.5,
+      emissive: 0x312e81,
+      emissiveIntensity: 0.4,
+    });
+    const baseFloor = new THREE.Mesh(new THREE.CylinderGeometry(2.6, 2.7, 0.12, 48), baseFloorMat);
     baseFloor.position.y = -1.25;
     platformGrp.add(baseFloor);
 
-    // Neon floor ring
+    // Neon floor ring with additive glow
     const ringGeo = new THREE.TorusGeometry(2.65, 0.025, 16, 64);
-    const ringMat = new THREE.MeshBasicMaterial({ color: 0x818cf8 });
+    const ringMat = new THREE.MeshBasicMaterial({
+      color: 0x818cf8,
+      transparent: true,
+      opacity: 0.85,
+      blending: THREE.AdditiveBlending,
+    });
     const neonRing = new THREE.Mesh(ringGeo, ringMat);
     neonRing.rotation.x = Math.PI / 2;
-    neonRing.position.y = -1.17;
+    neonRing.position.y = -1.18;
     platformGrp.add(neonRing);
+
+    // ── THEME RESPONSIVE ADAPTATION ──
+    const updateTheme = (isDark) => {
+      if (isDark) {
+        baseFloorMat.color.setHex(0x1e1b4b);
+        baseFloorMat.emissive.setHex(0x312e81);
+        baseFloorMat.opacity = 0.5;
+        ringMat.color.setHex(0x818cf8);
+        ringMat.opacity = 0.85;
+        ambientLight.color.setHex(0xf0eeff);
+        ambientLight.intensity = 1.2;
+        mainSun.intensity = 1.8;
+      } else {
+        baseFloorMat.color.setHex(0xe2e8f0);
+        baseFloorMat.emissive.setHex(0xc7d2fe);
+        baseFloorMat.opacity = 0.35;
+        ringMat.color.setHex(0x6366f1);
+        ringMat.opacity = 0.5;
+        ambientLight.color.setHex(0xffffff);
+        ambientLight.intensity = 1.6;
+        mainSun.intensity = 2.2;
+      }
+    };
+    const isDarkInitial = typeof document !== "undefined" && document.documentElement.getAttribute("data-theme") !== "light";
+    updateTheme(isDarkInitial);
+
+    const themeObserver = new MutationObserver(() => {
+      const isDark = document.documentElement.getAttribute("data-theme") !== "light";
+      updateTheme(isDark);
+    });
+    if (typeof document !== "undefined") {
+      themeObserver.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ["data-theme"],
+      });
+    }
 
     // Desk Top (Warm Walnut / Modern Dark Wood)
     const desk = makeBox(3.4, 0.1, 1.8, createMat(0x1e1b4b, 0.3, 0.6));
@@ -587,16 +637,16 @@ export default function DeveloperWorkspace3D() {
 
     // ── 9. ANIMATION LOOP ─────────────────────────────────────────────────
     let animId;
-    const clock = new THREE.Clock();
+    const startTime = performance.now();
 
     const animate = () => {
       animId = requestAnimationFrame(animate);
-      const t = clock.getElapsedTime();
+      const t = (performance.now() - startTime) * 0.001;
 
-      // Smooth camera / scene tilt
+      // Smooth camera / scene tilt (rotated 180 degrees to face front)
       currentRotY += (targetRotY - currentRotY) * 0.06;
       currentRotX += (targetRotX - currentRotX) * 0.06;
-      sceneGroup.rotation.y = currentRotY + Math.sin(t * 0.4) * 0.04;
+      sceneGroup.rotation.y = Math.PI + currentRotY + Math.sin(t * 0.4) * 0.04;
       sceneGroup.rotation.x = currentRotX + Math.cos(t * 0.3) * 0.02;
 
       // Realistic typing rhythm (alternating arm movements)
@@ -608,17 +658,21 @@ export default function DeveloperWorkspace3D() {
       headGrp.rotation.y = Math.sin(t * 0.8) * 0.04;
       headGrp.rotation.x = Math.sin(t * 1.6) * 0.02;
 
-      // Pulse screen light
+      // Pulse screen light & dynamic neon cyber glow
       screenLight.intensity = 18 + Math.sin(t * 2.8) * 6;
+      neonCyan.intensity = 22 + Math.sin(t * 2.2) * 7;
+      neonPurple.intensity = 25 + Math.cos(t * 1.8) * 7;
 
       // Code line flickering effect
       animatedCodeLines.forEach(({ mesh, speed, offset }) => {
         mesh.material.opacity = 0.6 + Math.sin(t * speed + offset) * 0.35;
       });
 
-      // Floating Hologram Badges bob & spin
+      // Floating Hologram Badges bob & spin & breathe
       floatingBadges.forEach(({ obj, baseY, speed, rotSpeed }) => {
         obj.position.y = baseY + Math.sin(t * speed) * 0.1;
+        const bScale = 1 + Math.sin(t * 2.0) * 0.04;
+        obj.scale.set(bScale, bScale, bScale);
         if (rotSpeed > 0) {
           obj.rotation.y = t * rotSpeed;
         }
@@ -644,6 +698,7 @@ export default function DeveloperWorkspace3D() {
       container.removeEventListener("pointerdown", onPointerDown);
       window.removeEventListener("pointerup", onPointerUp);
       window.removeEventListener("resize", onResize);
+      themeObserver.disconnect();
       if (container && renderer.domElement.parentNode === container) {
         container.removeChild(renderer.domElement);
       }
@@ -657,11 +712,11 @@ export default function DeveloperWorkspace3D() {
       style={{
         width: "100%",
         height: "100%",
-        minHeight: 350,
+        minHeight: 200,
         position: "relative",
         cursor: "grab",
         userSelect: "none",
-        touchAction: "none",
+        touchAction: "pan-y",
       }}
     />
   );

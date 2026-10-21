@@ -20,7 +20,7 @@ export default function HeroSection() {
     const [isDeleting, setIsDeleting] = useState(false);
 
     useEffect(() => {
-        AOS.init({ duration: 900, once: true });
+        AOS.init({ duration: 800, once: false, mirror: true });
         dispatch(getAbout());
     }, [dispatch]);
 
@@ -129,16 +129,16 @@ export default function HeroSection() {
 
                     {/* Right Column: Interactive 3D Canvas & Floating Badges */}
                     <div className="col-lg-6 text-center" data-aos="fade-left" data-aos-delay="150">
-                        <div className="hero-avatar-wrapper">
+                        <div className="hero-3d-scene-wrap">
 
-                            {/* Glowing backdrop aura */}
-                            <div className="hero-glow-1"></div>
+                            {/* Ambient background glow aura that seamlessly merges with section background */}
+                            <div className="hero-3d-ambient-glow" />
 
                             {/* Floating Tech Badges */}
                             <div className="hero-floating-pill pill-1">
                                 <span style={{ fontSize: "1.1rem" }}>⚡</span>
                                 <div>
-                                    <div style={{ fontSize: "0.78rem", color: "var(--text-muted)", lineHeight: 1 }}>Specialist</div>
+                                    <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", lineHeight: 1 }}>Specialist</div>
                                     <div style={{ fontSize: "0.86rem", fontWeight: 700 }}>MERN Full Stack</div>
                                 </div>
                             </div>
@@ -146,24 +146,27 @@ export default function HeroSection() {
                             <div className="hero-floating-pill pill-2">
                                 <span style={{ fontSize: "1.1rem" }}>🎯</span>
                                 <div>
-                                    <div style={{ fontSize: "0.78rem", color: "var(--text-muted)", lineHeight: 1 }}>Passion</div>
+                                    <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", lineHeight: 1 }}>Passion</div>
                                     <div style={{ fontSize: "0.86rem", fontWeight: 700 }}>Clean UI/UX & Code</div>
                                 </div>
                             </div>
 
-                            {/* 3D Interactive WebGL Developer Object */}
-                            <div
-                                className="hero-avatar-frame hero-3d-frame"
-                                style={{
-                                    position: "relative",
-                                    width: "100%",
-                                    height: 440,
-                                    maxWidth: 440,
-                                    margin: "0 auto",
-                                    background: "radial-gradient(circle at 50% 50%, rgba(99,102,241,0.12), transparent 70%)",
-                                }}
-                            >
+                            <div className="hero-floating-pill pill-3">
+                                <span style={{ fontSize: "1.1rem" }}>✨</span>
+                                <div>
+                                    <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", lineHeight: 1 }}>Modern Web</div>
+                                    <div style={{ fontSize: "0.86rem", fontWeight: 700 }}>Interactive 3D</div>
+                                </div>
+                            </div>
+
+                            {/* 3D Interactive WebGL Developer Object (Borderless & Merged with Background) */}
+                            <div className="hero-3d-viewport">
                                 <HeroCanvas3D />
+                            </div>
+
+                            {/* Interaction Hint */}
+                            <div className="hero-3d-caption">
+                                <i className="bi bi-arrows-move" /> Drag to rotate in 3D • Click for energy pulse
                             </div>
 
                         </div>
@@ -171,6 +174,103 @@ export default function HeroSection() {
 
                 </div>
             </div>
+
+            <style>{`
+                .hero-3d-scene-wrap {
+                    position: relative;
+                    width: 100%;
+                    max-width: 520px;
+                    margin: 0 auto;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                }
+                .hero-3d-ambient-glow {
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    width: 115%;
+                    height: 115%;
+                    border-radius: 50%;
+                    background: radial-gradient(circle at 50% 50%, rgba(99,102,241,0.2) 0%, rgba(6,182,212,0.08) 42%, transparent 72%);
+                    filter: blur(32px);
+                    pointer-events: none;
+                    z-index: 1;
+                }
+                .hero-3d-viewport {
+                    position: relative;
+                    z-index: 2;
+                    width: 100%;
+                    height: 480px;
+                    max-width: 480px;
+                    margin: 0 auto;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border: none !important;
+                    box-shadow: none !important;
+                    background: transparent !important;
+                    overflow: visible !important;
+                }
+                .hero-3d-caption {
+                    position: relative;
+                    z-index: 3;
+                    margin-top: -10px;
+                    font-size: 0.76rem;
+                    font-weight: 600;
+                    color: var(--text-muted);
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
+                    padding: 5px 14px;
+                    border-radius: 99px;
+                    background: rgba(255, 255, 255, 0.04);
+                    border: 1px solid var(--card-border, rgba(120, 120, 160, 0.14));
+                    backdrop-filter: blur(10px);
+                    -webkit-backdrop-filter: blur(10px);
+                }
+                .pill-1 {
+                    top: 25px;
+                    left: -20px;
+                    z-index: 4;
+                }
+                .pill-2 {
+                    bottom: 35px;
+                    right: -20px;
+                    z-index: 4;
+                }
+                .pill-3 {
+                    top: 48%;
+                    right: -28px;
+                    z-index: 4;
+                    animation: floatSlow 5.5s ease-in-out infinite alternate;
+                    animation-delay: 1.6s;
+                }
+                @media (max-width: 991px) {
+                    .hero-3d-viewport {
+                        height: 400px;
+                        max-width: 400px;
+                    }
+                    .pill-1 { top: 8px; left: -10px; }
+                    .pill-2 { bottom: 25px; right: -10px; }
+                    .pill-3 { display: none; }
+                }
+                @media (max-width: 575px) {
+                    .hero-3d-viewport {
+                        height: 330px;
+                        max-width: 330px;
+                    }
+                    .hero-3d-caption {
+                        font-size: 0.68rem;
+                        margin-top: 4px;
+                    }
+                    .pill-1 { top: -5px; left: 0; padding: 6px 12px; }
+                    .pill-2 { bottom: 10px; right: 0; padding: 6px 12px; }
+                    .pill-3 { display: none; }
+                }
+            `}</style>
         </section>
     );
 }

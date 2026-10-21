@@ -40,7 +40,7 @@ export default function BlogDetail() {
   useEffect(() => {
     dispatch(getBlog());
     dispatch(getComment());
-    AOS.init({ duration: 900, once: true });
+    AOS.init({ duration: 800, once: false, mirror: true });
   }, [dispatch]);
 
   useEffect(() => {
@@ -104,7 +104,7 @@ export default function BlogDetail() {
   return (
     <section
       className="py-5"
-      style={{ backgroundColor: "var(--bg-color)", color: "var(--text-color)" }}
+      style={{ backgroundColor: "transparent", color: "var(--text-color)" }}
     >
       <div className="container" style={{ maxWidth: "860px" }}>
         
