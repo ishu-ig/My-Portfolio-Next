@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import ReactDOM from "react-dom";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -12,6 +13,9 @@ export default function AdminCertificate() {
   let dispatch = useDispatch();
   let [flag, setFlag] = useState(false);
   let [search, setSearch] = useState("");
+
+  // ── View Modal state ──
+  let [viewItem, setViewItem] = useState(null);
 
   function deleteRecord(_id) {
     if (window.confirm("Are you sure you want to delete this item?")) {
@@ -71,6 +75,7 @@ export default function AdminCertificate() {
           text-decoration: none; position: relative;
         }
         .act-btn:hover { transform: scale(1.1); }
+        .act-btn-view:hover   { background: #e0cffc; color: #6610f2; }
         .act-btn-edit:hover   { background: #cfe2ff; color: #0d6efd; }
         .act-btn-on:hover     { background: #d1e7dd; color: #198754; }
         .act-btn-off:hover    { background: #fff3cd; color: #856404; }
@@ -90,7 +95,138 @@ export default function AdminCertificate() {
           opacity: 0; transition: opacity .12s;
         }
         .act-btn:hover::after { opacity: 1; }
+
+        /* ── Certificate View Modal ── */
+        .cert-modal-overlay {
+          position: fixed; inset: 0; z-index: 99999;
+          background: rgba(0,0,0,0.72);
+          display: flex; align-items: center; justify-content: center;
+          padding: 16px;
+          animation: certFadeIn .18s ease;
+        }
+        @keyframes certFadeIn { from { opacity:0; } to { opacity:1; } }
+        .cert-modal-box {
+          background: #fff;
+          border-radius: 16px;
+          box-shadow: 0 32px 80px rgba(0,0,0,0.45);
+          max-width: 700px; width: 100%;
+          overflow: hidden;
+          animation: certSlideUp .22s cubic-bezier(0.22,1,0.36,1);
+        }
+        @keyframes certSlideUp {
+          from { transform: translateY(30px) scale(0.97); opacity:0; }
+          to   { transform: translateY(0)    scale(1);    opacity:1; }
+        }
+        .cert-modal-header {
+          display: flex; align-items: center; justify-content: space-between;
+          padding: 14px 18px;
+          border-bottom: 1px solid #e9ecef;
+        }
+        .cert-modal-title {
+          font-weight: 700; font-size: 1rem; margin: 0;
+        }
+        .cert-modal-close {
+          border: none; background: #f1f3f5; border-radius: 8px;
+          width: 32px; height: 32px; cursor: pointer;
+          display: flex; align-items: center; justify-content: center;
+          font-size: 1rem; color: #495057;
+          transition: background .13s, color .13s;
+        }
+        .cert-modal-close:hover { background: #f8d7da; color: #dc3545; }
+        .cert-modal-body {
+          padding: 16px 18px;
+        }
+        .cert-modal-img {
+          width: 100%; border-radius: 10px;
+          box-shadow: 0 8px 28px rgba(0,0,0,0.15);
+          display: block; max-height: 70vh; object-fit: contain;
+          background: #f8f9fa;
+        }
+        .cert-modal-meta {
+          margin-top: 12px; padding-top: 12px;
+          border-top: 1px solid #f1f3f5;
+          display: flex; flex-wrap: wrap; gap: 12px;
+          font-size: 0.82rem; color: #495057;
+        }
+        .cert-thumb {
+          cursor: pointer;
+          transition: transform .15s, box-shadow .15s;
+        }
+        .cert-thumb:hover {
+          transform: scale(1.08);
+          box-shadow: 0 4px 14px rgba(0,0,0,0.25) !important;
+        }
       `}</style>
+
+      {/* ── Certificate View Modal — rendered via portal to escape transform stacking context ── */}
+      {viewItem && ReactDOM.createPortal(
+        <div
+          className="cert-modal-overlay"
+          onClick={(e) => { if (e.target === e.currentTarget) setViewItem(null); }}
+        >
+          <div className="cert-modal-box">
+            <div className="cert-modal-header">
+              <p className="cert-modal-title">
+                <i className="bi bi-patch-check me-2 text-success"></i>
+                {viewItem.name}
+              </p>
+              <button className="cert-modal-close" onClick={() => setViewItem(null)} aria-label="Close">
+                <i className="bi bi-x-lg"></i>
+              </button>
+            </div>
+            <div className="cert-modal-body">
+              {viewItem.pic ? (
+                <img
+                  src={viewItem.pic}
+                  alt={viewItem.name}
+                  className="cert-modal-img"
+                  onError={(e) => {
+                    e.target.style.display = "none";
+                    e.target.nextSibling.style.display = "flex";
+                  }}
+                />
+              ) : null}
+              <div
+                style={{
+                  display: "none",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  minHeight: 200,
+                  color: "#adb5bd",
+                  flexDirection: "column",
+                  gap: 8,
+                }}
+              >
+                <i className="bi bi-image" style={{ fontSize: "2.5rem" }}></i>
+                <span>Image unavailable</span>
+              </div>
+              <div className="cert-modal-meta">
+                <span>
+                  <i className="bi bi-building me-1 text-muted"></i>
+                  <strong>Issued By:</strong>&nbsp;{viewItem.issuedBy || "—"}
+                </span>
+                <span className={`badge ms-auto ${viewItem.active ? "text-bg-success" : "text-bg-secondary"}`}>
+                  {viewItem.active ? "Active" : "Inactive"}
+                </span>
+              </div>
+              {viewItem.pic && (
+                <div className="mt-3 text-end">
+                  <a
+                    href={viewItem.pic}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="btn btn-sm btn-outline-primary"
+                  >
+                    <i className="bi bi-box-arrow-up-right me-1"></i>
+                    Open Full Image
+                  </a>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
 
       <main className="dashboard-content">
         <div className="container-fluid px-3 px-lg-4 py-4">
@@ -190,7 +326,7 @@ export default function AdminCertificate() {
                 <thead>
                   <tr>
                     <th scope="col">#</th>
-                    <th scope="col">Pic</th>
+                    <th scope="col">Certificate</th>
                     <th scope="col">Name</th>
                     <th scope="col">Issued By</th>
                     <th scope="col">Status</th>
@@ -203,19 +339,25 @@ export default function AdminCertificate() {
                       <tr key={item._id}>
                         <td>{index + 1}</td>
                         <td>
-                          <Link to={item.pic} target="_blank" rel="noreferrer">
+                          {/* Thumbnail — click to view modal */}
+                          {item.pic ? (
                             <img
                               src={item.pic}
                               height={44}
                               width={70}
-                              className="rounded shadow-sm"
+                              className="rounded shadow-sm cert-thumb"
                               style={{ objectFit: "cover" }}
-                              alt=""
+                              alt={item.name}
+                              onClick={() => setViewItem(item)}
+                              title="Click to view certificate"
+                              onError={(e) => { e.target.style.opacity = 0.3; }}
                             />
-                          </Link>
+                          ) : (
+                            <span className="text-muted" style={{ fontSize: "0.8rem" }}>No image</span>
+                          )}
                         </td>
-                        <td>{item.name}</td>
-                        <td>{item.issuedBy}</td>
+                        <td style={{ fontWeight: 600, fontSize: "0.875rem" }}>{item.name}</td>
+                        <td style={{ fontSize: "0.875rem", color: "#6c757d" }}>{item.issuedBy}</td>
                         <td>
                           <span
                             className={`badge ${item.active ? "text-bg-success" : "text-bg-secondary"}`}
@@ -225,6 +367,18 @@ export default function AdminCertificate() {
                         </td>
                         <td className="text-end">
                           <div className="act-strip">
+                            {/* View */}
+                            <button
+                              className="act-btn act-btn-view"
+                              onClick={() => setViewItem(item)}
+                              data-tip="View"
+                            >
+                              <i className="bi bi-eye"></i>
+                            </button>
+
+                            <span className="act-sep"></span>
+
+                            {/* Edit */}
                             <Link
                               className="act-btn act-btn-edit"
                               to={`/certificate/update/${item._id}`}
@@ -235,6 +389,7 @@ export default function AdminCertificate() {
 
                             <span className="act-sep"></span>
 
+                            {/* Toggle Active */}
                             <button
                               className={`act-btn ${item.active ? "act-btn-off" : "act-btn-on"}`}
                               onClick={() => updateRecord(item._id)}
@@ -245,16 +400,17 @@ export default function AdminCertificate() {
                               ></i>
                             </button>
 
-                            <span className="act-sep"></span>
-
                             {localStorage.getItem("role") === "Super Admin" && (
-                              <button
-                                className="act-btn act-btn-del"
-                                onClick={() => deleteRecord(item._id)}
-                                data-tip="Delete"
-                              >
-                                <i className="bi bi-trash3-fill"></i>
-                              </button>
+                              <>
+                                <span className="act-sep"></span>
+                                <button
+                                  className="act-btn act-btn-del"
+                                  onClick={() => deleteRecord(item._id)}
+                                  data-tip="Delete"
+                                >
+                                  <i className="bi bi-trash3-fill"></i>
+                                </button>
+                              </>
                             )}
                           </div>
                         </td>
@@ -263,6 +419,9 @@ export default function AdminCertificate() {
                   ) : (
                     <tr>
                       <td colSpan="6" className="text-center text-muted py-4">
+                        <div style={{ fontSize: "2rem", opacity: 0.3, marginBottom: 8 }}>
+                          <i className="bi bi-patch-check"></i>
+                        </div>
                         {search
                           ? `No certificates found for "${search}"`
                           : "No certificates available."}

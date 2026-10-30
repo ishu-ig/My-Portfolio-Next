@@ -1,5 +1,4 @@
 const Skill = require("../models/Skill")
-;
 const syncResume = require("../resumeSync/resumeSync");
 
 
@@ -9,6 +8,7 @@ async function createRecord(req, res) {
             name: req.body.name,
             description: req.body.description,
             icon: req.body.icon ?? "",
+            skillcategory: req.body.skillcategory,
             level: req.body.level,
             active: req.body.active ?? true
         })
@@ -19,12 +19,11 @@ async function createRecord(req, res) {
             data: data
         })
     } catch (error) {
-
-
         let errorMessage = {}
         error.keyValue ? errorMessage.name = "Skill With This Name Already Exist" : null
         error.errors?.name ? errorMessage.name = error.errors.name.message : null
         error.errors?.description ? errorMessage.description = error.errors.description.message : null
+        error.errors?.skillcategory ? errorMessage.skillcategory = error.errors.skillcategory.message : null
         error.errors?.level ? errorMessage.level = error.errors.level.message : null
 
         if (Object.values(errorMessage).length === 0) {
@@ -44,14 +43,13 @@ async function createRecord(req, res) {
 
 async function getRecord(req, res) {
     try {
-        let data = await Skill.find().sort({ _id: -1 })
+        let data = await Skill.find().populate("skillcategory", "name").sort({ _id: -1 })
         res.send({
             result: "Done",
             count: data.length,
             data: data
         })
     } catch (error) {
-        // console.log(error)
         res.status(500).send({
             result: "Fail",
             reason: "Internal Server Error"
@@ -66,11 +64,12 @@ async function updateRecord(req, res) {
             data.name = req.body.name ?? data.name
             data.description = req.body.description ?? data.description
             data.icon = req.body.icon !== undefined ? req.body.icon : data.icon
+            data.skillcategory = req.body.skillcategory || data.skillcategory
             data.level = req.body.level ?? data.level
             data.active = req.body.active ?? data.active
             await data.save()
             await syncResume("skills", data._id);
-            
+
             res.send({
                 result: "Done",
                 data: data
@@ -82,12 +81,9 @@ async function updateRecord(req, res) {
                 reason: "Record Not Found"
             })
     } catch (error) {
-        try {
-            fs.unlinkSync(req.file.path)
-        } catch (error) { }
-
         let errorMessage = {}
         error.keyValue ? errorMessage.name = "Skill With This Name Already Exist" : null
+        error.errors?.skillcategory ? errorMessage.skillcategory = error.errors.skillcategory.message : null
 
         if (Object.values(errorMessage).length === 0) {
             res.status(500).send({
@@ -107,7 +103,7 @@ async function updateRecord(req, res) {
 async function deleteRecord(req, res) {
     try {
         let data = await Skill.findOne({ _id: req.params._id })
-        if (data){
+        if (data) {
             await data.deleteOne()
             res.send({
                 result: "Done",
@@ -120,7 +116,6 @@ async function deleteRecord(req, res) {
                 reason: "Record Not Found"
             })
     } catch (error) {
-        // console.log(error)
         res.status(500).send({
             result: "Fail",
             reason: "Internal Server Error"
@@ -131,6 +126,6 @@ async function deleteRecord(req, res) {
 module.exports = {
     createRecord: createRecord,
     getRecord: getRecord,
-    updateRecord:updateRecord,
-    deleteRecord:deleteRecord
+    updateRecord: updateRecord,
+    deleteRecord: deleteRecord
 }

@@ -5,220 +5,198 @@ import { useDispatch, useSelector } from "react-redux";
 import "aos/dist/aos.css";
 import AOS from "aos";
 import Link from "next/link";
+import useIntersectionWebGL from '../hooks/useIntersectionWebGL';
 import * as THREE from "three";
 
 /* =========================================================================
-   DIFFERENT 3D ARTIFACT PER SERVICE CARD
+   CSS 3D ARTIFACT PER SERVICE CARD (Zero WebGL — pure CSS transforms)
    Types:
-     0 -> 3D Cyber Cube & Hologram Wireframe Cage
-     1 -> 3D Iridescent Torus Knot
-     2 -> 3D Layered Architecture Tech Stack (Floating Plates)
-     3 -> 3D Octahedron Satellite with Orbiting Radar Rings
-     4 -> 3D Geodesic Icosahedron Core with Pulsing Vertices
-     5 -> 3D Dual Gyroscope Cosmic Rings
+     0 -> Cyber Cube & Hologram Wireframe Cage
+     1 -> Iridescent Torus Knot
+     2 -> Floating Book Stack
+     3 -> Octahedron + Radar Ring
+     4 -> Icosahedron Wireframe Core
+     5 -> Dual Gyroscope Rings
    ========================================================================= */
 function ServiceCard3D({ typeIndex = 0, isHovered = false }) {
-  const mountRef = useRef(null);
-  const hoverRef = useRef(isHovered);
+  const t = typeIndex % 6;
+  const speed = isHovered ? 0.36 : 1;
 
-  useEffect(() => {
-    hoverRef.current = isHovered;
-  }, [isHovered]);
-
-  useEffect(() => {
-    const container = mountRef.current;
-    if (!container) return;
-
-    const width = container.clientWidth || 90;
-    const height = container.clientHeight || 90;
-
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 50);
-    camera.position.z = 4.2;
-
-    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-    renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
-    renderer.setClearColor(0x000000, 0);
-    container.appendChild(renderer.domElement);
-
-    // Subtle lights
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
-    scene.add(ambientLight);
-    const pointLight = new THREE.PointLight(0x818cf8, 2.5, 20);
-    pointLight.position.set(2, 3, 4);
-    scene.add(pointLight);
-
-    const group = new THREE.Group();
-    scene.add(group);
-
-    const disposables = [];
-    const t = typeIndex % 6;
-
-    if (t === 0) {
-      // 0: Cyber Cube with Wireframe Outer Cage
-      const innerGeo = new THREE.BoxGeometry(1.2, 1.2, 1.2);
-      const innerMat = new THREE.MeshStandardMaterial({
-        color: 0x4f46e5,
-        metalness: 0.8,
-        roughness: 0.2,
-        emissive: 0x312e81,
-        emissiveIntensity: 0.4,
-      });
-      const innerMesh = new THREE.Mesh(innerGeo, innerMat);
-
-      const cageGeo = new THREE.BoxGeometry(1.65, 1.65, 1.65);
-      const cageMat = new THREE.MeshBasicMaterial({
-        color: 0x06b6d4,
-        wireframe: true,
-        transparent: true,
-        opacity: 0.65,
-      });
-      const cageMesh = new THREE.Mesh(cageGeo, cageMat);
-
-      group.add(innerMesh);
-      group.add(cageMesh);
-      disposables.push(innerGeo, innerMat, cageGeo, cageMat);
-
-    } else if (t === 1) {
-      // 1: Iridescent Torus Knot
-      const torusGeo = new THREE.TorusKnotGeometry(0.8, 0.26, 64, 12);
-      const torusMat = new THREE.MeshStandardMaterial({
-        color: 0x8b5cf6,
-        roughness: 0.25,
-        metalness: 0.75,
-        wireframe: false,
-        emissive: 0x581c87,
-        emissiveIntensity: 0.35,
-      });
-      const torusMesh = new THREE.Mesh(torusGeo, torusMat);
-      group.add(torusMesh);
-      disposables.push(torusGeo, torusMat);
-
-    } else if (t === 2) {
-      // 2: 3D Floating Engineering Book Stack & Codex
-      const bookGeo = new THREE.BoxGeometry(1.35, 1.75, 0.26);
-      const coverMat1 = new THREE.MeshStandardMaterial({ color: 0x4f46e5, metalness: 0.45, roughness: 0.3, emissive: 0x312e81, emissiveIntensity: 0.25 });
-      const coverMat2 = new THREE.MeshStandardMaterial({ color: 0x06b6d4, metalness: 0.45, roughness: 0.3, emissive: 0x0891b2, emissiveIntensity: 0.25 });
-      const pagesMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.65 });
-
-      const book1 = new THREE.Mesh(bookGeo, [pagesMat, coverMat1, pagesMat, pagesMat, coverMat1, coverMat1]);
-      book1.position.set(0, -0.22, -0.1);
-      book1.rotation.y = 0.25;
-
-      const book2 = new THREE.Mesh(bookGeo, [pagesMat, coverMat2, pagesMat, pagesMat, coverMat2, coverMat2]);
-      book2.position.set(0, 0.24, 0.1);
-      book2.rotation.y = -0.35;
-
-      group.add(book1);
-      group.add(book2);
-      disposables.push(bookGeo, coverMat1, coverMat2, pagesMat);
-
-    } else if (t === 3) {
-      // 3: Octahedron Satellite with Orbiting Radar Rings
-      const octGeo = new THREE.OctahedronGeometry(0.95);
-      const octMat = new THREE.MeshStandardMaterial({
-        color: 0x0ea5e9,
-        metalness: 0.8,
-        roughness: 0.2,
-        emissive: 0x0369a1,
-        emissiveIntensity: 0.4,
-      });
-      const octMesh = new THREE.Mesh(octGeo, octMat);
-
-      const ringGeo = new THREE.RingGeometry(1.35, 1.48, 28);
-      const ringMat = new THREE.MeshBasicMaterial({
-        color: 0x38bdf8,
-        side: THREE.DoubleSide,
-        transparent: true,
-        opacity: 0.6,
-      });
-      const ringMesh = new THREE.Mesh(ringGeo, ringMat);
-      ringMesh.rotation.x = Math.PI / 2.4;
-
-      group.add(octMesh);
-      group.add(ringMesh);
-      disposables.push(octGeo, octMat, ringGeo, ringMat);
-
-    } else if (t === 4) {
-      // 4: Geodesic Icosahedron Core with Pulsing Wireframe Vertices
-      const icoGeo = new THREE.IcosahedronGeometry(1.0, 1);
-      const icoMat = new THREE.MeshStandardMaterial({
-        color: 0xa855f7,
-        metalness: 0.7,
-        roughness: 0.3,
-        wireframe: true,
-      });
-      const icoMesh = new THREE.Mesh(icoGeo, icoMat);
-
-      const coreGeo = new THREE.SphereGeometry(0.55, 16, 16);
-      const coreMat = new THREE.MeshBasicMaterial({ color: 0x06b6d4 });
-      const coreMesh = new THREE.Mesh(coreGeo, coreMat);
-
-      group.add(icoMesh);
-      group.add(coreMesh);
-      disposables.push(icoGeo, icoMat, coreGeo, coreMat);
-
-    } else {
-      // 5: Dual Gyroscope Cosmic Rings
-      const ring1Geo = new THREE.TorusGeometry(1.15, 0.08, 16, 40);
-      const ring1Mat = new THREE.MeshStandardMaterial({ color: 0x6366f1, metalness: 0.8, roughness: 0.2 });
-      const ring1 = new THREE.Mesh(ring1Geo, ring1Mat);
-
-      const ring2Geo = new THREE.TorusGeometry(0.85, 0.08, 16, 40);
-      const ring2Mat = new THREE.MeshStandardMaterial({ color: 0x06b6d4, metalness: 0.8, roughness: 0.2 });
-      const ring2 = new THREE.Mesh(ring2Geo, ring2Mat);
-      ring2.rotation.y = Math.PI / 2;
-
-      group.add(ring1);
-      group.add(ring2);
-      disposables.push(ring1Geo, ring1Mat, ring2Geo, ring2Mat);
+  const styles = `
+    .srv-css3d-wrap {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      perspective: 320px;
+      position: relative;
     }
+    /* ---- Shared ring / face ---- */
+    .srv-cube-scene { position: relative; width: 54px; height: 54px; transform-style: preserve-3d; animation: srvCubeSpin ${speed * 4}s linear infinite; }
+    .srv-cube-face {
+      position: absolute;
+      width: 54px; height: 54px;
+      border: 1.5px solid rgba(99,102,241,0.7);
+      background: rgba(79,70,229,0.12);
+      backdrop-filter: blur(2px);
+    }
+    @keyframes srvCubeSpin { to { transform: rotateX(360deg) rotateY(360deg); } }
 
-    let reqId;
-    const startTime = performance.now();
+    .srv-torus-wrap { position: relative; width: 58px; height: 58px; }
+    .srv-torus-ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 3px solid transparent;
+    }
+    .srv-tr-1 { width: 52px; height: 52px; top: 3px; left: 3px;
+      border-color: #8b5cf6 transparent;
+      animation: srvTorusSpin1 ${speed * 2.2}s linear infinite; }
+    .srv-tr-2 { width: 38px; height: 38px; top: 10px; left: 10px;
+      border-color: transparent #06b6d4;
+      animation: srvTorusSpin2 ${speed * 1.6}s linear infinite reverse; }
+    .srv-tr-core { width: 18px; height: 18px; top: 20px; left: 20px;
+      border-radius: 50%; background: radial-gradient(circle, #a78bfa, #6366f1); }
+    @keyframes srvTorusSpin1 { to { transform: rotate(360deg); } }
+    @keyframes srvTorusSpin2 { to { transform: rotateY(360deg) rotate(360deg); } }
 
-    const animate = () => {
-      reqId = requestAnimationFrame(animate);
-      const elapsed = (performance.now() - startTime) * 0.001;
-      const speed = hoverRef.current ? 2.8 : 1.0;
+    .srv-book-wrap { position: relative; width: 54px; height: 58px; perspective: 200px; transform-style: preserve-3d;
+      animation: srvBookFloat ${speed * 3}s ease-in-out infinite alternate; }
+    .srv-book {
+      position: absolute; border-radius: 3px 5px 5px 3px;
+      transform-style: preserve-3d;
+    }
+    .srv-book-1 { width: 36px; height: 48px; bottom: 0; left: 9px;
+      background: linear-gradient(135deg,#4f46e5,#312e81);
+      transform: rotateY(-18deg) rotateX(8deg);
+      box-shadow: inset -4px 0 8px rgba(0,0,0,0.35), 2px 4px 12px rgba(99,102,241,0.4); }
+    .srv-book-2 { width: 34px; height: 44px; bottom: 4px; left: 12px;
+      background: linear-gradient(135deg,#06b6d4,#0891b2);
+      transform: rotateY(-24deg) rotateX(4deg) translateZ(3px);
+      box-shadow: inset -3px 0 6px rgba(0,0,0,0.3), 2px 4px 10px rgba(6,182,212,0.35); }
+    .srv-book-spine { position: absolute; left: 9px; bottom: 0; width: 5px; height: 48px;
+      background: linear-gradient(180deg,#6366f1,#312e81);
+      transform: rotateY(-108deg) translateX(-2.5px); }
+    @keyframes srvBookFloat { 0% { transform: translateY(0) rotateX(0deg); } 100% { transform: translateY(-5px) rotateX(5deg); } }
 
-      group.rotation.x += 0.012 * speed;
-      group.rotation.y += 0.018 * speed;
+    .srv-octa-wrap { position: relative; width: 58px; height: 58px; display:flex; align-items:center; justify-content:center; }
+    .srv-octa {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg,#0ea5e9,#0369a1);
+      clip-path: polygon(50% 0%,100% 50%,50% 100%,0% 50%);
+      animation: srvOctaSpin ${speed * 3.5}s linear infinite;
+      box-shadow: 0 0 14px rgba(14,165,233,0.5);
+    }
+    .srv-octa-ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 2px solid rgba(56,189,248,0.65);
+      animation: srvOctaRingSpin ${speed * 2}s linear infinite;
+    }
+    .srv-or-1 { width: 54px; height: 20px; top: 19px; left: 2px; }
+    .srv-or-2 { width: 54px; height: 20px; top: 19px; left: 2px; animation-direction: reverse; animation-duration: ${speed * 2.8}s; }
+    @keyframes srvOctaSpin { to { transform: rotate(360deg); } }
+    @keyframes srvOctaRingSpin { to { transform: rotateX(360deg); } }
 
-      if (hoverRef.current) {
-        group.scale.set(1.12, 1.12, 1.12);
-      } else {
-        group.scale.set(1.0, 1.0, 1.0);
-      }
+    .srv-ico-wrap { position: relative; width: 58px; height: 58px; display:flex; align-items:center; justify-content:center; }
+    .srv-ico-outer {
+      width: 48px; height: 48px;
+      border: 2px solid rgba(168,85,247,0.7);
+      clip-path: polygon(50% 0%,95% 25%,95% 75%,50% 100%,5% 75%,5% 25%);
+      animation: srvIcoSpin ${speed * 4}s linear infinite;
+      background: rgba(168,85,247,0.08);
+    }
+    .srv-ico-inner {
+      position: absolute;
+      width: 22px; height: 22px; border-radius: 50%;
+      background: radial-gradient(circle,#06b6d4,#0891b2);
+      box-shadow: 0 0 12px rgba(6,182,212,0.7);
+      animation: srvIcoPulse ${speed * 1.5}s ease-in-out infinite alternate;
+    }
+    @keyframes srvIcoSpin { to { transform: rotate(360deg); } }
+    @keyframes srvIcoPulse { to { transform: scale(1.2); } }
 
-      renderer.render(scene, camera);
-    };
-    animate();
+    .srv-gyro-wrap { position: relative; width: 58px; height: 58px; display:flex; align-items:center; justify-content:center; }
+    .srv-gyro-ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 2.5px solid;
+    }
+    .srv-gr-1 { width: 52px; height: 52px; border-color: #6366f1 transparent;
+      animation: srvGyro1 ${speed * 2.4}s linear infinite; }
+    .srv-gr-2 { width: 52px; height: 52px; border-color: transparent #06b6d4;
+      animation: srvGyro2 ${speed * 1.8}s linear infinite; }
+    .srv-gr-3 { width: 32px; height: 32px; border-color: #a78bfa transparent;
+      animation: srvGyro3 ${speed * 3}s linear infinite reverse; }
+    .srv-gyro-core { width: 14px; height: 14px; border-radius: 50%;
+      background: radial-gradient(circle,#fff,#818cf8); z-index:1; }
+    @keyframes srvGyro1 { to { transform: rotateX(360deg); } }
+    @keyframes srvGyro2 { to { transform: rotateY(360deg); } }
+    @keyframes srvGyro3 { to { transform: rotate(360deg) rotateX(180deg); } }
+  `;
 
-    return () => {
-      cancelAnimationFrame(reqId);
-      if (renderer.domElement && container.contains(renderer.domElement)) {
-        container.removeChild(renderer.domElement);
-      }
-      disposables.forEach((d) => d.dispose());
-      renderer.dispose();
-    };
-  }, [typeIndex]);
-
-  return <div ref={mountRef} className="srv-card-3d-canvas" aria-hidden="true" />;
+  return (
+    <div className="srv-card-3d-canvas" aria-hidden="true">
+      <style>{styles}</style>
+      <div className="srv-css3d-wrap">
+        {t === 0 && (
+          <div style={{ perspective: "220px" }}>
+            <div className="srv-cube-scene">
+              <div className="srv-cube-face" style={{ transform: "translateZ(27px)" }} />
+              <div className="srv-cube-face" style={{ transform: "translateZ(-27px) rotateY(180deg)" }} />
+              <div className="srv-cube-face" style={{ transform: "rotateY(90deg) translateZ(27px)", borderColor: "rgba(6,182,212,0.7)", background: "rgba(6,182,212,0.08)" }} />
+              <div className="srv-cube-face" style={{ transform: "rotateY(-90deg) translateZ(27px)", borderColor: "rgba(6,182,212,0.7)" }} />
+              <div className="srv-cube-face" style={{ transform: "rotateX(90deg) translateZ(27px)", borderColor: "rgba(168,85,247,0.5)" }} />
+              <div className="srv-cube-face" style={{ transform: "rotateX(-90deg) translateZ(27px)" }} />
+            </div>
+          </div>
+        )}
+        {t === 1 && (
+          <div className="srv-torus-wrap">
+            <div className="srv-tr-1 srv-torus-ring" />
+            <div className="srv-tr-2 srv-torus-ring" />
+            <div className="srv-tr-core" />
+          </div>
+        )}
+        {t === 2 && (
+          <div className="srv-book-wrap">
+            <div className="srv-book srv-book-1" />
+            <div className="srv-book srv-book-2" />
+            <div className="srv-book-spine" />
+          </div>
+        )}
+        {t === 3 && (
+          <div className="srv-octa-wrap">
+            <div className="srv-octa-ring srv-or-1" />
+            <div className="srv-octa-ring srv-or-2" />
+            <div className="srv-octa" />
+          </div>
+        )}
+        {t === 4 && (
+          <div className="srv-ico-wrap">
+            <div className="srv-ico-outer" />
+            <div className="srv-ico-inner" />
+          </div>
+        )}
+        {t === 5 && (
+          <div className="srv-gyro-wrap">
+            <div className="srv-gr-1 srv-gyro-ring" />
+            <div className="srv-gr-2 srv-gyro-ring" />
+            <div className="srv-gr-3 srv-gyro-ring" />
+            <div className="srv-gyro-core" />
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
+
 
 /* =========================================================================
    SECTION BACKGROUND: CYBER MATRIX & HOLOGRAPHIC GRID
    ========================================================================= */
 function ServicesBackground3D() {
-  const mountRef = useRef(null);
-
-  useEffect(() => {
-    const container = mountRef.current;
-    if (!container) return;
-
+  const mountRef = useIntersectionWebGL((container) => {
     let width = container.clientWidth || window.innerWidth;
     let height = container.clientHeight || 700;
 
@@ -300,6 +278,7 @@ function ServicesBackground3D() {
       partMat.dispose();
       grid.geometry.dispose();
       grid.material.dispose();
+      renderer.forceContextLoss();
       renderer.dispose();
     };
   }, []);

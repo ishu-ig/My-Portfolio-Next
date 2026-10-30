@@ -29,9 +29,8 @@ async function deleteAllFromCloudinary(urls = []) {
 // ─── CREATE ──────────────────────────────────────────────────────────────────
 async function createRecord(req, res) {
     try {
-        let data = new Portfolio(req.body)
+        let data = new Portfolio(req.body)   // includes projectCategory from the form
 
-        // ✅ Multiple images: req.files is an array
         if (req.files && req.files.length > 0) {
             data.pic = req.files.map(f => f.path);
         }
@@ -45,12 +44,12 @@ async function createRecord(req, res) {
         if (req.files) await deleteAllFromCloudinary(req.files.map(f => f.path));
 
         let errorMessage = {}
-        error.errors?.name             && (errorMessage.name             = error.errors.name.message)
-        error.errors?.pic             && (errorMessage.pic             = error.errors.pic.message)
+        error.errors?.name && (errorMessage.name = error.errors.name.message)
+        error.errors?.pic && (errorMessage.pic = error.errors.pic.message)
+        error.errors?.projectCategory && (errorMessage.projectCategory = error.errors.projectCategory.message)
         error.errors?.shortDescription && (errorMessage.shortDescription = error.errors.shortDescription.message)
-        error.errors?.longDescription  && (errorMessage.longDescription  = error.errors.longDescription.message)
-        error.errors?.category         && (errorMessage.category         = error.errors.category.message)
-        error.errors?.tech             && (errorMessage.tech             = error.errors.tech.message)
+        error.errors?.longDescription && (errorMessage.longDescription = error.errors.longDescription.message)
+        error.errors?.tech && (errorMessage.tech = error.errors.tech.message)
 
         if (Object.values(errorMessage).length === 0) {
             res.status(500).send({ result: "Fail", reason: "Internal Server Error" })
@@ -63,7 +62,7 @@ async function createRecord(req, res) {
 // ─── GET ALL ─────────────────────────────────────────────────────────────────
 async function getRecord(req, res) {
     try {
-        let data = await Portfolio.find().sort({ _id: -1 })
+        let data = await Portfolio.find().populate("projectCategory", "name").sort({ _id: -1 })
         res.send({ result: "Done", count: data.length, data })
     } catch (error) {
         res.status(500).send({ result: "Fail", reason: "Internal Server Error" })
@@ -73,7 +72,7 @@ async function getRecord(req, res) {
 // ─── GET ONE ─────────────────────────────────────────────────────────────────
 async function getSingleRecord(req, res) {
     try {
-        let data = await Portfolio.findOne({ _id: req.params._id })
+        let data = await Portfolio.findOne({ _id: req.params._id }).populate("projectCategory", "name")
         if (data)
             res.send({ result: "Done", data })
         else
@@ -89,27 +88,24 @@ async function updateRecord(req, res) {
         let data = await Portfolio.findOne({ _id: req.params._id })
         if (!data) return res.status(404).send({ result: "Fail", reason: "Record Not Found" })
 
-        data.name             = req.body.name             ?? data.name
+        data.name = req.body.name ?? data.name
+        data.projectCategory = req.body.projectCategory || data.projectCategory
         data.shortDescription = req.body.shortDescription ?? data.shortDescription
-        data.longDescription  = req.body.longDescription  ?? data.longDescription
-        data.category         = req.body.category         ?? data.category
-        data.tech             = req.body.tech             ?? data.tech
-        data.liveUrl          = req.body.liveUrl          ?? data.liveUrl
-        data.adminUrl         = req.body.adminUrl         ?? data.adminUrl
-        data.githubRepo       = req.body.githubRepo       ?? data.githubRepo
-        data.active           = req.body.active           ?? data.active
+        data.longDescription = req.body.longDescription ?? data.longDescription
+        data.tech = req.body.tech ?? data.tech
+        data.liveUrl = req.body.liveUrl ?? data.liveUrl
+        data.adminUrl = req.body.adminUrl ?? data.adminUrl
+        data.githubRepo = req.body.githubRepo ?? data.githubRepo
+        data.active = req.body.active ?? data.active
 
         if (req.files && req.files.length > 0) {
-            // ✅ Delete all OLD images, then set new ones
             await deleteAllFromCloudinary(data.pic);
             data.pic = req.files.map(f => f.path);
         } else if (req.body.keepPic) {
-            // ✅ Support partial keeps: client can send keepPic[] = URLs to retain
             const keepPic = Array.isArray(req.body.keepPic)
                 ? req.body.keepPic
                 : [req.body.keepPic];
 
-            // Delete only the ones NOT being kept
             const toDelete = (data.pic || []).filter(url => !keepPic.includes(url));
             await deleteAllFromCloudinary(toDelete);
             data.pic = keepPic;
@@ -121,7 +117,15 @@ async function updateRecord(req, res) {
         res.send({ result: "Done", data })
     } catch (error) {
         if (req.files) await deleteAllFromCloudinary(req.files.map(f => f.path));
-        res.status(400).send({ result: "Fail", reason: "Internal Server Error" })
+
+        let errorMessage = {}
+        error.errors?.projectCategory && (errorMessage.projectCategory = error.errors.projectCategory.message)
+        error.errors?.pic && (errorMessage.pic = error.errors.pic.message)
+
+        if (Object.values(errorMessage).length === 0)
+            res.status(500).send({ result: "Fail", reason: "Internal Server Error" })
+        else
+            res.status(400).send({ result: "Fail", reason: errorMessage })
     }
 }
 
@@ -131,7 +135,6 @@ async function deleteRecord(req, res) {
         let data = await Portfolio.findOne({ _id: req.params._id })
         if (!data) return res.status(404).send({ result: "Fail", reason: "Record Not Found" })
 
-        // ✅ Delete all images from Cloudinary
         await deleteAllFromCloudinary(data.pic);
 
         await data.deleteOne()

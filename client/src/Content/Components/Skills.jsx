@@ -4,8 +4,9 @@ import { useDispatch, useSelector } from "react-redux";
 import { motion } from "framer-motion";
 import * as THREE from "three";
 import AOS from "aos";
-import "aos/dist/aos.css";
 import { getSkill } from "../Redux/ActionCreators/SkillActionCreators";
+import { getSkillCategory } from "../Redux/ActionCreators/SkillCategoryActionCreators";
+import useIntersectionWebGL from '../hooks/useIntersectionWebGL';
 
 const SKILL_ICON_MAP = {
   "react": "bi bi-infinity",
@@ -71,12 +72,7 @@ function getAccent(index) {
    THREE.JS CANVAS: 3D FLOATING BOOKS & KNOWLEDGE CONSTELLATION
    ========================================================================= */
 function SkillsThreeCanvas() {
-  const mountRef = useRef(null);
-
-  useEffect(() => {
-    const container = mountRef.current;
-    if (!container) return;
-
+  const mountRef = useIntersectionWebGL((container) => {
     let width = container.clientWidth || window.innerWidth;
     let height = container.clientHeight || 800;
 
@@ -311,6 +307,7 @@ function SkillsThreeCanvas() {
       lineMat.dispose();
       starGeo.dispose();
       starMat.dispose();
+      renderer.forceContextLoss();
       renderer.dispose();
     };
   }, []);
@@ -359,229 +356,185 @@ function SkillIconMarquee({ skills }) {
      6 -> 3D Double Helix Segment
      7 -> 3D Pyramidal Tetrahedral Star
    ========================================================================= */
+/* =========================================================================
+   CSS 3D SKILL MINIATURES (Zero WebGL — pure CSS transforms)
+   Types (index % 8):
+     0 -> Mini Book / Codex
+     1 -> Quantum Atomic Orbit
+     2 -> Cyber Cube
+     3 -> Faceted Crystal Octahedron
+     4 -> Iridescent Torus Ring
+     5 -> Geodesic Icosahedron
+     6 -> Double Helix Segment
+     7 -> Pyramidal Tetra Star
+   ========================================================================= */
 function SkillCard3D({ typeIndex = 0, accent = "#6366f1" }) {
-  const mountRef = useRef(null);
+  const t = typeIndex % 8;
 
-  useEffect(() => {
-    const container = mountRef.current;
-    if (!container) return;
+  const styles = `
+    .sk-css3d-wrap { width:100%; height:100%; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; }
 
-    const width = container.clientWidth || 54;
-    const height = container.clientHeight || 54;
+    /* 0: Book */
+    .sk-book { width:28px; height:36px; border-radius:2px 4px 4px 2px;
+      background:linear-gradient(160deg, ${accent}, ${accent}aa);
+      box-shadow: inset -3px 0 6px rgba(0,0,0,0.3), 0 0 10px ${accent}66;
+      animation: skBookFloat 2.4s ease-in-out infinite alternate; }
+    .sk-book-spine { position:absolute; left:0; top:0; width:4px; height:36px;
+      border-radius:2px 0 0 2px;
+      background: ${accent}; }
+    @keyframes skBookFloat { to { transform: translateY(-4px) rotateY(8deg); } }
 
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(48, width / height, 0.1, 50);
-    camera.position.z = 3.6;
+    /* 1: Atom */
+    .sk-atom-nuc { width:10px; height:10px; border-radius:50%;
+      background:radial-gradient(circle, white, ${accent});
+      box-shadow: 0 0 8px ${accent}; z-index:1; }
+    .sk-atom-ring { position:absolute; border-radius:50%; border:2px solid ${accent}88; }
+    .sk-atom-r1 { width:42px; height:18px; top:13px; left:2px;
+      animation: skAtomR1 1.8s linear infinite; }
+    .sk-atom-r2 { width:42px; height:18px; top:13px; left:2px;
+      animation: skAtomR2 2.4s linear infinite; }
+    @keyframes skAtomR1 { to { transform: rotateX(60deg) rotate(360deg); } }
+    @keyframes skAtomR2 { to { transform: rotateX(-60deg) rotate(-360deg); } }
 
-    let renderer;
-    try {
-      renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: "high-performance" });
-      renderer.setSize(width, height);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
-      renderer.setClearColor(0x000000, 0);
-      container.appendChild(renderer.domElement);
-    } catch {
-      return;
-    }
+    /* 2: Cube */
+    .sk-cube-scene { position:relative; width:36px; height:36px; transform-style:preserve-3d;
+      animation: skCubeSpin 3s linear infinite; }
+    .sk-cube-face { position:absolute; width:36px; height:36px;
+      border:1.5px solid ${accent}bb;
+      background:${accent}18;
+      backdrop-filter: blur(1px); }
+    @keyframes skCubeSpin { to { transform: rotateX(360deg) rotateY(360deg); } }
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
-    scene.add(ambientLight);
+    /* 3: Octahedron */
+    .sk-oct { width:30px; height:30px;
+      background:linear-gradient(135deg,${accent},${accent}88);
+      clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);
+      animation: skOctSpin 2.8s linear infinite;
+      box-shadow: 0 0 12px ${accent}66; }
+    .sk-oct-ring { position:absolute; width:44px; height:18px; border-radius:50%;
+      border:2px solid ${accent}66;
+      animation: skOctRing 2s linear infinite; }
+    @keyframes skOctSpin { to { transform: rotate(360deg); } }
+    @keyframes skOctRing { to { transform: rotateX(360deg); } }
 
-    const dirLight = new THREE.DirectionalLight(0xffffff, 2.0);
-    dirLight.position.set(4, 5, 4);
-    scene.add(dirLight);
+    /* 4: Torus */
+    .sk-tor { width:38px; height:38px; border-radius:50%;
+      border:5px solid ${accent};
+      box-shadow: 0 0 10px ${accent}88, inset 0 0 8px ${accent}44;
+      animation: skTorSpin 2s linear infinite; }
+    .sk-tor-inner { position:absolute; width:20px; height:20px; border-radius:50%;
+      border:2px solid ${accent}66;
+      animation: skTorInner 3s linear infinite reverse; }
+    @keyframes skTorSpin { to { transform: rotateY(360deg); } }
+    @keyframes skTorInner { to { transform: rotate(360deg); } }
 
-    const group = new THREE.Group();
-    scene.add(group);
+    /* 5: Icosahedron */
+    .sk-ico { width:34px; height:34px;
+      border:2px solid ${accent}aa;
+      clip-path:polygon(50% 0%,95% 25%,95% 75%,50% 100%,5% 75%,5% 25%);
+      animation: skIcoSpin 3.5s linear infinite;
+      background:${accent}12; }
+    .sk-ico-core { position:absolute; width:14px; height:14px; border-radius:50%;
+      background:radial-gradient(circle,white,${accent});
+      animation: skIcoPulse 1.5s ease-in-out infinite alternate; }
+    @keyframes skIcoSpin { to { transform: rotate(360deg); } }
+    @keyframes skIcoPulse { to { transform: scale(1.25); box-shadow:0 0 10px ${accent}; } }
 
-    const disposables = [];
-    const t = typeIndex % 8;
-    const accentColor = new THREE.Color(accent);
+    /* 6: Helix */
+    .sk-helix-seg { width:3px; height:28px; border-radius:2px;
+      background:${accent};
+      position:absolute;
+      animation: skHelixSpin 2s ease-in-out infinite; }
+    .sk-helix-bead { position:absolute; width:7px; height:7px; border-radius:50%;
+      background:${accent};
+      box-shadow:0 0 6px ${accent}; }
+    @keyframes skHelixSpin { 0%,100% { transform:rotateY(0); } 50% { transform:rotateY(180deg); } }
 
-    if (t === 0) {
-      // 0: 3D Mini Book
-      const bookGeo = new THREE.BoxGeometry(1.2, 1.55, 0.28);
-      const coverMat = new THREE.MeshStandardMaterial({
-        color: accentColor,
-        metalness: 0.5,
-        roughness: 0.25,
-        emissive: accentColor,
-        emissiveIntensity: 0.35,
-      });
-      const pagesMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.6 });
-      const book = new THREE.Mesh(bookGeo, [pagesMat, coverMat, pagesMat, pagesMat, coverMat, coverMat]);
-      group.add(book);
-      disposables.push(bookGeo, coverMat, pagesMat);
-
-    } else if (t === 1) {
-      // 1: Quantum Atom (Nucleus + 2 Orbits)
-      const nucGeo = new THREE.SphereGeometry(0.38, 16, 16);
-      const nucMat = new THREE.MeshStandardMaterial({
-        color: accentColor,
-        emissive: accentColor,
-        emissiveIntensity: 0.6,
-        roughness: 0.2,
-      });
-      const nuc = new THREE.Mesh(nucGeo, nucMat);
-      group.add(nuc);
-
-      const rGeo = new THREE.TorusGeometry(0.9, 0.04, 12, 32);
-      const rMat = new THREE.MeshBasicMaterial({ color: accentColor });
-      const r1 = new THREE.Mesh(rGeo, rMat);
-      r1.rotation.x = Math.PI / 3;
-      const r2 = new THREE.Mesh(rGeo, rMat);
-      r2.rotation.y = Math.PI / 3;
-      group.add(r1);
-      group.add(r2);
-      disposables.push(nucGeo, nucMat, rGeo, rMat);
-
-    } else if (t === 2) {
-      // 2: Cyber Tesseract Cube
-      const cubeGeo = new THREE.BoxGeometry(1.0, 1.0, 1.0);
-      const cubeMat = new THREE.MeshStandardMaterial({
-        color: accentColor,
-        metalness: 0.8,
-        roughness: 0.2,
-        emissive: accentColor,
-        emissiveIntensity: 0.3,
-      });
-      const cube = new THREE.Mesh(cubeGeo, cubeMat);
-      group.add(cube);
-
-      const wireGeo = new THREE.BoxGeometry(1.35, 1.35, 1.35);
-      const wireMat = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true, transparent: true, opacity: 0.6 });
-      const wire = new THREE.Mesh(wireGeo, wireMat);
-      group.add(wire);
-      disposables.push(cubeGeo, cubeMat, wireGeo, wireMat);
-
-    } else if (t === 3) {
-      // 3: Faceted Crystal Octahedron
-      const octGeo = new THREE.OctahedronGeometry(1.05, 0);
-      const octMat = new THREE.MeshStandardMaterial({
-        color: accentColor,
-        metalness: 0.85,
-        roughness: 0.15,
-        emissive: accentColor,
-        emissiveIntensity: 0.45,
-      });
-      const oct = new THREE.Mesh(octGeo, octMat);
-      group.add(oct);
-
-      const ringGeo = new THREE.RingGeometry(1.25, 1.38, 24);
-      const ringMat = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, transparent: true, opacity: 0.6 });
-      const ring = new THREE.Mesh(ringGeo, ringMat);
-      ring.rotation.x = Math.PI / 2.3;
-      group.add(ring);
-      disposables.push(octGeo, octMat, ringGeo, ringMat);
-
-    } else if (t === 4) {
-      // 4: Iridescent Torus Energy Ring
-      const torGeo = new THREE.TorusGeometry(0.85, 0.25, 16, 36);
-      const torMat = new THREE.MeshStandardMaterial({
-        color: accentColor,
-        metalness: 0.75,
-        roughness: 0.2,
-        emissive: accentColor,
-        emissiveIntensity: 0.35,
-      });
-      const tor = new THREE.Mesh(torGeo, torMat);
-      group.add(tor);
-      disposables.push(torGeo, torMat);
-
-    } else if (t === 5) {
-      // 5: Geodesic Icosahedron Core
-      const icoGeo = new THREE.IcosahedronGeometry(0.95, 0);
-      const icoMat = new THREE.MeshStandardMaterial({
-        color: accentColor,
-        metalness: 0.7,
-        roughness: 0.3,
-        wireframe: true,
-      });
-      const ico = new THREE.Mesh(icoGeo, icoMat);
-      group.add(ico);
-
-      const coreGeo = new THREE.SphereGeometry(0.45, 16, 16);
-      const coreMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-      const core = new THREE.Mesh(coreGeo, coreMat);
-      group.add(core);
-      disposables.push(icoGeo, icoMat, coreGeo, coreMat);
-
-    } else if (t === 6) {
-      // 6: Double Helix Segment
-      for (let i = 0; i < 4; i++) {
-        const rungGeo = new THREE.CylinderGeometry(0.06, 0.06, 1.2, 8);
-        const rungMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-        const rung = new THREE.Mesh(rungGeo, rungMat);
-        rung.position.y = (i - 1.5) * 0.45;
-        rung.rotation.z = Math.PI / 2;
-        rung.rotation.y = (i / 4) * Math.PI;
-        group.add(rung);
-
-        const beadGeo = new THREE.SphereGeometry(0.14, 8, 8);
-        const beadMat = new THREE.MeshStandardMaterial({ color: accentColor, emissive: accentColor, emissiveIntensity: 0.5 });
-        const b1 = new THREE.Mesh(beadGeo, beadMat);
-        b1.position.set(Math.cos(rung.rotation.y) * 0.6, rung.position.y, Math.sin(rung.rotation.y) * 0.6);
-        const b2 = new THREE.Mesh(beadGeo, beadMat);
-        b2.position.set(-Math.cos(rung.rotation.y) * 0.6, rung.position.y, -Math.sin(rung.rotation.y) * 0.6);
-        group.add(b1);
-        group.add(b2);
-        disposables.push(rungGeo, rungMat, beadGeo, beadMat);
-      }
-
-    } else {
-      // 7: Pyramidal Tetrahedral Star
-      const tetGeo = new THREE.TetrahedronGeometry(1.05, 0);
-      const tetMat = new THREE.MeshStandardMaterial({
-        color: accentColor,
-        metalness: 0.8,
-        roughness: 0.2,
-        emissive: accentColor,
-        emissiveIntensity: 0.4,
-      });
-      const tet1 = new THREE.Mesh(tetGeo, tetMat);
-      group.add(tet1);
-
-      const tet2 = new THREE.Mesh(tetGeo, tetMat);
-      tet2.rotation.x = Math.PI;
-      group.add(tet2);
-      disposables.push(tetGeo, tetMat);
-    }
-
-    let reqId;
-    const miniStartTime = performance.now();
-
-    const animate = () => {
-      reqId = requestAnimationFrame(animate);
-      const elapsed = (performance.now() - miniStartTime) * 0.001;
-
-      group.rotation.y += 0.035;
-      group.rotation.x = Math.sin(elapsed * 2) * 0.16;
-      renderer.render(scene, camera);
-    };
-    animate();
-
-    return () => {
-      cancelAnimationFrame(reqId);
-      if (renderer.domElement && container.contains(renderer.domElement)) {
-        container.removeChild(renderer.domElement);
-      }
-      disposables.forEach((d) => d.dispose());
-      renderer.dispose();
-    };
-  }, [typeIndex, accent]);
+    /* 7: Tetrahedron */
+    .sk-tet { width:34px; height:34px;
+      background:linear-gradient(160deg,${accent},${accent}77);
+      clip-path:polygon(50% 0%,100% 100%,0% 100%);
+      animation: skTetSpin 2.5s linear infinite;
+      box-shadow:0 0 12px ${accent}66; }
+    .sk-tet-inv { position:absolute; width:28px; height:28px;
+      clip-path:polygon(50% 100%,100% 0%,0% 0%);
+      background:${accent}44;
+      animation: skTetSpin 2.5s linear infinite reverse; }
+    @keyframes skTetSpin { to { transform: rotate(360deg); } }
+  `;
 
   return (
     <div
-      ref={mountRef}
-      style={{
-        width: "100%",
-        height: "100%",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-      }}
+      style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}
       aria-hidden="true"
-    />
+    >
+      <style>{styles}</style>
+      <div className="sk-css3d-wrap">
+        {t === 0 && (
+          <div style={{ position: "relative", width: "36px", height: "36px" }}>
+            <div className="sk-book" />
+            <div className="sk-book-spine" />
+          </div>
+        )}
+        {t === 1 && (
+          <div style={{ position: "relative", width: "48px", height: "44px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div className="sk-atom-ring sk-atom-r1" />
+            <div className="sk-atom-ring sk-atom-r2" />
+            <div className="sk-atom-nuc" />
+          </div>
+        )}
+        {t === 2 && (
+          <div style={{ perspective: "180px" }}>
+            <div className="sk-cube-scene">
+              <div className="sk-cube-face" style={{ transform: "translateZ(18px)" }} />
+              <div className="sk-cube-face" style={{ transform: "translateZ(-18px) rotateY(180deg)" }} />
+              <div className="sk-cube-face" style={{ transform: "rotateY(90deg) translateZ(18px)" }} />
+              <div className="sk-cube-face" style={{ transform: "rotateY(-90deg) translateZ(18px)" }} />
+              <div className="sk-cube-face" style={{ transform: "rotateX(90deg) translateZ(18px)" }} />
+              <div className="sk-cube-face" style={{ transform: "rotateX(-90deg) translateZ(18px)" }} />
+            </div>
+          </div>
+        )}
+        {t === 3 && (
+          <div style={{ position: "relative", width: "46px", height: "46px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div className="sk-oct-ring" />
+            <div className="sk-oct" />
+          </div>
+        )}
+        {t === 4 && (
+          <div style={{ position: "relative", width: "44px", height: "44px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div className="sk-tor" />
+            <div className="sk-tor-inner" />
+          </div>
+        )}
+        {t === 5 && (
+          <div style={{ position: "relative", width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div className="sk-ico" />
+            <div className="sk-ico-core" />
+          </div>
+        )}
+        {t === 6 && (
+          <div style={{ position: "relative", width: "44px", height: "44px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            {[0, 1, 2].map(i => (
+              <div key={i} className="sk-helix-seg" style={{ left: `${14 + i * 6}px`, animationDelay: `${i * 0.3}s` }} />
+            ))}
+            {[0, 1, 2, 3].map(i => (
+              <div key={i} className="sk-helix-bead" style={{
+                left: `${i % 2 === 0 ? 8 : 30}px`,
+                top: `${8 + i * 7}px`,
+                animationDelay: `${i * 0.2}s`
+              }} />
+            ))}
+          </div>
+        )}
+        {t === 7 && (
+          <div style={{ position: "relative", width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div className="sk-tet" />
+            <div className="sk-tet-inv" />
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -797,15 +750,23 @@ export function LeftAligned3DPortfolio({ dynamicSkills = [] }) {
 
   // Combine default deck with dynamic skills from Redux/Backend if available
   const deck = useMemo(() => {
-    if (dynamicSkills && dynamicSkills.length >= 4) {
-      return dynamicSkills.slice(0, 6).map((s, idx) => ({
+    if (Array.isArray(dynamicSkills)) {
+      if (dynamicSkills.length === 0) return [];
+      // Provide duplicate cards if fewer than 4 so the 3D circular wheel orbits smoothly
+      let list = dynamicSkills;
+      if (list.length === 1) list = [list[0], list[0], list[0], list[0]];
+      else if (list.length === 2) list = [list[0], list[1], list[0], list[1]];
+      else if (list.length === 3) list = [list[0], list[1], list[2], list[0], list[1], list[2]];
+      else list = list.slice(0, 8);
+
+      return list.map((s, idx) => ({
         name: s.name,
         percentage: `${s.level || 85}%`,
         level: s.level || 85,
         color: DEFAULT_SKILLS_DECK[idx % DEFAULT_SKILLS_DECK.length].color,
         gradient: DEFAULT_SKILLS_DECK[idx % DEFAULT_SKILLS_DECK.length].gradient,
         icon: getSkillIcon(s),
-        category: s.category || "Fullstack",
+        category: (typeof s.skillcategory === "object" ? s.skillcategory?.name : s.category) || "Fullstack",
         status: (s.level || 85) >= 90 ? "ENTERPRISE" : "PRODUCTION",
         description: s.description && s.description.trim()
           ? s.description.trim()
@@ -909,12 +870,17 @@ export function LeftAligned3DPortfolio({ dynamicSkills = [] }) {
             <div className="sk-crawler-rail sk-crawler-rail--right" />
 
             {/* THE SINGLE 3D VERTICAL CIRCULAR WHEEL */}
-            <div
-              className={`sk-circular-wheel ${isPaused || hoveredIndex !== null ? "is-paused" : ""}`}
-              style={{
-                animationDuration: `${20 / speedMultiplier}s`
-              }}
-            >
+            {deck.length === 0 ? (
+              <div className="d-flex align-items-center justify-content-center h-100 text-muted p-4 text-center">
+                <span>No skills cataloged in this category yet.</span>
+              </div>
+            ) : (
+              <div
+                className={`sk-circular-wheel ${isPaused || hoveredIndex !== null ? "is-paused" : ""}`}
+                style={{
+                  animationDuration: `${20 / speedMultiplier}s`
+                }}
+              >
               {deck.map((skill, index) => {
                 const isFlipped = flippedIndex === index || hoveredIndex === index;
                 return (
@@ -1005,6 +971,7 @@ export function LeftAligned3DPortfolio({ dynamicSkills = [] }) {
                 );
               })}
             </div>
+            )}
           </div>
         </div>
       </div>
@@ -1012,11 +979,69 @@ export function LeftAligned3DPortfolio({ dynamicSkills = [] }) {
   );
 }
 
+function getSkillCategoryIcon(name) {
+  const n = (name || "").toLowerCase();
+  if (n.includes("front") || n.includes("ui") || n.includes("web")) return "bi-layers-fill";
+  if (n.includes("back") || n.includes("server") || n.includes("database") || n.includes("db") || n.includes("api")) return "bi-server";
+  if (n.includes("cloud") || n.includes("devops") || n.includes("tool")) return "bi-cloud-fill";
+  if (n.includes("mobile") || n.includes("app") || n.includes("ios") || n.includes("android")) return "bi-phone-fill";
+  if (n.includes("ai") || n.includes("ml") || n.includes("data")) return "bi-cpu-fill";
+  return "bi-tag-fill";
+}
+
+export function skillMatchesCategory(s, catObj, tabId) {
+  if (!tabId || tabId === "all") return true;
+
+  const catName = (catObj ? catObj.name : tabId).trim().toLowerCase();
+  const catId = catObj?._id ? String(catObj._id) : "";
+
+  // 1. Check explicit skillcategory (populated object or ID string or legacy category string)
+  const skillCatObj = s?.skillcategory;
+  const skillCatId = skillCatObj ? String(typeof skillCatObj === "object" ? (skillCatObj._id || "") : skillCatObj) : "";
+  const skillCatName = (typeof skillCatObj === "object" && skillCatObj?.name ? skillCatObj.name : (s?.category || "")).trim().toLowerCase();
+
+  // If skill explicitly matches this category by ID or name
+  if (catId && skillCatId && skillCatId === catId) return true;
+  if (skillCatName && (skillCatName === catName || skillCatName.replace(/\s+/g, "-") === catName)) return true;
+
+  // If skill has an explicit category assigned to another category, don't put it in this category
+  if (skillCatId || (s?.category && s.category.trim())) {
+    return false;
+  }
+
+  // 2. Fallback for unassigned/legacy skills: concept and keyword matching
+  const corpus = (s.name + " " + (s.description || "")).toLowerCase();
+  if (catName.includes("front") || catName === "frontend") {
+    return /react|next|vue|html|css|javascript|typescript|redux|tailwind|bootstrap|ui|ux|frontend|sass|angular|svelte/i.test(corpus);
+  }
+  if (catName.includes("back") || catName.includes("db") || catName.includes("database") || catName === "backend") {
+    return /node|express|mongo|sql|database|api|backend|python|java|golang|server|django|flask|laravel|php|graphql|redis/i.test(corpus);
+  }
+  if (catName.includes("tool") || catName.includes("cloud") || catName.includes("devops") || catName === "tools") {
+    return /git|github|docker|aws|figma|postman|vite|webpack|linux|cloud|tools|kubernetes|nginx|firebase|ci|cd/i.test(corpus);
+  }
+  if (catName.includes("mobile") || catName.includes("app")) {
+    return /react native|flutter|android|ios|swift|kotlin|mobile/i.test(corpus);
+  }
+  if (catName.includes("ai") || catName.includes("ml") || catName.includes("data") || catName.includes("machine")) {
+    return /panda|numpy|python|tensorflow|pytorch|machine learning|deep learning|data|ai|ml/i.test(corpus);
+  }
+
+  const keywords = catName.split(/[\s,&/-]+/).filter(w => w.length > 2);
+  if (keywords.length > 0) {
+    const reg = new RegExp(keywords.join("|"), "i");
+    if (reg.test(corpus)) return true;
+  }
+
+  return false;
+}
+
 /* =========================================================================
    MAIN SKILLS SECTION COMPONENT
    ========================================================================= */
 export default function Skills() {
   const SkillStateData = useSelector((state) => state.SkillStateData);
+  const SkillCategoryStateData = useSelector((state) => state.SkillCategoryStateData);
   const dispatch = useDispatch();
   const loading = !SkillStateData || SkillStateData.length === 0;
   const [activeTab, setActiveTab] = useState("all");
@@ -1024,21 +1049,27 @@ export default function Skills() {
 
   useEffect(() => {
     if (!SkillStateData || !SkillStateData.length) dispatch(getSkill());
+    if (!SkillCategoryStateData || !SkillCategoryStateData.length) dispatch(getSkillCategory());
     AOS.init({ duration: 800, once: false, mirror: true });
-  }, [dispatch, SkillStateData]);
+  }, [dispatch, SkillStateData, SkillCategoryStateData]);
 
   const activeSkills = useMemo(() =>
     Array.isArray(SkillStateData) ? SkillStateData.filter((x) => x.active) : [],
     [SkillStateData]
   );
 
+  const activeCategories = useMemo(() =>
+    Array.isArray(SkillCategoryStateData)
+      ? SkillCategoryStateData.filter((c) => c.active)
+      : [],
+    [SkillCategoryStateData]
+  );
+
   const categorizedSkills = useMemo(() => {
     if (activeTab === "all") return activeSkills;
-    if (activeTab === "frontend") return activeSkills.filter((s) => /react|next|vue|html|css|javascript|typescript|redux|tailwind|bootstrap|ui|ux|frontend|sass|angular|svelte/i.test(s.name + " " + (s.description || "")));
-    if (activeTab === "backend") return activeSkills.filter((s) => /node|express|mongo|sql|database|api|backend|python|java|golang|server|django|flask|laravel|php|graphql|redis/i.test(s.name + " " + (s.description || "")));
-    if (activeTab === "tools") return activeSkills.filter((s) => /git|github|docker|aws|figma|postman|vite|webpack|linux|cloud|tools|kubernetes|nginx|firebase|ci|cd/i.test(s.name + " " + (s.description || "")));
-    return activeSkills;
-  }, [activeSkills, activeTab]);
+    const activeCatObj = activeCategories.find(c => c._id === activeTab || c.name.toLowerCase().replace(/\s+/g, "-") === activeTab || c.name.toLowerCase() === activeTab.toLowerCase());
+    return activeSkills.filter(s => skillMatchesCategory(s, activeCatObj, activeTab));
+  }, [activeSkills, activeTab, activeCategories]);
 
   function handleTabChange(id) {
     if (id === activeTab) return;
@@ -1055,12 +1086,27 @@ export default function Skills() {
     return { total, mastered, avg };
   }, [activeSkills]);
 
-  const TABS = [
-    { id: "all", label: "All Skills", icon: "bi-grid-3x3-gap-fill", count: activeSkills.length },
-    { id: "frontend", label: "Frontend", icon: "bi-layers-fill", count: null },
-    { id: "backend", label: "Backend & DB", icon: "bi-server", count: null },
-    { id: "tools", label: "Tools & Cloud", icon: "bi-cloud-fill", count: null },
-  ];
+  const TABS = useMemo(() => {
+    const allTab = { id: "all", label: "All Skills", icon: "bi-grid-3x3-gap-fill", count: activeSkills.length };
+    if (!activeCategories.length) {
+      return [
+        allTab,
+        { id: "frontend", label: "Frontend", icon: "bi-layers-fill", count: null },
+        { id: "backend", label: "Backend & DB", icon: "bi-server", count: null },
+        { id: "tools", label: "Tools & Cloud", icon: "bi-cloud-fill", count: null },
+      ];
+    }
+    const catTabs = activeCategories.map((cat) => {
+      const count = activeSkills.filter(s => skillMatchesCategory(s, cat, cat._id)).length;
+      return {
+        id: cat._id || cat.name.toLowerCase().replace(/\s+/g, "-"),
+        label: cat.name,
+        icon: getSkillCategoryIcon(cat.name),
+        count: count,
+      };
+    });
+    return [allTab, ...catTabs];
+  }, [activeCategories, activeSkills]);
 
   return (
     <section id="skills" className="sk-section">
@@ -1097,7 +1143,7 @@ export default function Skills() {
         </div>
 
         {/* Single 3D Vertical Circular Wheel & Technical Expertise Matrix */}
-        <LeftAligned3DPortfolio dynamicSkills={categorizedSkills.length > 0 ? categorizedSkills : activeSkills} />
+        <LeftAligned3DPortfolio dynamicSkills={categorizedSkills} />
 
         {/* Skills Cards Grid */}
 

@@ -4,6 +4,7 @@ import * as THREE from "three";
 import AOS from "aos";
 import "aos/dist/aos.css";
 import { ThemeContext } from "../ThemeContext";
+import useIntersectionWebGL from '../hooks/useIntersectionWebGL';
 
 /* ── 6 Engineering-First Approach Steps with Theme Accents ── */
 const STEPS = [
@@ -215,7 +216,6 @@ function createMonolithTexture(step, isDark) {
 
 /* ── 3D Ring Slot Stage Three.js Scene ── */
 function RingSlotThreeScene({ activeIndex, onSelectStep, theme }) {
-  const mountRef = useRef(null);
   const activeIndexRef = useRef(activeIndex);
   const onSelectStepRef = useRef(onSelectStep);
   const themeRef = useRef(theme);
@@ -237,16 +237,12 @@ function RingSlotThreeScene({ activeIndex, onSelectStep, theme }) {
     }
   }, [theme]);
 
-  useEffect(() => {
-    const container = mountRef.current;
-    if (!container) return;
-
+  const mountRef = useIntersectionWebGL((container) => {
     let width = container.clientWidth || 440;
     let height = container.clientHeight || 380;
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(38, width / height, 0.1, 100);
-
     const updateCameraDistance = (w, h) => {
       if (w < 380) {
         camera.position.set(0, 2.0, 9.6);
@@ -630,6 +626,7 @@ function RingSlotThreeScene({ activeIndex, onSelectStep, theme }) {
         container.removeChild(renderer.domElement);
       }
       disposables.forEach((d) => d.dispose());
+      renderer.forceContextLoss();
       renderer.dispose();
     };
   }, []);

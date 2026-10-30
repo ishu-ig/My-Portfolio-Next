@@ -1,20 +1,17 @@
 "use client"
 import React, { useEffect, useState, useRef, useMemo } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import { useDispatch, useSelector } from 'react-redux';
 import { getCertificate } from '../Redux/ActionCreators/CertificateActionCreators';
 import AOS from "aos";
 import "aos/dist/aos.css";
 import * as THREE from 'three';
+import useIntersectionWebGL from '../hooks/useIntersectionWebGL';
 
 /* ── Three.js Ambient Particle & Ring Scene for .wall__scene ── */
 function WallThreeScene() {
-  const mountRef = useRef(null);
-
-  useEffect(() => {
-    const container = mountRef.current;
-    if (!container) return;
-
+  const mountRef = useIntersectionWebGL((container) => {
     let width = container.clientWidth || 768;
     let height = container.clientHeight || 500;
 
@@ -33,7 +30,7 @@ function WallThreeScene() {
       renderer.domElement.style.height = '100%';
       container.appendChild(renderer.domElement);
     } catch {
-      return;
+      return () => {};
     }
 
     // 1. Ambient Ring of glowing dots
@@ -116,6 +113,7 @@ function WallThreeScene() {
       ringMat.dispose();
       dustGeo.dispose();
       dustMat.dispose();
+      renderer.forceContextLoss();
       renderer.dispose();
     };
   }, []);
@@ -210,18 +208,24 @@ export default function Certificates() {
     return () => window.removeEventListener('resize', handleResizeRadius);
   }, []);
 
+  // Client mount state for SSR-safe createPortal
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // Escape key & background scroll lock for lightbox modal
   useEffect(() => {
+    if (!previewCert) return;
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') setPreviewCert(null);
     };
-    if (previewCert) {
-      window.addEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = 'hidden';
-    }
+    window.addEventListener('keydown', handleKeyDown);
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = '';
+      document.body.style.overflow = originalOverflow;
     };
   }, [previewCert]);
 
@@ -610,24 +614,42 @@ export default function Certificates() {
 
         /* ── Lightbox Modal ── */
         .cert-lightbox-backdrop {
-          position: fixed; inset: 0;
+          position: fixed;
+          inset: 0;
           background: rgba(0, 0, 0, 0.85);
           backdrop-filter: blur(14px);
           -webkit-backdrop-filter: blur(14px);
-          z-index: 9999;
-          display: flex; align-items: center; justify-content: center;
-          padding: 16px;
+          z-index: 9999999;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: clamp(12px, 3vw, 24px);
           animation: certBackdropIn 0.2s ease;
+          overflow-y: auto;
+          overscroll-behavior: contain;
         }
         @keyframes certBackdropIn { from { opacity: 0; } to { opacity: 1; } }
         .cert-lightbox-card {
-          background: var(--card-bg);
-          border: 1px solid var(--card-border);
+          background: var(--card-bg, #101422);
+          border: 1px solid var(--card-border, rgba(255, 255, 255, 0.12));
           border-radius: 20px;
-          max-width: 780px; width: 100%;
+          max-width: min(90vw, 900px);
+          max-height: 90dvh;
+          width: 100%;
+          margin: auto;
+          display: flex;
+          flex-direction: column;
           overflow: hidden;
-          box-shadow: 0 40px 100px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(var(--accent-rgb), 0.08);
+          box-shadow: 0 40px 100px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(var(--accent-rgb, 99, 102, 241), 0.15);
           animation: certLightboxIn 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+          position: relative;
+        }
+        [data-theme="light"] .cert-lightbox-card,
+        body.light .cert-lightbox-card {
+          background: #ffffff !important;
+          color: #0f111a !important;
+          border-color: rgba(99, 102, 241, 0.18) !important;
+          box-shadow: 0 24px 60px rgba(0, 0, 0, 0.15) !important;
         }
         @keyframes certLightboxIn {
           from { opacity: 0; transform: scale(0.93) translateY(18px); }
@@ -638,24 +660,52 @@ export default function Certificates() {
           justify-content: space-between;
           align-items: center;
           padding: 16px 20px;
-          border-bottom: 1px solid var(--border-color);
+          border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+          flex-shrink: 0;
+          background: var(--card-bg, #101422);
+          z-index: 2;
+        }
+        [data-theme="light"] .cert-lightbox-header,
+        body.light .cert-lightbox-header {
+          background: #f8fafc !important;
+          border-color: rgba(99, 102, 241, 0.1) !important;
+        }
+        .cert-lightbox-body {
+          flex: 1 1 auto;
+          overflow-y: auto;
+          overscroll-behavior: contain;
+          display: flex;
+          flex-direction: column;
+          min-height: 0;
         }
         .cert-lightbox-img-wrap {
           position: relative;
           width: 100%;
-          height: 62vh;
-          min-height: 260px;
-          background: var(--bg-alt);
-          display: flex; align-items: center; justify-content: center;
-          padding: 10px;
+          min-height: 220px;
+          height: clamp(240px, 58vh, 580px);
+          max-height: calc(90dvh - 140px);
+          background: var(--bg-alt, rgba(0, 0, 0, 0.3));
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 12px;
+          box-sizing: border-box;
         }
         .cert-lightbox-footer {
           padding: 14px 20px;
           display: flex;
           justify-content: flex-end;
+          align-items: center;
           gap: 10px;
-          background: var(--bg-alt);
-          border-top: 1px solid var(--border-color);
+          background: var(--bg-alt, rgba(0, 0, 0, 0.2));
+          border-top: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+          flex-shrink: 0;
+          z-index: 2;
+        }
+        [data-theme="light"] .cert-lightbox-footer,
+        body.light .cert-lightbox-footer {
+          background: #f8fafc !important;
+          border-color: rgba(99, 102, 241, 0.1) !important;
         }
 
         /* ── Classic Grid ── */
@@ -882,10 +932,13 @@ export default function Certificates() {
       </section>
 
       {/* Lightbox Preview Modal */}
-      {previewCert && (
+      {mounted && previewCert && typeof document !== 'undefined' && createPortal(
         <div
           className="cert-lightbox-backdrop"
           onClick={() => setPreviewCert(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-label={previewCert.name || "Certificate preview"}
         >
           <div
             className="cert-lightbox-card"
@@ -893,8 +946,8 @@ export default function Certificates() {
           >
             {/* Header */}
             <div className="cert-lightbox-header">
-              <div style={{ maxWidth: "85%" }}>
-                <h5 className="m-0 fw-bold text-truncate" style={{ color: "var(--text-color)", fontSize: '1rem' }}>{previewCert.name}</h5>
+              <div style={{ maxWidth: "80%" }}>
+                <h5 className="m-0 fw-bold text-truncate" style={{ color: "var(--text-color)", fontSize: '1.05rem' }}>{previewCert.name}</h5>
                 <small className="d-flex align-items-center gap-1 mt-1" style={{ color: 'var(--text-muted)' }}>
                   <i className="bi bi-patch-check-fill text-success" />
                   {previewCert.issuedBy} · Verified Credential
@@ -903,31 +956,35 @@ export default function Certificates() {
               <button
                 type="button"
                 style={{
-                  width: 32, height: 32, borderRadius: '50%',
-                  background: 'rgba(var(--accent-rgb), 0.08)',
-                  border: '1px solid var(--card-border)',
+                  width: 38, height: 38, borderRadius: '50%',
+                  background: 'rgba(var(--accent-rgb, 99, 102, 241), 0.08)',
+                  border: '1px solid var(--card-border, rgba(255,255,255,0.12))',
                   color: 'var(--text-muted)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  cursor: 'pointer', fontSize: 14, transition: 'all 0.2s ease',
+                  cursor: 'pointer', fontSize: 16, transition: 'all 0.2s ease',
+                  flexShrink: 0,
                 }}
                 onClick={() => setPreviewCert(null)}
-                aria-label="Close"
-                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(var(--accent-rgb), 0.16)'; e.currentTarget.style.color = 'var(--text-color)'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(var(--accent-rgb), 0.08)'; e.currentTarget.style.color = 'var(--text-muted)'; }}
+                aria-label="Close certificate modal"
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(var(--accent-rgb, 99, 102, 241), 0.18)'; e.currentTarget.style.color = 'var(--text-color)'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(var(--accent-rgb, 99, 102, 241), 0.08)'; e.currentTarget.style.color = 'var(--text-muted)'; }}
               >
                 <i className="bi bi-x-lg" />
               </button>
             </div>
 
-            {/* Image */}
-            <div className="cert-lightbox-img-wrap">
-              <Image
-                src={previewCert.pic && typeof previewCert.pic === "string" && (previewCert.pic.startsWith("http") || previewCert.pic.startsWith("/")) ? previewCert.pic : "/img/portfolio/portfolio-1.webp"}
-                alt={previewCert.name}
-                fill
-                sizes="(max-width: 768px) 100vw, 780px"
-                style={{ objectFit: "contain" }}
-              />
+            {/* Scrollable Body */}
+            <div className="cert-lightbox-body">
+              <div className="cert-lightbox-img-wrap">
+                <Image
+                  src={previewCert.pic && typeof previewCert.pic === "string" && (previewCert.pic.startsWith("http") || previewCert.pic.startsWith("/")) ? previewCert.pic : "/img/portfolio/portfolio-1.webp"}
+                  alt={previewCert.name}
+                  fill
+                  sizes="(max-width: 900px) 90vw, 900px"
+                  style={{ objectFit: "contain" }}
+                  priority
+                />
+              </div>
             </div>
 
             {/* Footer */}
@@ -937,6 +994,7 @@ export default function Certificates() {
                 target="_blank"
                 rel="noreferrer"
                 className="btn btn-sm btn-primary d-inline-flex align-items-center gap-1"
+                style={{ padding: '8px 18px', borderRadius: '999px', fontWeight: 600 }}
               >
                 <i className="bi bi-box-arrow-up-right" />
                 Open Full Size
@@ -949,6 +1007,8 @@ export default function Certificates() {
                   border: '1px solid var(--border-color)',
                   color: 'var(--text-muted)',
                   borderRadius: '999px',
+                  padding: '8px 20px',
+                  fontWeight: 600,
                 }}
                 onClick={() => setPreviewCert(null)}
               >
@@ -956,7 +1016,8 @@ export default function Certificates() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

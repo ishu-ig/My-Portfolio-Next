@@ -64,7 +64,10 @@ export async function updateRecord(collection, payload) {
 }
 export async function updateMultipartRecord(collection, payload) {
     try {
-        let response = await fetch(`${process.env.REACT_APP_BACKEND_SERVER}/api/${collection}/${payload.get('_id')}`, {
+        const id = (typeof FormData !== "undefined" && payload instanceof FormData)
+            ? payload.get('_id')
+            : payload._id;
+        let response = await fetch(`${process.env.REACT_APP_BACKEND_SERVER}/api/${collection}/${id}`, {
             method: "PUT",
             headers: {
                 "authorization": localStorage.getItem("token")

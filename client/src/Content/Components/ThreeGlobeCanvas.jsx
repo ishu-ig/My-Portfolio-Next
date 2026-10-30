@@ -1,14 +1,10 @@
 "use client";
 import React, { useEffect, useRef } from "react";
 import * as THREE from "three";
+import useIntersectionWebGL from '../hooks/useIntersectionWebGL';
 
 export default function ThreeGlobeCanvas() {
-  const containerRef = useRef(null);
-
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
+  const containerRef = useIntersectionWebGL((container) => {
     const width = container.clientWidth || 360;
     const height = container.clientHeight || 360;
 
@@ -184,6 +180,7 @@ export default function ThreeGlobeCanvas() {
 
       [globeGeo, innerGeo, nodeGeo, ringGeo].forEach(g => g.dispose());
       [globeMat, innerMat, nodeMat, lineMat, ringMat].forEach(m => m.dispose());
+      renderer.forceContextLoss();
       renderer.dispose();
     };
   }, []);

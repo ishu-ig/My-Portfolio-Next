@@ -1,7 +1,6 @@
 import { put, takeEvery } from "redux-saga/effects";
 import { CREATE_PORTFOLIO, CREATE_PORTFOLIO_RED, DELETE_PORTFOLIO, DELETE_PORTFOLIO_RED, GET_PORTFOLIO, GET_PORTFOLIO_RED, UPDATE_PORTFOLIO, UPDATE_PORTFOLIO_RED } from "../Constants"
-// import { createRecord, deleteRecord, getRecord, updateRecord } from "./Service/ApiCallingService"
-import { createMultipartRecord, deleteRecord, getRecord, updateMultipartRecord } from "./Service/ApiCallingService"
+import { createMultipartRecord, deleteRecord, getRecord, updateMultipartRecord, updateRecord } from "./Service/ApiCallingService"
 
 
 function* createSaga(action) {                          //worker saga or executer saga
@@ -16,10 +15,13 @@ function* getSaga(action) {                             //worker saga or execute
 }
 
 function* updateSaga(action) {                          //worker saga or executer saga
-    // yield updateRecord("portfolio", action.payload)
-    // yield put({ type: UPDATE_PORTFOLIO_RED, payload: action.payload })
-    let response = yield updateMultipartRecord("portfolio", action.payload)
-    yield put({ type: UPDATE_PORTFOLIO_RED, payload: response.data })
+    let response;
+    if (typeof FormData !== "undefined" && action.payload instanceof FormData) {
+        response = yield updateMultipartRecord("portfolio", action.payload);
+    } else {
+        response = yield updateRecord("portfolio", action.payload);
+    }
+    yield put({ type: UPDATE_PORTFOLIO_RED, payload: response?.data || action.payload });
 }
 
 function* deleteSaga(action) {                          //worker saga or executer saga

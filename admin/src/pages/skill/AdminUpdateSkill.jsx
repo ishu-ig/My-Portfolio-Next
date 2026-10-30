@@ -3,11 +3,12 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import formValidator from "../../FormValidators/formValidator";
 import { updateSkill, getSkill } from "../../Redux/ActionCreators/SkillActionCreators";
+import { getSkillCategory } from "../../Redux/ActionCreators/SkillCategoryActionCreators";
 
 const checklist = [
-  { dot: "bg-success", title: "Review details",   body: "Confirm name and description are up to date." },
-  { dot: "bg-primary", title: "Check level",      body: "Ensure the level value is still accurate."    },
-  { dot: "bg-warning", title: "Save changes",     body: "Changes take effect immediately."             },
+  { dot: "bg-success", title: "Review details", body: "Confirm name and description are up to date." },
+  { dot: "bg-primary", title: "Check level", body: "Ensure the level value is still accurate." },
+  { dot: "bg-warning", title: "Save changes", body: "Changes take effect immediately." },
 ];
 
 export default function AdminUpdateSkill() {
@@ -18,25 +19,33 @@ export default function AdminUpdateSkill() {
     name: "",
     description: "",
     icon: "",
+    skillcategory: "",
     level: "",
     active: true,
   });
   let [error, setError] = useState({
     name: "",
     description: "",
+    skillcategory: "",
     level: "",
   });
   let [show, setShow] = useState(false);
   let navigate = useNavigate();
 
   let SkillStateData = useSelector((state) => state.SkillStateData);
+  let SkillCategoryStateData = useSelector((state) => state.SkillCategoryStateData);
   let dispatch = useDispatch();
 
   function getInputData(e) {
     let name = e.target.name;
     let value = e.target.value;
 
-    if (name !== "active") {
+    if (name === "skillcategory") {
+      setError((old) => ({
+        ...old,
+        skillcategory: value ? "" : "Skill Category Field is Mandatory",
+      }));
+    } else if (name !== "active" && name !== "icon") {
       setError((old) => ({
         ...old,
         [name]: formValidator(e),
@@ -50,8 +59,8 @@ export default function AdminUpdateSkill() {
             ? true
             : false
           : name === "level"
-          ? Number(value)
-          : value,
+            ? Number(value)
+            : value,
     }));
   }
 
@@ -80,9 +89,22 @@ export default function AdminUpdateSkill() {
     dispatch(getSkill());
     if (SkillStateData.length) {
       let item = SkillStateData.find((x) => x._id === _id);
-      if (item) setData({ ...item });
+      if (item) {
+        // skillcategory comes back populated ({_id, name}); the form needs just the id
+        const categoryId = item.skillcategory?._id ?? item.skillcategory ?? "";
+        setData({ ...item, skillcategory: categoryId });
+        // Old records may have no category yet: force the admin to pick one
+        setError((old) => ({
+          ...old,
+          skillcategory: categoryId ? "" : "Skill Category Field is Mandatory",
+        }));
+      }
     }
   }, [SkillStateData.length]);
+
+  useEffect(() => {
+    dispatch(getSkillCategory());
+  }, [SkillCategoryStateData.length]);
 
   return (
     <main className="dashboard-content">
@@ -98,7 +120,7 @@ export default function AdminUpdateSkill() {
               <p className="eyebrow mb-1">Management</p>
               <h1 className="h3 mb-1">Update Skill</h1>
               <p className="text-muted mb-0">
-                Edit the skill name, description, level, and status.
+                Edit the skill name, description, category, level, and status.
               </p>
             </div>
           </div>
@@ -155,6 +177,26 @@ export default function AdminUpdateSkill() {
                   />
                   {show && error.name && (
                     <div className="text-danger small mt-1">{error.name}</div>
+                  )}
+                </div>
+
+                {/* Skill Category */}
+                <div className="col-12">
+                  <label className="form-label" htmlFor="skillcategory">Skill Category</label>
+                  <select
+                    className={`form-select ${show && error.skillcategory ? "is-invalid" : ""}`}
+                    id="skillcategory"
+                    name="skillcategory"
+                    value={data.skillcategory}
+                    onChange={getInputData}
+                  >
+                    <option value="">Select a category</option>
+                    {SkillCategoryStateData?.filter((c) => c.active !== false || c._id === data.skillcategory).map((c) => (
+                      <option key={c._id} value={c._id}>{c.name}</option>
+                    ))}
+                  </select>
+                  {show && error.skillcategory && (
+                    <div className="text-danger small mt-1">{error.skillcategory}</div>
                   )}
                 </div>
 

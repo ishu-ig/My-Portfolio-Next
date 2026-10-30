@@ -85,6 +85,12 @@ import AdminUpdateAbout from "./pages/about/AdminUpdateAbout";
 import AdminNote from "./pages/note/AdminNote";
 import AdminCreateNote from "./pages/note/AdminCreateNote";
 import AdminUpdateNote from "./pages/note/AdminUpdateNote";
+import AdminSkillCategory from "./pages/skillcategory/AdminSkillCategory";
+import AdminCreateSkillCategory from "./pages/skillcategory/AdminCreateSkillCategory";
+import AdminUpdateSkillCategory from "./pages/skillcategory/AdminUpdateSkillCategory";
+import AdminProjectCategory from "./pages/projectcategory/AdminProjectCategory";
+import AdminCreateProjectCategory from "./pages/projectcategory/AdminCreateProjectCategory";
+import AdminUpdateProjectCategory from "./pages/projectcategory/AdminUpdateProjectCategory";
 
 // FIX: All public routes listed here must match route paths exactly
 const publicRoutes = ["/login", "/register", "/forgot-password"];
@@ -258,6 +264,14 @@ function Shell() {
           <Route path="/note" element={<AdminNote />} />
           <Route path="/note/create" element={<AdminCreateNote />} />
           <Route path="/note/update/:_id" element={<AdminUpdateNote />} />
+
+          <Route path="/skill-category" element={<AdminSkillCategory />} />
+          <Route path="/skill-category/create" element={<AdminCreateSkillCategory />} />
+          <Route path="/skill-category/update/:_id" element={<AdminUpdateSkillCategory />} />
+
+          <Route path="/project-category" element={<AdminProjectCategory />} />
+          <Route path="/project-category/create" element={<AdminCreateProjectCategory />} />
+          <Route path="/project-category/update/:_id" element={<AdminUpdateProjectCategory />} />
 
           {/* FIX: Removed forgot-password from protected routes — it belongs in public only */}
         </Routes>

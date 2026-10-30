@@ -17,7 +17,8 @@
 /* ── DARK THEME (default / :root fallback) ── */
 :root,
 [data-theme="dark"],
-body.dark {
+body.dark,
+[data-bs-theme="dark"] {
     /* Base Colors - Deep Obsidian Violet */
     --bg-color: #07060f;
     --bg-alt: #0e0c1e;
@@ -80,11 +81,16 @@ body.dark {
     --btn-bg: var(--primary-color);
     --btn-bg-hover: var(--primary-hover);
     --btn-text: #ffffff;
+
+    /* Override Bootstrap 5.3 body-bg so it doesn't cover our page-bg-layer */
+    --bs-body-bg: transparent;
+    --bs-body-color: var(--text-color);
 }
 
 /* ── LIGHT THEME ── */
 [data-theme="light"],
-body.light {
+body.light,
+[data-bs-theme="light"] {
     /* Base Colors - Light Theme */
     --bg-color: #fafafc;
     --bg-alt: #f1f2f8;
@@ -147,6 +153,10 @@ body.light {
     --btn-bg: var(--primary-color);
     --btn-bg-hover: var(--primary-hover);
     --btn-text: #ffffff;
+
+    /* Override Bootstrap 5.3 body-bg so it doesn't cover our page-bg-layer */
+    --bs-body-bg: transparent;
+    --bs-body-color: var(--text-color);
 }
 
 /* ============================================================
@@ -279,8 +289,9 @@ body {
     font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     font-size: 1rem;
     line-height: 1.68;
-    /* Transparent — color comes from .page-bg-layer */
-    background-color: transparent;
+    /* Transparent — color comes from .page-bg-layer.
+       Use !important to override Bootstrap's body { background-color: var(--bs-body-bg) } rule */
+    background-color: transparent !important;
     color: var(--text-color);
     transition: color 0.4s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.5s ease;
     -webkit-font-smoothing: antialiased;

@@ -14,6 +14,8 @@ import { getCertificate } from "../Redux/ActionCreators/CertificateActionCreator
 import { getTestimonial } from "../Redux/ActionCreators/TestimonialActionCreators";
 import { getAchievement } from "../Redux/ActionCreators/AchievementActionCreators";
 import { getBlog } from "../Redux/ActionCreators/BlogActionCreators";
+import { getSkillCategory } from "../Redux/ActionCreators/SkillCategoryActionCreators";
+import { getProjectCategory } from "../Redux/ActionCreators/ProjectCategoryActionCreators";
 
 export default function Preloader() {
   const dispatch = useDispatch();
@@ -29,6 +31,8 @@ export default function Preloader() {
   const TestimonialStateData = useSelector((state) => state.TestimonialStateData);
   const AchievementStateData = useSelector((state) => state.AchievementStateData);
   const BlogStateData = useSelector((state) => state.BlogStateData);
+  const SkillCategoryStateData = useSelector((state) => state.SkillCategoryStateData);
+  const ProjectCategoryStateData = useSelector((state) => state.ProjectCategoryStateData);
 
   const [progress, setProgress] = useState(15);
   const [statusText, setStatusText] = useState("Initializing portfolio engine...");
@@ -43,7 +47,9 @@ export default function Preloader() {
   useEffect(() => {
     dispatch(getAbout());
     dispatch(getSkill());
+    dispatch(getSkillCategory());
     dispatch(getPortfolio());
+    dispatch(getProjectCategory());
     dispatch(getService());
     dispatch(getEducation());
     dispatch(getExperience());
@@ -63,7 +69,9 @@ export default function Preloader() {
 
   // Track settled network requests in parallel
   useEffect(() => {
-    const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_SERVER || "https://admin.ishaanportfolio.com";
+    const BASE_URL = (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"))
+      ? "http://localhost:8000"
+      : (process.env.NEXT_PUBLIC_BACKEND_SERVER || "https://admin.ishaanportfolio.com");
     if (!BASE_URL) return;
 
     const endpoints = [
@@ -76,6 +84,8 @@ export default function Preloader() {
       "certificate",
       "testimonial",
       "blog",
+      "skillcategory",
+      "projectcategory",
     ];
 
     Promise.allSettled(

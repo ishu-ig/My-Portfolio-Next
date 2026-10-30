@@ -1,5 +1,4 @@
-const CertificateRouter = require("express").Router()
-const {certificateUploader } = require("../middleware/fileuploader")
+const ProjectCategoryRouter = require("express").Router()
 const { verifyAdmin } = require("../middleware/authentication")
 const {
     createRecord,
@@ -7,13 +6,13 @@ const {
     getSingleRecord,
     updateRecord,
     deleteRecord,
-} = require("../controllers/CertificateController")
+} = require("../controllers/ProjectCategoryController")
 
-CertificateRouter.post("", verifyAdmin,certificateUploader.single("pic"), createRecord)
-CertificateRouter.get("", getRecord)
-CertificateRouter.get("/:_id", getSingleRecord)
-CertificateRouter.put("/:_id",verifyAdmin,certificateUploader.single("pic"), updateRecord)
-CertificateRouter.delete("/:_id",verifyAdmin, deleteRecord)
+ProjectCategoryRouter.post("", verifyAdmin, createRecord)
+ProjectCategoryRouter.get("", getRecord)
+ProjectCategoryRouter.get("/:_id", getSingleRecord)
+ProjectCategoryRouter.put("/:_id", verifyAdmin, updateRecord)
+ProjectCategoryRouter.delete("/:_id", verifyAdmin, deleteRecord)
 
 
-module.exports = CertificateRouter
+module.exports = ProjectCategoryRouter

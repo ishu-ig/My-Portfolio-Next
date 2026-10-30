@@ -1,14 +1,10 @@
 "use client";
 import React, { useEffect, useRef } from "react";
 import * as THREE from "three";
+import useIntersectionWebGL from '../hooks/useIntersectionWebGL';
 
 export default function DeveloperWorkspace3D() {
-  const containerRef = useRef(null);
-
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
+  const containerRef = useIntersectionWebGL((container) => {
     const width = container.clientWidth || 400;
     const height = container.clientHeight || 360;
 
@@ -702,6 +698,7 @@ export default function DeveloperWorkspace3D() {
       if (container && renderer.domElement.parentNode === container) {
         container.removeChild(renderer.domElement);
       }
+      renderer.forceContextLoss();
       renderer.dispose();
     };
   }, []);

@@ -14,6 +14,11 @@ const SkillSchema = new mongoose.Schema({
         type: String,
         default: ""   // Bootstrap icon class e.g. "bi bi-code-slash" or image URL
     },
+    skillcategory: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "SkillCategory",
+        required: [true, "Skill Category is Mendatory"]
+    },
     level: {
         type: Number,
         required: [true, "Level is Mendatory"]

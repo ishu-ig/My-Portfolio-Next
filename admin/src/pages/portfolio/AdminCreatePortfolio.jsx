@@ -3,41 +3,42 @@ import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import formValidator from "../../FormValidators/formValidator";
 import { createPortfolio, getPortfolio } from "../../Redux/ActionCreators/PortfolioActionCreators";
+import { getProjectCategory } from "../../Redux/ActionCreators/ProjectCategoryActionCreators";
 
 const checklist = [
-  { dot: "bg-primary", title: "Project Name",    body: "Use a unique, descriptive project title."                   },
-  { dot: "bg-success", title: "Upload Images",   body: "Add up to 5 screenshots — first image is the cover."       },
-  { dot: "bg-warning", title: "Add Links",       body: "Live URL and GitHub repo help showcase your work."          },
+  { dot: "bg-primary", title: "Project Name", body: "Use a unique, descriptive project title." },
+  { dot: "bg-success", title: "Upload Images", body: "Add up to 5 screenshots — first image is the cover." },
+  { dot: "bg-warning", title: "Add Links", body: "Live URL and GitHub repo help showcase your work." },
 ];
 
 export default function AdminCreatePortfolio() {
   const [data, setData] = useState({
     name: "", shortDescription: "", longDescription: "",
-    category: "", tech: "", liveUrl: "", adminUrl: "", githubRepo: "", active: true,
+    projectCategory: "", tech: "", liveUrl: "", adminUrl: "", githubRepo: "", active: true,
   });
   const [error, setError] = useState({
-    name:             "Name Field is Mandatory",
-    pic:             "At least one image is required",
+    name: "Name Field is Mandatory",
+    pic: "At least one image is required",
     shortDescription: "Short Description Field is Mandatory",
-    longDescription:  "Long Description Field is Mandatory",
-    category:         "Category Field is Mandatory",
-    tech:             "Tech Field is Mandatory",
+    longDescription: "Long Description Field is Mandatory",
+    projectCategory: "Project Category Field is Mandatory",
+    tech: "Tech Field is Mandatory",
   });
 
-  // ✅ Multiple images: store File objects + preview URLs
-  const [picFiles, setPicFiles]     = useState([]);   // File[]
-  const [previews, setPreviews]     = useState([]);   // string[] (object URLs)
-  const [show, setShow]             = useState(false);
-  const navigate                    = useNavigate();
-  const PortfolioStateData          = useSelector((state) => state.PortfolioStateData);
-  const dispatch                    = useDispatch();
-
-  // ── Handlers ───────────────────────────────────────────────────────────────
+  const [picFiles, setPicFiles] = useState([]);
+  const [previews, setPreviews] = useState([]);
+  const [show, setShow] = useState(false);
+  const navigate = useNavigate();
+  const PortfolioStateData = useSelector((state) => state.PortfolioStateData);
+  const ProjectCategoryStateData = useSelector((state) => state.ProjectCategoryStateData);
+  const dispatch = useDispatch();
 
   function getInputData(e) {
     const name = e.target.name;
     const value = e.target.value;
-    if (name !== "active" && name !== "liveUrl" && name !== "adminUrl" && name !== "githubRepo") {
+    if (name === "projectCategory") {
+      setError((old) => ({ ...old, projectCategory: value ? "" : "Project Category Field is Mandatory" }));
+    } else if (name !== "active" && name !== "liveUrl" && name !== "adminUrl" && name !== "githubRepo") {
       setError((old) => ({ ...old, [name]: formValidator(e) }));
     }
     setData((old) => ({
@@ -58,12 +59,11 @@ export default function AdminCreatePortfolio() {
       return;
     }
 
-    // Validate each file (max 2 MB, image types)
     const allowed = ["image/jpeg", "image/png", "image/webp"];
     const validFiles = [];
     for (const file of files.slice(0, remaining)) {
       if (!allowed.includes(file.type)) { alert(`${file.name}: unsupported format.`); continue; }
-      if (file.size > 2 * 1024 * 1024)  { alert(`${file.name}: exceeds 2 MB limit.`); continue; }
+      if (file.size > 2 * 1024 * 1024) { alert(`${file.name}: exceeds 2 MB limit.`); continue; }
       validFiles.push(file);
     }
     if (!validFiles.length) { e.target.value = ""; return; }
@@ -100,16 +100,15 @@ export default function AdminCreatePortfolio() {
     }
 
     const formData = new FormData();
-    formData.append("name",             data.name);
+    formData.append("name", data.name);
     formData.append("shortDescription", data.shortDescription);
-    formData.append("longDescription",  data.longDescription);
-    formData.append("category",         data.category);
-    formData.append("tech",             data.tech);
-    formData.append("liveUrl",          data.liveUrl || "");
-    formData.append("adminUrl",         data.adminUrl || "");
-    formData.append("githubRepo",       data.githubRepo || "");
-    formData.append("active",           data.active);
-    // ✅ Append every file under the same field name "pic"
+    formData.append("longDescription", data.longDescription);
+    formData.append("projectCategory", data.projectCategory);
+    formData.append("tech", data.tech);
+    formData.append("liveUrl", data.liveUrl || "");
+    formData.append("adminUrl", data.adminUrl || "");
+    formData.append("githubRepo", data.githubRepo || "");
+    formData.append("active", data.active);
     picFiles.forEach((file) => formData.append("pic", file));
 
     dispatch(createPortfolio(formData));
@@ -120,12 +119,14 @@ export default function AdminCreatePortfolio() {
     dispatch(getPortfolio());
   }, [PortfolioStateData.length]);
 
-  // ── Render ─────────────────────────────────────────────────────────────────
+  useEffect(() => {
+    dispatch(getProjectCategory());
+  }, [ProjectCategoryStateData.length]);
+
   return (
     <main className="dashboard-content">
       <div className="container-fluid px-3 px-lg-4 py-4">
 
-        {/* Page Heading */}
         <div className="page-heading">
           <div className="page-heading-copy">
             <span className="page-icon">
@@ -144,7 +145,6 @@ export default function AdminCreatePortfolio() {
           </div>
         </div>
 
-        {/* Error Alert */}
         {show && (
           <div className="alert alert-danger alert-dismissible" role="alert">
             {Object.values(error).find((x) => x !== "")}
@@ -153,8 +153,6 @@ export default function AdminCreatePortfolio() {
         )}
 
         <section className="row g-3">
-
-          {/* ── Form Panel ── */}
           <div className="col-12 col-xl-8">
             <div className="panel">
               <div className="panel-header">
@@ -169,7 +167,6 @@ export default function AdminCreatePortfolio() {
 
               <div className="row g-3">
 
-                {/* Name */}
                 <div className="col-12">
                   <label className="form-label" htmlFor="name">Project Name</label>
                   <input id="name" type="text" name="name" className="form-control"
@@ -177,7 +174,6 @@ export default function AdminCreatePortfolio() {
                   {show && error.name && <div className="text-danger small mt-1">{error.name}</div>}
                 </div>
 
-                {/* Short Description */}
                 <div className="col-12">
                   <label className="form-label" htmlFor="shortDescription">Short Description</label>
                   <input id="shortDescription" type="text" name="shortDescription" className="form-control"
@@ -185,7 +181,6 @@ export default function AdminCreatePortfolio() {
                   {show && error.shortDescription && <div className="text-danger small mt-1">{error.shortDescription}</div>}
                 </div>
 
-                {/* Long Description */}
                 <div className="col-12">
                   <label className="form-label" htmlFor="longDescription">Long Description</label>
                   <textarea id="longDescription" name="longDescription" rows={4} className="form-control"
@@ -193,12 +188,17 @@ export default function AdminCreatePortfolio() {
                   {show && error.longDescription && <div className="text-danger small mt-1">{error.longDescription}</div>}
                 </div>
 
-                {/* Category & Tech */}
+                {/* Project Category (dropdown) & Tech */}
                 <div className="col-md-6">
-                  <label className="form-label" htmlFor="category">Category</label>
-                  <input id="category" type="text" name="category" className="form-control"
-                    placeholder="e.g. Web App, Mobile" value={data.category} onChange={getInputData} />
-                  {show && error.category && <div className="text-danger small mt-1">{error.category}</div>}
+                  <label className="form-label" htmlFor="projectCategory">Project Category</label>
+                  <select id="projectCategory" name="projectCategory" className="form-select"
+                    value={data.projectCategory} onChange={getInputData}>
+                    <option value="">Select a category</option>
+                    {ProjectCategoryStateData?.filter((c) => c.active !== false).map((c) => (
+                      <option key={c._id} value={c._id}>{c.name}</option>
+                    ))}
+                  </select>
+                  {show && error.projectCategory && <div className="text-danger small mt-1">{error.projectCategory}</div>}
                 </div>
                 <div className="col-md-6">
                   <label className="form-label" htmlFor="tech">Tech Stack</label>
@@ -207,7 +207,6 @@ export default function AdminCreatePortfolio() {
                   {show && error.tech && <div className="text-danger small mt-1">{error.tech}</div>}
                 </div>
 
-                {/* Live URL, Admin URL, and GitHub */}
                 <div className="col-md-4">
                   <label className="form-label" htmlFor="liveUrl">
                     Live URL <span className="text-muted fw-normal">(optional)</span>
@@ -230,7 +229,6 @@ export default function AdminCreatePortfolio() {
                     placeholder="https://github.com/user/repo" value={data.githubRepo} onChange={getInputData} />
                 </div>
 
-                {/* ✅ Multiple Image Upload */}
                 <div className="col-12">
                   <label className="form-label">
                     Project Images
@@ -239,7 +237,6 @@ export default function AdminCreatePortfolio() {
                     </span>
                   </label>
 
-                  {/* Dropzone / file input */}
                   {picFiles.length < 5 && (
                     <label htmlFor="pic" className="upload-dropzone">
                       <i className="bi bi-cloud-upload"></i>
@@ -253,37 +250,21 @@ export default function AdminCreatePortfolio() {
                   )}
                   {show && error.pic && <div className="text-danger small mt-1">{error.pic}</div>}
 
-                  {/* Preview grid */}
                   {previews.length > 0 && (
                     <div className="d-flex flex-wrap gap-2 mt-3">
                       {previews.map((src, idx) => (
-                        <div
-                          key={idx}
-                          className="position-relative"
-                          style={{ width: 96, height: 72 }}
-                        >
-                          <img
-                            src={src} alt={`preview-${idx}`}
-                            className="rounded border w-100 h-100"
-                            style={{ objectFit: "cover" }}
-                          />
-                          {/* Cover badge on first image */}
+                        <div key={idx} className="position-relative" style={{ width: 96, height: 72 }}>
+                          <img src={src} alt={`preview-${idx}`} className="rounded border w-100 h-100"
+                            style={{ objectFit: "cover" }} />
                           {idx === 0 && (
-                            <span
-                              className="position-absolute bottom-0 start-0 badge text-bg-primary"
-                              style={{ fontSize: "0.6rem", borderRadius: "0 4px 0 4px" }}
-                            >
+                            <span className="position-absolute bottom-0 start-0 badge text-bg-primary"
+                              style={{ fontSize: "0.6rem", borderRadius: "0 4px 0 4px" }}>
                               Cover
                             </span>
                           )}
-                          {/* Remove button */}
-                          <button
-                            type="button"
-                            onClick={() => removeImage(idx)}
+                          <button type="button" onClick={() => removeImage(idx)}
                             className="position-absolute top-0 end-0 btn btn-sm btn-danger p-0 d-flex align-items-center justify-content-center"
-                            style={{ width: 20, height: 20, borderRadius: "0 4px 0 4px" }}
-                            title="Remove image"
-                          >
+                            style={{ width: 20, height: 20, borderRadius: "0 4px 0 4px" }} title="Remove image">
                             <i className="bi bi-x" style={{ fontSize: "0.75rem" }}></i>
                           </button>
                         </div>
@@ -292,7 +273,6 @@ export default function AdminCreatePortfolio() {
                   )}
                 </div>
 
-                {/* Status */}
                 <div className="col-md-6">
                   <label className="form-label" htmlFor="active">Status</label>
                   <select id="active" name="active" className="form-select"
@@ -304,7 +284,6 @@ export default function AdminCreatePortfolio() {
 
               </div>
 
-              {/* Actions */}
               <div className="d-flex flex-wrap justify-content-end gap-2 mt-4">
                 <Link className="btn btn-outline-secondary" to="/portfolio">Cancel</Link>
                 <button className="btn btn-primary" type="button" onClick={postSubmit}>
@@ -314,7 +293,6 @@ export default function AdminCreatePortfolio() {
             </div>
           </div>
 
-          {/* ── Checklist ── */}
           <div className="col-12 col-xl-4">
             <div className="panel h-100">
               <h2 className="h5 mb-3 section-title">

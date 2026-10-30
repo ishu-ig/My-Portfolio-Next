@@ -650,7 +650,10 @@ main,
 .achievement-section,
 #blog,
 #contact,
-.wall__pin {
+.wall__pin,
+.pd-page,
+.sd-page,
+.bd-page {
   background: transparent !important;
   background-color: transparent !important;
   position: relative;

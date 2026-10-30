@@ -3,8 +3,23 @@ import React, { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useDispatch, useSelector } from 'react-redux';
 import { getPortfolio } from '../Redux/ActionCreators/PortfolioActionCreators';
+import { getProjectCategory } from '../Redux/ActionCreators/ProjectCategoryActionCreators';
 import "aos/dist/aos.css";
 import AOS from "aos";
+
+export function getPortfolioCategoryName(item) {
+  if (!item) return '';
+  if (typeof item.projectCategory === 'object' && item.projectCategory?.name) {
+    return item.projectCategory.name.trim();
+  }
+  if (typeof item.projectCategory === 'string' && item.projectCategory.trim()) {
+    return item.projectCategory.trim();
+  }
+  if (typeof item.category === 'string' && item.category.trim()) {
+    return item.category.trim();
+  }
+  return '';
+}
 
 /* ── Minimal, High-Impact Project Item ── */
 function ProjectItem({ item, index, total }) {
@@ -195,7 +210,7 @@ function ProjectItem({ item, index, total }) {
       {/* ── Streamlined Project Info (Clean, Less Data, High Impact) ── */}
       <div className="project-info">
         <p className="project-num">
-          0{index + 1} · {item.category || 'Featured'}
+          0{index + 1} · {getPortfolioCategoryName(item) || 'Featured'}
         </p>
 
         <h3 className="project-title">{item.name}</h3>
@@ -268,6 +283,7 @@ function ProjectItem({ item, index, total }) {
 
 export default function Portfolio() {
   const PortfolioStateData = useSelector(state => state.PortfolioStateData);
+  const ProjectCategoryStateData = useSelector(state => state.ProjectCategoryStateData);
   const dispatch = useDispatch();
   const loading = !PortfolioStateData || PortfolioStateData.length === 0;
   const [activeFilter, setActiveFilter] = useState('all');
@@ -281,20 +297,31 @@ export default function Portfolio() {
 
   useEffect(() => {
     if (!PortfolioStateData || !PortfolioStateData.length) dispatch(getPortfolio());
+    if (!ProjectCategoryStateData || !ProjectCategoryStateData.length) dispatch(getProjectCategory());
     AOS.init({ duration: 800, once: false, mirror: true });
-  }, [dispatch, PortfolioStateData]);
+  }, [dispatch, PortfolioStateData, ProjectCategoryStateData]);
 
   const activeItems = useMemo(() =>
     Array.isArray(PortfolioStateData) ? PortfolioStateData.filter(x => x.active) : [],
   [PortfolioStateData]);
 
   const categories = useMemo(() => {
-    const cats = new Set(activeItems.map(x => x.category).filter(Boolean));
-    return ['all', ...Array.from(cats)];
-  }, [activeItems]);
+    const activeProjectCategories = Array.isArray(ProjectCategoryStateData)
+      ? ProjectCategoryStateData.filter(c => c.active).map(c => (c.name || '').trim()).filter(Boolean)
+      : [];
+    const itemCats = Array.from(new Set(activeItems.map(getPortfolioCategoryName).filter(Boolean)));
+    const combined = activeProjectCategories.length > 0
+      ? Array.from(new Set([...activeProjectCategories, ...itemCats]))
+      : itemCats;
+    return ['all', ...combined];
+  }, [ProjectCategoryStateData, activeItems]);
 
   const filtered = useMemo(() =>
-    activeItems.filter(x => activeFilter === 'all' || x.category?.toLowerCase() === activeFilter.toLowerCase()),
+    activeItems.filter(x => {
+      if (activeFilter.trim().toLowerCase() === 'all') return true;
+      const itemCat = getPortfolioCategoryName(x).toLowerCase();
+      return itemCat === activeFilter.trim().toLowerCase();
+    }),
   [activeItems, activeFilter]);
 
   return (
@@ -1074,15 +1101,20 @@ export default function Portfolio() {
 
           {/* Categories Filter Pills */}
           <div className="work-filters" data-aos="fade-up" data-aos-delay="60">
-            {categories.map(cat => (
-              <button
-                key={cat}
-                className={`work-pill ${activeFilter.toLowerCase() === cat.toLowerCase() ? 'is-active' : ''}`}
-                onClick={() => handleFilterChange(cat)}
-              >
-                {cat === 'all' ? `All (${activeItems.length})` : cat}
-              </button>
-            ))}
+            {categories.map(cat => {
+              const count = cat.toLowerCase() === 'all'
+                ? activeItems.length
+                : activeItems.filter(x => getPortfolioCategoryName(x).toLowerCase() === cat.trim().toLowerCase()).length;
+              return (
+                <button
+                  key={cat}
+                  className={`work-pill ${activeFilter.trim().toLowerCase() === cat.trim().toLowerCase() ? 'is-active' : ''}`}
+                  onClick={() => handleFilterChange(cat)}
+                >
+                  {cat.toLowerCase() === 'all' ? `All (${count})` : (count > 0 ? `${cat} (${count})` : cat)}
+                </button>
+              );
+            })}
           </div>
 
           {/* Streamlined Project Showcase */}

@@ -49,6 +49,12 @@ export default function ThreeBackgroundCanvas() {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     container.appendChild(renderer.domElement);
 
+    // Prevent context loss from killing the global background
+    const handleContextLost = (e) => {
+      e.preventDefault();
+    };
+    renderer.domElement.addEventListener("webglcontextlost", handleContextLost, false);
+
     // 3. Get initial theme palette
     let isDark = getCurrentTheme() === "dark";
     let palette = isDark ? DARK_PALETTE : LIGHT_PALETTE;
@@ -223,6 +229,10 @@ export default function ThreeBackgroundCanvas() {
       shapes.forEach((s) => {
         s.material.dispose();
       });
+      if (renderer.domElement) {
+        renderer.domElement.removeEventListener("webglcontextlost", handleContextLost);
+      }
+      renderer.forceContextLoss();
       renderer.dispose();
       if (container && renderer.domElement && container.contains(renderer.domElement)) {
         container.removeChild(renderer.domElement);

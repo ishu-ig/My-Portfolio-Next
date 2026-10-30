@@ -11,14 +11,15 @@ export default function CertificateReducer(state=[], action) {
 
         case UPDATE_CERTIFICATE_RED:
             let index = state.findIndex(x => x._id === action.payload._id)
-            state[index].name = action.payload.name
-            state[index].pic = action.payload.pic
-            state[index].issuedBY = action.payload.issuedBY
-            state[index].active = action.payload.active
-            return state
+            if (index !== -1) {
+                state[index].name = action.payload.name ?? state[index].name
+                state[index].pic = action.payload.pic ?? state[index].pic
+                state[index].issuedBy = action.payload.issuedBy ?? state[index].issuedBy
+                state[index].active = action.payload.active ?? state[index].active
+            }
+            return [...state]
 
         case DELETE_CERTIFICATE_RED:
-            console.log("Delete Called")
             return state.filter(x => x._id !== action.payload._id)
 
         default:

@@ -5,6 +5,7 @@ import { getAchievement } from "../Redux/ActionCreators/AchievementActionCreator
 import "aos/dist/aos.css";
 import AOS from "aos";
 import * as THREE from "three";
+import useIntersectionWebGL from '../hooks/useIntersectionWebGL';
 
 /* =========================================================================
    THREE.JS: GOLDEN CELESTIAL TROPHY & RADIANT MILESTONE GALAXY
@@ -12,12 +13,7 @@ import * as THREE from "three";
    golden radiant rings, and a shimmering starburst galaxy.
    ========================================================================= */
 function AchievementThreeCanvas() {
-  const mountRef = useRef(null);
-
-  useEffect(() => {
-    const container = mountRef.current;
-    if (!container) return;
-
+  const mountRef = useIntersectionWebGL((container) => {
     let width = container.clientWidth || window.innerWidth;
     let height = container.clientHeight || 550;
 
@@ -209,6 +205,7 @@ function AchievementThreeCanvas() {
       ring2Mat.dispose();
       starGeo.dispose();
       starMat.dispose();
+      renderer.forceContextLoss();
       renderer.dispose();
     };
   }, []);
@@ -224,228 +221,138 @@ function AchievementThreeCanvas() {
    Type 3 -> 3D Imperial Honor Crown / Crest
    Type 4 -> 3D Cyber Shield of Excellence
    ========================================================================= */
+/* =========================================================================
+   CSS 3D ACHIEVEMENT MINIATURES (Zero WebGL — pure CSS transforms)
+   Type 0 -> Golden Trophy Cup
+   Type 1 -> Brilliant Diamond Gem
+   Type 2 -> Laurel Honor Medallion
+   Type 3 -> Imperial Crown
+   Type 4 -> Cyber Shield
+   ========================================================================= */
 function AchievementCard3D({ typeIndex = 0, isHovered = false }) {
-  const mountRef = useRef(null);
-  const hoverRef = useRef(isHovered);
+  const t = typeIndex % 5;
+  const spd = isHovered ? 0.35 : 1;
 
-  useEffect(() => {
-    hoverRef.current = isHovered;
-  }, [isHovered]);
+  const styles = `
+    .ach-css3d-wrap { width:100%; height:100%; display:flex; align-items:center; justify-content:center; position:relative; }
 
-  useEffect(() => {
-    const container = mountRef.current;
-    if (!container) return;
+    /* Trophy */
+    .ach-trophy-body { width:32px; height:28px; border-radius:50% 50% 4px 4px;
+      background:linear-gradient(160deg,#fbbf24,#b45309); position:relative;
+      box-shadow:0 0 14px rgba(245,158,11,0.5), inset 0 -3px 6px rgba(0,0,0,0.2);
+      animation: achTrophyBob ${spd * 2.5}s ease-in-out infinite alternate; }
+    .ach-trophy-stem { width:6px; height:10px; background:linear-gradient(180deg,#f59e0b,#92400e);
+      margin:0 auto; }
+    .ach-trophy-base { width:28px; height:6px; border-radius:3px;
+      background:linear-gradient(90deg,#fbbf24,#92400e); margin:0 auto;
+      box-shadow:0 2px 6px rgba(245,158,11,0.4); }
+    .ach-trophy-star { position:absolute; top:-8px; left:50%; transform:translateX(-50%);
+      width:10px; height:10px;
+      background:linear-gradient(135deg,#fef08a,#f59e0b);
+      clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);
+      animation:achStarSpin ${spd * 3}s linear infinite; }
+    @keyframes achTrophyBob { to { transform: translateY(-5px); } }
+    @keyframes achStarSpin { to { transform: translateX(-50%) rotate(360deg); } }
 
-    const width = container.clientWidth || 80;
-    const height = container.clientHeight || 80;
+    /* Diamond */
+    .ach-diamond { width:40px; height:40px;
+      background:linear-gradient(135deg,#38bdf8,#0284c7,#7dd3fc);
+      clip-path:polygon(50% 0%,100% 40%,80% 100%,20% 100%,0% 40%);
+      animation:achDiaSpin ${spd * 4}s linear infinite;
+      box-shadow:0 0 20px rgba(56,189,248,0.6); }
+    .ach-dia-cage { position:absolute; width:44px; height:44px;
+      border:1.5px solid rgba(147,197,253,0.5);
+      clip-path:polygon(50% 0%,100% 40%,80% 100%,20% 100%,0% 40%);
+      animation:achDiaSpin ${spd * 2.5}s linear infinite reverse; }
+    @keyframes achDiaSpin { to { transform: rotate(360deg); } }
 
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(48, width / height, 0.1, 50);
-    camera.position.z = 4.2;
+    /* Medallion */
+    .ach-medal { width:38px; height:38px; border-radius:50%;
+      background:conic-gradient(#fbbf24,#b45309,#fbbf24,#d97706,#fbbf24);
+      animation:achMedalSpin ${spd * 5}s linear infinite;
+      box-shadow:0 0 14px rgba(251,191,36,0.5); }
+    .ach-medal-inner { position:absolute; width:20px; height:20px; border-radius:50%;
+      background:radial-gradient(circle,#fef08a,#f59e0b);
+      animation:achMedalPulse ${spd * 1.6}s ease-in-out infinite alternate; }
+    .ach-medal-ring { position:absolute; width:50px; height:50px; border-radius:50%;
+      border:2px solid rgba(245,158,11,0.4);
+      animation:achMedalRingPulse ${spd * 2}s ease-in-out infinite alternate; }
+    @keyframes achMedalSpin { to { transform: rotate(360deg); } }
+    @keyframes achMedalPulse { to { transform: scale(1.15); box-shadow: 0 0 12px rgba(254,240,138,0.8); } }
+    @keyframes achMedalRingPulse { to { transform: scale(1.18); opacity: 0.6; } }
 
-    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: "high-performance" });
-    renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
-    renderer.setClearColor(0x000000, 0);
-    container.appendChild(renderer.domElement);
+    /* Crown */
+    .ach-crown-base { width:40px; height:22px; border-radius:0 0 4px 4px;
+      background:linear-gradient(160deg,#c084fc,#7e22ce);
+      position:relative;
+      box-shadow:0 0 14px rgba(168,85,247,0.5);
+      animation:achCrownFloat ${spd * 2.5}s ease-in-out infinite alternate; }
+    .ach-crown-tip { position:absolute; bottom:18px; width:8px; height:12px;
+      background:linear-gradient(180deg,#e879f9,#a855f7);
+      clip-path:polygon(50% 0%,100% 100%,0% 100%); }
+    .ach-crown-jewel { position:absolute; bottom:18px; width:6px; height:6px; border-radius:50%;
+      background:#fef08a; box-shadow:0 0 6px #fef08a; }
+    @keyframes achCrownFloat { to { transform: translateY(-5px) rotateX(8deg); } }
 
-    const ambientLight = new THREE.AmbientLight(0xfffbeb, 0.95);
-    scene.add(ambientLight);
+    /* Shield */
+    .ach-shield { width:38px; height:44px;
+      background:linear-gradient(160deg,#10b981,#059669);
+      clip-path:polygon(15% 0%,85% 0%,100% 30%,50% 100%,0% 30%);
+      animation:achShieldFloat ${spd * 2.8}s ease-in-out infinite alternate;
+      box-shadow:0 0 14px rgba(16,185,129,0.5); }
+    .ach-shield-ring { position:absolute; width:50px; height:50px; border-radius:50%;
+      border:2px solid rgba(52,211,153,0.45);
+      animation:achShieldRingSpin ${spd * 3.5}s linear infinite; }
+    @keyframes achShieldFloat { to { transform: translateY(-5px) scale(1.05); } }
+    @keyframes achShieldRingSpin { to { transform: rotate(360deg); } }
+  `;
 
-    const goldLight = new THREE.DirectionalLight(0xf59e0b, 2.5);
-    goldLight.position.set(4, 5, 5);
-    scene.add(goldLight);
-
-    const purpleLight = new THREE.DirectionalLight(0x8b5cf6, 1.5);
-    purpleLight.position.set(-4, -3, 3);
-    scene.add(purpleLight);
-
-    const group = new THREE.Group();
-    scene.add(group);
-
-    const disposables = [];
-    const t = typeIndex % 5;
-
-    if (t === 0) {
-      // 0: Golden Victory Trophy / Cup
-      const cupGeo = new THREE.CylinderGeometry(0.8, 0.45, 1.2, 24);
-      const goldMat = new THREE.MeshStandardMaterial({
-        color: 0xf59e0b,
-        metalness: 0.85,
-        roughness: 0.2,
-        emissive: 0xb45309,
-        emissiveIntensity: 0.35,
-      });
-      const cup = new THREE.Mesh(cupGeo, goldMat);
-      cup.position.y = 0.2;
-      group.add(cup);
-
-      const stemGeo = new THREE.CylinderGeometry(0.14, 0.14, 0.5, 16);
-      const stem = new THREE.Mesh(stemGeo, goldMat);
-      stem.position.y = -0.6;
-      group.add(stem);
-
-      const footGeo = new THREE.CylinderGeometry(0.65, 0.75, 0.2, 24);
-      const foot = new THREE.Mesh(footGeo, goldMat);
-      foot.position.y = -0.85;
-      group.add(foot);
-
-      const handleGeo = new THREE.TorusGeometry(0.42, 0.08, 12, 24, Math.PI);
-      const handle1 = new THREE.Mesh(handleGeo, goldMat);
-      handle1.position.set(-0.75, 0.3, 0);
-      handle1.rotation.z = Math.PI / 2;
-      group.add(handle1);
-
-      const handle2 = new THREE.Mesh(handleGeo, goldMat);
-      handle2.position.set(0.75, 0.3, 0);
-      handle2.rotation.z = -Math.PI / 2;
-      group.add(handle2);
-
-      const starGeo = new THREE.OctahedronGeometry(0.32, 0);
-      const starMat = new THREE.MeshBasicMaterial({ color: 0xfef08a });
-      const star = new THREE.Mesh(starGeo, starMat);
-      star.position.y = 1.1;
-      group.add(star);
-
-      disposables.push(cupGeo, goldMat, stemGeo, footGeo, handleGeo, starGeo, starMat);
-
-    } else if (t === 1) {
-      // 1: Brilliant Milestone Diamond / Faceted Gem
-      const gemGeo = new THREE.OctahedronGeometry(1.05, 0);
-      const gemMat = new THREE.MeshStandardMaterial({
-        color: 0x38bdf8,
-        metalness: 0.9,
-        roughness: 0.15,
-        emissive: 0x0284c7,
-        emissiveIntensity: 0.45,
-      });
-      const gem = new THREE.Mesh(gemGeo, gemMat);
-      group.add(gem);
-
-      const cageGeo = new THREE.OctahedronGeometry(1.4, 0);
-      const cageMat = new THREE.MeshBasicMaterial({
-        color: 0x93c5fd,
-        wireframe: true,
-        transparent: true,
-        opacity: 0.55,
-      });
-      const cage = new THREE.Mesh(cageGeo, cageMat);
-      group.add(cage);
-
-      disposables.push(gemGeo, gemMat, cageGeo, cageMat);
-
-    } else if (t === 2) {
-      // 2: Laurel Honor Medallion with Orbital Star Rings
-      const medalGeo = new THREE.CylinderGeometry(1.1, 1.1, 0.18, 32);
-      const medalMat = new THREE.MeshStandardMaterial({
-        color: 0xfbbf24,
-        metalness: 0.85,
-        roughness: 0.22,
-        emissive: 0xd97706,
-        emissiveIntensity: 0.3,
-      });
-      const medal = new THREE.Mesh(medalGeo, medalMat);
-      medal.rotation.x = Math.PI / 2.2;
-      group.add(medal);
-
-      const starGeo = new THREE.DodecahedronGeometry(0.42, 0);
-      const starMat = new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 0.5, roughness: 0.3 });
-      const star = new THREE.Mesh(starGeo, starMat);
-      star.position.z = 0.22;
-      medal.add(star);
-
-      const ringGeo = new THREE.TorusGeometry(1.5, 0.05, 12, 36);
-      const ringMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b, transparent: true, opacity: 0.7 });
-      const ring = new THREE.Mesh(ringGeo, ringMat);
-      ring.rotation.x = Math.PI / 3;
-      group.add(ring);
-
-      disposables.push(medalGeo, medalMat, starGeo, starMat, ringGeo, ringMat);
-
-    } else if (t === 3) {
-      // 3: Imperial Honor Crown / Crest
-      const baseGeo = new THREE.CylinderGeometry(0.9, 0.75, 0.5, 24, 1, true);
-      const crownMat = new THREE.MeshStandardMaterial({
-        color: 0xa855f7,
-        metalness: 0.8,
-        roughness: 0.2,
-        emissive: 0x7e22ce,
-        emissiveIntensity: 0.4,
-        side: THREE.DoubleSide,
-      });
-      const crownBase = new THREE.Mesh(baseGeo, crownMat);
-      group.add(crownBase);
-
-      const tipGeo = new THREE.ConeGeometry(0.2, 0.55, 6);
-      const jewelGeo = new THREE.SphereGeometry(0.12, 8, 8);
-      const jewelMat = new THREE.MeshBasicMaterial({ color: 0xfef08a });
-      disposables.push(baseGeo, crownMat, tipGeo, jewelGeo, jewelMat);
-
-      for (let i = 0; i < 5; i++) {
-        const ang = (i / 5) * Math.PI * 2;
-        const tip = new THREE.Mesh(tipGeo, crownMat);
-        tip.position.set(Math.cos(ang) * 0.8, 0.5, Math.sin(ang) * 0.8);
-        group.add(tip);
-
-        const jewel = new THREE.Mesh(jewelGeo, jewelMat);
-        jewel.position.set(Math.cos(ang) * 0.8, 0.8, Math.sin(ang) * 0.8);
-        group.add(jewel);
-      }
-
-    } else {
-      // 4: Cyber Shield of Excellence
-      const shieldGeo = new THREE.ConeGeometry(1.1, 1.8, 3);
-      const shieldMat = new THREE.MeshStandardMaterial({
-        color: 0x10b981,
-        metalness: 0.85,
-        roughness: 0.2,
-        emissive: 0x059669,
-        emissiveIntensity: 0.35,
-      });
-      const shield = new THREE.Mesh(shieldGeo, shieldMat);
-      shield.rotation.z = Math.PI;
-      group.add(shield);
-
-      const ringGeo = new THREE.RingGeometry(1.3, 1.42, 32);
-      const ringMat = new THREE.MeshBasicMaterial({ color: 0x34d399, side: THREE.DoubleSide, transparent: true, opacity: 0.65 });
-      const ring = new THREE.Mesh(ringGeo, ringMat);
-      group.add(ring);
-
-      disposables.push(shieldGeo, shieldMat, ringGeo, ringMat);
-    }
-
-    let reqId;
-    const badgeStartTime = performance.now();
-
-    const animate = () => {
-      reqId = requestAnimationFrame(animate);
-      const speed = hoverRef.current ? 3.0 : 1.0;
-      const elapsed = (performance.now() - badgeStartTime) * 0.001;
-
-      group.rotation.y += 0.016 * speed;
-      group.rotation.x = Math.sin(elapsed * 1.5) * 0.12;
-
-      if (hoverRef.current) {
-        group.scale.lerp(new THREE.Vector3(1.16, 1.16, 1.16), 0.1);
-      } else {
-        group.scale.lerp(new THREE.Vector3(1.0, 1.0, 1.0), 0.1);
-      }
-
-      renderer.render(scene, camera);
-    };
-    animate();
-
-    return () => {
-      cancelAnimationFrame(reqId);
-      if (renderer.domElement && container.contains(renderer.domElement)) {
-        container.removeChild(renderer.domElement);
-      }
-      disposables.forEach((d) => d.dispose());
-      renderer.dispose();
-    };
-  }, [typeIndex]);
-
-  return <div ref={mountRef} className="ach-card-3d-canvas" aria-hidden="true" />;
+  return (
+    <div className="ach-card-3d-canvas" aria-hidden="true">
+      <style>{styles}</style>
+      <div className="ach-css3d-wrap">
+        {t === 0 && (
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+            <div className="ach-trophy-body"><div className="ach-trophy-star" /></div>
+            <div className="ach-trophy-stem" />
+            <div className="ach-trophy-base" />
+          </div>
+        )}
+        {t === 1 && (
+          <div style={{ position: "relative", width: "48px", height: "48px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div className="ach-dia-cage" />
+            <div className="ach-diamond" />
+          </div>
+        )}
+        {t === 2 && (
+          <div style={{ position: "relative", width: "52px", height: "52px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div className="ach-medal-ring" />
+            <div className="ach-medal" />
+            <div className="ach-medal-inner" />
+          </div>
+        )}
+        {t === 3 && (
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+            <div style={{ position: "relative", width: "48px", height: "36px", display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
+              {[0,1,2,3,4].map(i => (
+                <div key={i} className="ach-crown-tip" style={{ left: `${6 + i*8}px`, height: i === 2 ? "16px" : "10px" }} />
+              ))}
+              {[0,1,2,3,4].map(i => (
+                <div key={i} className="ach-crown-jewel" style={{ left: `${8 + i*8}px`, bottom: i === 2 ? "22px" : "16px" }} />
+              ))}
+            </div>
+            <div className="ach-crown-base" style={{ width: "44px" }} />
+          </div>
+        )}
+        {t === 4 && (
+          <div style={{ position: "relative", width: "52px", height: "52px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div className="ach-shield-ring" />
+            <div className="ach-shield" />
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
 /* =========================================================================

@@ -14,6 +14,8 @@ import commentSagas from "./CommentSagas"
 import achievementSagas from "./AchievementSagas"
 import aboutSagas from "./AboutSaga"
 import noteSagas from "./NoteSagas"
+import skillCategorySagas from "./SkillCategorySaga"
+import projectCategorySagas from "./ProjectCategorySaga"
 
 export default function* RootSaga() {
     yield all([
@@ -31,6 +33,8 @@ export default function* RootSaga() {
         commentSagas(),
         achievementSagas(),
         aboutSagas(),
-        noteSagas()
+        noteSagas(),
+        skillCategorySagas(),
+        projectCategorySagas()
     ])
 }

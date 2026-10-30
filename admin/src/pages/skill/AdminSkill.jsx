@@ -13,6 +13,11 @@ export default function AdminSkill() {
   let [flag, setFlag] = useState(false);
   let [search, setSearch] = useState("");
 
+  // skillcategory is populated by the API ({_id, name})
+  function categoryName(item) {
+    return item.skillcategory?.name ?? "";
+  }
+
   function deleteRecord(_id) {
     if (window.confirm("Are you sure you want to delete this item?")) {
       dispatch(deleteSkill({ _id: _id }));
@@ -23,6 +28,7 @@ export default function AdminSkill() {
   function updateRecord(_id) {
     const item = SkillStateData.find((s) => s._id === _id);
     if (!item) return;
+    // Only _id and active are sent; the server keeps the existing skillcategory
     dispatch(updateSkill({ _id, active: !item.active }));
     setFlag(!flag);
   }
@@ -35,16 +41,17 @@ export default function AdminSkill() {
     getAPIData();
   }, [flag]);
 
-  const totalCount    = SkillStateData ? SkillStateData.length : 0;
-  const activeCount   = SkillStateData ? SkillStateData.filter((i) => i.active).length : 0;
+  const totalCount = SkillStateData ? SkillStateData.length : 0;
+  const activeCount = SkillStateData ? SkillStateData.filter((i) => i.active).length : 0;
   const inactiveCount = SkillStateData ? SkillStateData.filter((i) => !i.active).length : 0;
 
   const filteredData = SkillStateData
     ? SkillStateData.filter(
-        (item) =>
-          item.name.toLowerCase().includes(search.toLowerCase()) ||
-          item.description?.toLowerCase().includes(search.toLowerCase())
-      )
+      (item) =>
+        item.name.toLowerCase().includes(search.toLowerCase()) ||
+        item.description?.toLowerCase().includes(search.toLowerCase()) ||
+        categoryName(item).toLowerCase().includes(search.toLowerCase())
+    )
     : [];
 
   return (
@@ -188,6 +195,7 @@ export default function AdminSkill() {
                   <tr>
                     <th scope="col">#</th>
                     <th scope="col">Name</th>
+                    <th scope="col">Category</th>
                     <th scope="col">Description</th>
                     <th scope="col">Level</th>
                     <th scope="col">Status</th>
@@ -200,6 +208,13 @@ export default function AdminSkill() {
                       <tr key={item._id}>
                         <td>{index + 1}</td>
                         <td>{item.name}</td>
+                        <td>
+                          {categoryName(item) ? (
+                            <span className="badge text-bg-light border">{categoryName(item)}</span>
+                          ) : (
+                            <span className="text-muted small">—</span>
+                          )}
+                        </td>
                         <td>
                           <span
                             className="text-muted"
@@ -246,16 +261,17 @@ export default function AdminSkill() {
                               ></i>
                             </button>
 
-                            <span className="act-sep"></span>
-
                             {localStorage.getItem("role") === "Super Admin" && (
-                              <button
-                                className="act-btn act-btn-del"
-                                onClick={() => deleteRecord(item._id)}
-                                data-tip="Delete"
-                              >
-                                <i className="bi bi-trash3-fill"></i>
-                              </button>
+                              <>
+                                <span className="act-sep"></span>
+                                <button
+                                  className="act-btn act-btn-del"
+                                  onClick={() => deleteRecord(item._id)}
+                                  data-tip="Delete"
+                                >
+                                  <i className="bi bi-trash3-fill"></i>
+                                </button>
+                              </>
                             )}
                           </div>
                         </td>
@@ -263,7 +279,7 @@ export default function AdminSkill() {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="6" className="text-center text-muted py-4">
+                      <td colSpan="7" className="text-center text-muted py-4">
                         {search
                           ? `No skills found for "${search}"`
                           : "No skills available."}

@@ -13,6 +13,8 @@ import NewsletterReducer from "./NewsletterReducer"
 import CommentReducer from "./CommentReducer"
 import AchievementReducer from "./AchievementReducer"
 import AboutReducer from "./AboutReducer"
+import SkillCategoryReducer from "./SkillCategoryReducer"
+import ProjectCategoryReducer from "./ProjectCategoryReducer"
 
 
 
@@ -26,9 +28,11 @@ export default combineReducers({
     ContactUsStateData: ContactUsReducer,
     PortfolioStateData: PortfolioReducer,
     BlogStateData: BlogReducer,
-    ResumeStateData : ResumeReducer,
-    NewsletterStateData : NewsletterReducer,
-    CommentStateData : CommentReducer,
-    AchievementStateData : AchievementReducer,
-    AboutStateData : AboutReducer
+    ResumeStateData: ResumeReducer,
+    NewsletterStateData: NewsletterReducer,
+    CommentStateData: CommentReducer,
+    AchievementStateData: AchievementReducer,
+    AboutStateData: AboutReducer,
+    SkillCategoryStateData: SkillCategoryReducer,
+    ProjectCategoryStateData: ProjectCategoryReducer
 })

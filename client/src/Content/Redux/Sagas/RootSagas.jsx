@@ -13,6 +13,8 @@ import newsletterSagas from "./NewsletterSagas"
 import commentSagas from "./CommentSagas"
 import achievementSagas from "./AchievementSagas"
 import aboutSagas from "./AboutSaga"
+import skillCategorySagas from "./SkillCategorySaga"
+import projectCategorySagas from "./ProjectCategorySaga"
 
 
 
@@ -31,6 +33,8 @@ export default function* RootSaga() {
         newsletterSagas(),
         commentSagas(),
         achievementSagas(),
-        aboutSagas()
+        aboutSagas(),
+        skillCategorySagas(),
+        projectCategorySagas()
     ])
 }

@@ -1,7 +1,15 @@
-const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_SERVER || "https://admin.ishaanportfolio.com";
+function getBaseUrl() {
+    if (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")) {
+        return process.env.NEXT_PUBLIC_BACKEND_SERVER?.includes("localhost") 
+            ? process.env.NEXT_PUBLIC_BACKEND_SERVER 
+            : "http://localhost:8000";
+    }
+    return process.env.NEXT_PUBLIC_BACKEND_SERVER || "https://admin.ishaanportfolio.com";
+}
 
 export async function createRecord(collection, payload) {
     try {
+        const BASE_URL = getBaseUrl();
         let response = await fetch(`${BASE_URL}/api/${collection}`, {
             method: "POST",
             headers: {
@@ -19,6 +27,7 @@ export async function createRecord(collection, payload) {
 
 export async function createMultipartRecord(collection, payload) {
     try {
+        const BASE_URL = getBaseUrl();
         let response = await fetch(`${BASE_URL}/api/${collection}`, {
             method: "POST",
             headers: {
@@ -35,6 +44,7 @@ export async function createMultipartRecord(collection, payload) {
 
 export async function getRecord(collection) {
     try {
+        const BASE_URL = getBaseUrl();
         let url = `${BASE_URL}/api/${collection}`;
         if (typeof window !== "undefined") {
             if (collection === "cart" || collection === "wishlist") {
@@ -59,6 +69,7 @@ export async function getRecord(collection) {
 
 export async function updateRecord(collection, payload) {
     try {
+        const BASE_URL = getBaseUrl();
         let response = await fetch(`${BASE_URL}/api/${collection}/${payload._id}`, {
             method: "PUT",
             headers: {
@@ -76,7 +87,11 @@ export async function updateRecord(collection, payload) {
 
 export async function updateMultipartRecord(collection, payload) {
     try {
-        let response = await fetch(`${BASE_URL}/api/${collection}/${payload.get('_id')}`, {
+        const BASE_URL = getBaseUrl();
+        const id = (typeof FormData !== "undefined" && payload instanceof FormData)
+            ? payload.get('_id')
+            : payload._id;
+        let response = await fetch(`${BASE_URL}/api/${collection}/${id}`, {
             method: "PUT",
             headers: {
                 "authorization": typeof window !== "undefined" ? localStorage.getItem("token") || "" : ""
@@ -92,6 +107,7 @@ export async function updateMultipartRecord(collection, payload) {
 
 export async function deleteRecord(collection, payload) {
     try {
+        const BASE_URL = getBaseUrl();
         let response = await fetch(`${BASE_URL}/api/${collection}/${payload._id}`, {
             method: "DELETE",
             headers: {

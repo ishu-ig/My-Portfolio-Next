@@ -300,7 +300,7 @@ function MiniRelatedProjectCard({ item }) {
       {/* Mini Card Information Body */}
       <div className="pd-related-body">
         <div className="d-flex align-items-center justify-content-between mb-1">
-          <span className="pd-related-cat">{item.category || "Web App"}</span>
+          <span className="pd-related-cat">{item.projectCategory?.name || item.category || "Web App"}</span>
           {validUrl && (
             <span className="pd-live-pill">
               <span className="live-dot" />

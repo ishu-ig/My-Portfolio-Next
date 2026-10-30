@@ -1,5 +1,6 @@
 "use client"
 import React, { useEffect, useState, useRef, useMemo } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination, Autoplay } from "swiper/modules";
@@ -12,6 +13,7 @@ import "aos/dist/aos.css";
 import "swiper/css";
 import "swiper/css/pagination";
 import * as THREE from 'three';
+import useIntersectionWebGL from '../hooks/useIntersectionWebGL';
 
 const FALLBACK_AVATARS = [
   "/img/person/person-m-7.webp",
@@ -22,12 +24,7 @@ const FALLBACK_AVATARS = [
 
 /* ── Three.js Ambient Particle / Nebula Scene for .wall__scene ── */
 function WallThreeScene() {
-  const mountRef = useRef(null);
-
-  useEffect(() => {
-    const container = mountRef.current;
-    if (!container) return;
-
+  const mountRef = useIntersectionWebGL((container) => {
     let width = container.clientWidth || 768;
     let height = container.clientHeight || 500;
 
@@ -46,7 +43,7 @@ function WallThreeScene() {
       renderer.domElement.style.height = '100%';
       container.appendChild(renderer.domElement);
     } catch {
-      return;
+      return () => {};
     }
 
     // Glowing Orbital Ring
@@ -128,6 +125,7 @@ function WallThreeScene() {
       ringMat.dispose();
       dustGeo.dispose();
       dustMat.dispose();
+      renderer.forceContextLoss();
       renderer.dispose();
     };
   }, []);
@@ -188,66 +186,76 @@ function TestimonialModal({ show, error, getInputData, postSubmit, onClose }) {
   const inputBorder = (err) =>
     `1px solid ${show && err ? "#ef4444" : "var(--border-color, rgba(255,255,255,0.1))"}`;
 
-  return (
+  // Escape key & background scroll lock
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [onClose]);
+
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
     <div
-      style={{
-        position: "fixed", inset: 0,
-        background: "rgba(0,0,0,0.8)",
-        backdropFilter: "blur(8px)",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        zIndex: 9999, padding: 16,
-      }}
+      className="t-modal-backdrop"
       onClick={(e) => e.target === e.currentTarget && onClose()}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="testimonial-modal-heading"
     >
       <div
         className="t-modal-card"
-        style={{
-          background: "var(--card-bg, #101422)",
-          color: "var(--text-color, #f4f4f4)",
-          borderRadius: "18px",
-          width: "100%", maxWidth: 500,
-          border: "1px solid var(--card-border, rgba(255,255,255,0.12))",
-          overflow: "hidden",
-          boxShadow: "0 32px 80px rgba(0,0,0,0.6)",
-        }}
+        onClick={(e) => e.stopPropagation()}
       >
-        <div style={{
-          display: "flex", alignItems: "center", justifyContent: "space-between",
-          padding: "20px 24px",
-          borderBottom: "1px solid var(--border-color, rgba(255,255,255,0.08))",
-        }}>
+        {/* Modal Header */}
+        <div className="t-modal-header">
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <div style={{
-              width: 36, height: 36, borderRadius: "50%",
+              width: 38, height: 38, borderRadius: "50%",
               background: "rgba(var(--accent-rgb, 99, 102, 241), 0.14)",
               display: "flex", alignItems: "center", justifyContent: "center",
-              color: "var(--primary-color)"
+              color: "var(--primary-color)",
+              flexShrink: 0,
             }}>
-              <i className="bi bi-chat-quote-fill" style={{ fontSize: 16 }} />
+              <i className="bi bi-chat-quote-fill" style={{ fontSize: 17 }} />
             </div>
-            <h4 style={{ fontWeight: 700, fontSize: "1.1rem", color: "var(--text-color)", margin: 0 }}>
+            <h4 id="testimonial-modal-heading" style={{ fontWeight: 700, fontSize: "1.1rem", color: "var(--text-color)", margin: 0 }}>
               Share Your Feedback
             </h4>
           </div>
           <button
+            type="button"
             onClick={onClose}
+            aria-label="Close modal"
             style={{
-              width: 32, height: 32, borderRadius: "50%",
-              background: "rgba(255,255,255,0.05)",
-              border: "1px solid var(--border-color, rgba(255,255,255,0.1))",
-              fontSize: 14, cursor: "pointer",
+              width: 36, height: 36, borderRadius: "50%",
+              background: "rgba(255,255,255,0.06)",
+              border: "1px solid var(--border-color, rgba(255,255,255,0.12))",
+              fontSize: 15, cursor: "pointer",
               color: "var(--text-muted)",
               display: "flex", alignItems: "center", justifyContent: "center",
+              transition: "all 0.2s ease",
+              flexShrink: 0,
             }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(var(--accent-rgb, 99, 102, 241), 0.18)'; e.currentTarget.style.color = 'var(--text-color)'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = 'var(--text-muted)'; }}
           >
             <i className="bi bi-x-lg" />
           </button>
         </div>
 
-        <form onSubmit={postSubmit}>
-          <div style={{ padding: "24px", display: "flex", flexDirection: "column", gap: 16 }}>
+        {/* Modal Form with Scrollable Body */}
+        <form onSubmit={postSubmit} style={{ display: "flex", flexDirection: "column", flex: "1 1 auto", minHeight: 0, overflow: "hidden" }}>
+          <div className="t-modal-body">
             <div>
-              <label style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: 6, textTransform: "uppercase" }}>Full Name</label>
+              <label style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.04em" }}>Full Name</label>
               <input
                 type="text" name="name"
                 onChange={getInputData}
@@ -259,7 +267,7 @@ function TestimonialModal({ show, error, getInputData, postSubmit, onClose }) {
             </div>
 
             <div>
-              <label style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: 6, textTransform: "uppercase" }}>Testimonial Message</label>
+              <label style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.04em" }}>Testimonial Message</label>
               <textarea
                 name="message"
                 onChange={getInputData}
@@ -272,7 +280,7 @@ function TestimonialModal({ show, error, getInputData, postSubmit, onClose }) {
             </div>
 
             <div>
-              <label style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: 6, textTransform: "uppercase" }}>Profile Picture</label>
+              <label style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.04em" }}>Profile Picture</label>
               <input
                 type="file" name="pic"
                 onChange={getInputData}
@@ -283,29 +291,27 @@ function TestimonialModal({ show, error, getInputData, postSubmit, onClose }) {
             </div>
           </div>
 
-          <div style={{
-            padding: "16px 24px",
-            borderTop: "1px solid var(--border-color, rgba(255,255,255,0.08))",
-            display: "flex", justifyContent: "flex-end", gap: 10,
-          }}>
+          {/* Modal Footer */}
+          <div className="t-modal-footer">
             <button
               type="button" onClick={onClose}
               className="btn btn-outline-secondary"
-              style={{ padding: "8px 20px", borderRadius: 99 }}
+              style={{ padding: "9px 22px", borderRadius: 99, fontWeight: 600, fontSize: "0.88rem" }}
             >
               Cancel
             </button>
             <button
               type="submit"
               className="btn btn-primary"
-              style={{ padding: "8px 24px", borderRadius: 99 }}
+              style={{ padding: "9px 24px", borderRadius: 99, fontWeight: 600, fontSize: "0.88rem" }}
             >
               Submit Review
             </button>
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
@@ -429,6 +435,83 @@ export default function Testimonials() {
           background-color: transparent !important;
           position: relative;
           color: var(--text-color, #f4f4f4);
+        }
+
+        /* ── Modal Styles (Centered in Viewport & Responsive) ── */
+        .t-modal-backdrop {
+          position: fixed;
+          inset: 0;
+          background: rgba(0, 0, 0, 0.85);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 9999999;
+          padding: clamp(12px, 3vw, 24px);
+          overflow-y: auto;
+          overscroll-behavior: contain;
+          animation: certBackdropIn 0.2s ease;
+        }
+        .t-modal-card {
+          background: var(--card-bg, #101422);
+          color: var(--text-color, #f4f4f4);
+          border-radius: 20px;
+          width: min(92vw, 500px);
+          max-height: 90dvh;
+          margin: auto;
+          border: 1px solid var(--card-border, rgba(255, 255, 255, 0.12));
+          overflow: hidden;
+          display: flex;
+          flex-direction: column;
+          box-shadow: 0 32px 80px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(var(--accent-rgb, 99, 102, 241), 0.15);
+          position: relative;
+          animation: certLightboxIn 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        [data-theme="light"] .t-modal-card,
+        body.light .t-modal-card {
+          background: #ffffff !important;
+          color: #0f111a !important;
+          border-color: rgba(99, 102, 241, 0.16) !important;
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15) !important;
+        }
+        .t-modal-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 18px 24px;
+          border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+          flex-shrink: 0;
+          background: var(--card-bg, #101422);
+        }
+        [data-theme="light"] .t-modal-header,
+        body.light .t-modal-header {
+          background: #f8fafc !important;
+          border-color: rgba(99, 102, 241, 0.1) !important;
+        }
+        .t-modal-body {
+          padding: 22px 24px;
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+          flex: 1 1 auto;
+          overflow-y: auto;
+          overscroll-behavior: contain;
+          min-height: 0;
+        }
+        .t-modal-footer {
+          padding: 16px 24px;
+          border-top: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+          display: flex;
+          justify-content: flex-end;
+          gap: 10px;
+          flex-shrink: 0;
+          background: var(--bg-alt, rgba(0, 0, 0, 0.2));
+        }
+        [data-theme="light"] .t-modal-footer,
+        body.light .t-modal-footer {
+          background: #f8fafc !important;
+          border-color: rgba(99, 102, 241, 0.1) !important;
         }
 
         /* ── Header ── */

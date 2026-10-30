@@ -10,12 +10,17 @@ import {
 export default function AdminPortfolio() {
   const PortfolioStateData = useSelector((state) => state.PortfolioStateData);
   const dispatch = useDispatch();
-  const [flag, setFlag]   = useState(false);
+  const [flag, setFlag] = useState(false);
   const [search, setSearch] = useState("");
 
-  const totalCount    = PortfolioStateData?.length ?? 0;
-  const activeCount   = PortfolioStateData?.filter((i) => i.active).length ?? 0;
+  const totalCount = PortfolioStateData?.length ?? 0;
+  const activeCount = PortfolioStateData?.filter((i) => i.active).length ?? 0;
   const inactiveCount = totalCount - activeCount;
+
+  // projectCategory is populated by the API ({_id, name}); fall back to the legacy text field
+  function categoryName(item) {
+    return item.projectCategory?.name ?? item.category ?? "";
+  }
 
   function deleteRecord(_id) {
     if (window.confirm("Are you sure you want to delete this item?")) {
@@ -27,7 +32,11 @@ export default function AdminPortfolio() {
   function updateRecord(_id) {
     const item = PortfolioStateData.find((p) => p._id === _id);
     if (!item) return;
-    dispatch(updatePortfolio({ ...item, active: !item.active }));
+    dispatch(updatePortfolio({
+      ...item,
+      projectCategory: item.projectCategory?._id ?? item.projectCategory, // send the id, not the populated object
+      active: !item.active,
+    }));
     setFlag((f) => !f);
   }
 
@@ -36,14 +45,13 @@ export default function AdminPortfolio() {
   const filteredData = PortfolioStateData?.filter(
     (item) =>
       item.name?.toLowerCase().includes(search.toLowerCase()) ||
-      item.category?.toLowerCase().includes(search.toLowerCase()) ||
+      categoryName(item).toLowerCase().includes(search.toLowerCase()) ||
       item.tech?.toLowerCase().includes(search.toLowerCase())
   ) ?? [];
 
-  // ✅ Helper: get the cover (first) image, fall back gracefully
   function coverPic(item) {
     if (Array.isArray(item.pic) && item.pic.length > 0) return item.pic[0];
-    if (item.pic) return item.pic; // backwards compat with old single-pic data
+    if (item.pic) return item.pic;
     return "";
   }
 
@@ -94,7 +102,6 @@ export default function AdminPortfolio() {
       <main className="dashboard-content">
         <div className="container-fluid px-3 px-lg-4 py-4">
 
-          {/* Page Heading */}
           <div className="page-heading">
             <div className="page-heading-copy">
               <span className="page-icon">
@@ -113,7 +120,6 @@ export default function AdminPortfolio() {
             </div>
           </div>
 
-          {/* Metric Cards */}
           <section className="row g-3 mt-2 mb-1" aria-label="Portfolio summary">
             <div className="col-12 col-sm-6 col-xl-4">
               <article className="metric-card text-white">
@@ -147,7 +153,6 @@ export default function AdminPortfolio() {
             </div>
           </section>
 
-          {/* Table Panel */}
           <section className="panel mt-3">
             <div className="panel-header">
               <div>
@@ -193,24 +198,22 @@ export default function AdminPortfolio() {
                   {filteredData.length > 0 ? (
                     filteredData.map((item, index) => {
                       const cover = coverPic(item);
-                      // ✅ Count how many images this project has
                       const picCount = Array.isArray(item.pic) ? item.pic.length : (item.pic ? 1 : 0);
                       return (
                         <tr key={item._id}>
                           <td>{index + 1}</td>
                           <td>
                             <div className="position-relative d-inline-block">
-                              <Link to={cover} target="_blank" rel="noreferrer">
+                              <a href={cover} target="_blank" rel="noreferrer">
                                 <img src={cover} className="portfolio-thumb" alt={item.name} />
-                              </Link>
-                              {/* ✅ Show image count badge */}
+                              </a>
                               {picCount > 1 && (
-                                <span className="pic-count">+{picCount}</span>
+                                <span className="pic-count">{picCount}</span>
                               )}
                             </div>
                           </td>
                           <td className="fw-semibold">{item.name}</td>
-                          <td>{item.category}</td>
+                          <td>{categoryName(item) || <span className="text-muted small">—</span>}</td>
                           <td>{item.tech}</td>
                           <td>
                             <div className="d-flex flex-wrap gap-1">

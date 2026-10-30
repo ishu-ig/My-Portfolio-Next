@@ -14,6 +14,8 @@ import CommentReducer from "./CommentReducer"
 import AchievementReducer from "./AchievementReducer"
 import AboutReducer from "./AboutReducer"
 import NoteReducer from "./NoteReducer"
+import SkillCategoryReducer from "./SkillCategoryReducer"
+import ProjectCategoryReducer from "./ProjectCategoryReducer"
 
 export default combineReducers({
     EducationStateData: EducationReducer,
@@ -30,5 +32,7 @@ export default combineReducers({
     CommentStateData : CommentReducer,
     AchievementStateData : AchievementReducer,
     AboutStateData : AboutReducer,
-    NoteStateData : NoteReducer
+    NoteStateData : NoteReducer,
+    SkillCategoryStateData : SkillCategoryReducer,
+    ProjectCategoryStateData : ProjectCategoryReducer
 })

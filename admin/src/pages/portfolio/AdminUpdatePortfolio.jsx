@@ -3,42 +3,43 @@ import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import formValidator from "../../FormValidators/formValidator";
 import { updatePortfolio, getPortfolio } from "../../Redux/ActionCreators/PortfolioActionCreators";
+import { getProjectCategory } from "../../Redux/ActionCreators/ProjectCategoryActionCreators";
 
 const checklist = [
-  { dot: "bg-success", title: "Review Details",  body: "Check name, description and category are current."  },
-  { dot: "bg-primary", title: "Update Images",   body: "Remove old screenshots and add new ones as needed." },
-  { dot: "bg-warning", title: "Save Changes",    body: "Changes take effect immediately on the site."        },
+  { dot: "bg-success", title: "Review Details", body: "Check name, description and category are current." },
+  { dot: "bg-primary", title: "Update Images", body: "Remove old screenshots and add new ones as needed." },
+  { dot: "bg-warning", title: "Save Changes", body: "Changes take effect immediately on the site." },
 ];
 
 export default function AdminUpdatePortfolio() {
-  const { _id }          = useParams();
-  const navigate         = useNavigate();
+  const { _id } = useParams();
+  const navigate = useNavigate();
   const PortfolioStateData = useSelector((state) => state.PortfolioStateData);
-  const dispatch         = useDispatch();
+  const ProjectCategoryStateData = useSelector((state) => state.ProjectCategoryStateData);
+  const dispatch = useDispatch();
 
   const [data, setData] = useState({
     name: "", shortDescription: "", longDescription: "",
-    category: "", tech: "", liveUrl: "", adminUrl: "", githubRepo: "", active: true,
+    projectCategory: "", tech: "", liveUrl: "", adminUrl: "", githubRepo: "", active: true,
   });
   const [error, setError] = useState({
-    name: "", pic: "", shortDescription: "", longDescription: "", category: "", tech: "",
+    name: "", pic: "", shortDescription: "", longDescription: "", projectCategory: "", tech: "",
   });
 
-  // ✅ Existing images from DB (URLs to keep)
-  const [keepPic, setKeepPic]   = useState([]);   // string[] — existing URLs still kept
-  // ✅ Newly selected files
-  const [newFiles, setNewFiles]   = useState([]);   // File[]
-  const [newPreviews, setNewPreviews] = useState([]); // object URLs for new files
+  const [keepPic, setKeepPic] = useState([]);
+  const [newFiles, setNewFiles] = useState([]);
+  const [newPreviews, setNewPreviews] = useState([]);
 
   const [show, setShow] = useState(false);
 
-  // ── Helpers ────────────────────────────────────────────────────────────────
   const totalCount = keepPic.length + newFiles.length;
 
   function getInputData(e) {
-    const name  = e.target.name;
+    const name = e.target.name;
     const value = e.target.value;
-    if (name !== "active" && name !== "liveUrl" && name !== "adminUrl" && name !== "githubRepo") {
+    if (name === "projectCategory") {
+      setError((old) => ({ ...old, projectCategory: value ? "" : "Project Category Field is Mandatory" }));
+    } else if (name !== "active" && name !== "liveUrl" && name !== "adminUrl" && name !== "githubRepo") {
       setError((old) => ({ ...old, [name]: formValidator(e) }));
     }
     setData((old) => ({
@@ -59,7 +60,7 @@ export default function AdminUpdatePortfolio() {
     const validFiles = [];
     for (const file of files.slice(0, remaining)) {
       if (!allowed.includes(file.type)) { alert(`${file.name}: unsupported format.`); continue; }
-      if (file.size > 2 * 1024 * 1024)  { alert(`${file.name}: exceeds 2 MB limit.`); continue; }
+      if (file.size > 2 * 1024 * 1024) { alert(`${file.name}: exceeds 2 MB limit.`); continue; }
       validFiles.push(file);
     }
     if (!validFiles.length) { e.target.value = ""; return; }
@@ -70,7 +71,6 @@ export default function AdminUpdatePortfolio() {
     e.target.value = "";
   }
 
-  // Remove an existing (DB) image
   function removeKeepPic(index) {
     setKeepPic((old) => {
       const next = old.filter((_, i) => i !== index);
@@ -80,7 +80,6 @@ export default function AdminUpdatePortfolio() {
     });
   }
 
-  // Remove a newly added (not yet uploaded) image
   function removeNewPic(index) {
     URL.revokeObjectURL(newPreviews[index]);
     setNewFiles((old) => old.filter((_, i) => i !== index));
@@ -95,7 +94,6 @@ export default function AdminUpdatePortfolio() {
   function postSubmit(e) {
     e.preventDefault();
 
-    // Validate at least one image
     if (totalCount === 0) {
       setError((old) => ({ ...old, pic: "At least one image is required" }));
       setShow(true);
@@ -115,21 +113,18 @@ export default function AdminUpdatePortfolio() {
     }
 
     const formData = new FormData();
-    formData.append("_id",             data._id ?? _id);
-    formData.append("name",            data.name);
-    formData.append("shortDescription",data.shortDescription);
+    formData.append("_id", _id);
+    formData.append("name", data.name);
+    formData.append("shortDescription", data.shortDescription);
     formData.append("longDescription", data.longDescription);
-    formData.append("category",        data.category);
-    formData.append("tech",            data.tech);
-    formData.append("liveUrl",         data.liveUrl || "");
-    formData.append("adminUrl",        data.adminUrl || "");
-    formData.append("githubRepo",      data.githubRepo || "");
-    formData.append("active",          data.active);
+    formData.append("projectCategory", data.projectCategory);
+    formData.append("tech", data.tech);
+    formData.append("liveUrl", data.liveUrl || "");
+    formData.append("adminUrl", data.adminUrl || "");
+    formData.append("githubRepo", data.githubRepo || "");
+    formData.append("active", data.active);
 
-    // ✅ Send existing URLs to keep (backend will delete the rest)
     keepPic.forEach((url) => formData.append("keepPic", url));
-
-    // ✅ Send new files
     newFiles.forEach((file) => formData.append("pic", file));
 
     dispatch(updatePortfolio(formData));
@@ -141,19 +136,27 @@ export default function AdminUpdatePortfolio() {
     if (PortfolioStateData.length) {
       const item = PortfolioStateData.find((x) => x._id === _id);
       if (item) {
-        setData({ ...item, adminUrl: item.adminUrl || "" });
-        // ✅ Populate existing images
-        setKeepPic(item.pic ?? (item.pic ? [item.pic] : []));
+        // projectCategory comes back populated ({_id, name}); the form needs just the id
+        const categoryId = item.projectCategory?._id ?? item.projectCategory ?? "";
+        setData({ ...item, adminUrl: item.adminUrl || "", projectCategory: categoryId });
+        // Old records may have no category yet: force the admin to pick one
+        setError((old) => ({
+          ...old,
+          projectCategory: categoryId ? "" : "Project Category Field is Mandatory",
+        }));
+        setKeepPic(Array.isArray(item.pic) ? item.pic : item.pic ? [item.pic] : []);
       }
     }
   }, [PortfolioStateData.length]);
 
-  // ── Render ─────────────────────────────────────────────────────────────────
+  useEffect(() => {
+    dispatch(getProjectCategory());
+  }, [ProjectCategoryStateData.length]);
+
   return (
     <main className="dashboard-content">
       <div className="container-fluid px-3 px-lg-4 py-4">
 
-        {/* Page Heading */}
         <div className="page-heading">
           <div className="page-heading-copy">
             <span className="page-icon">
@@ -172,7 +175,6 @@ export default function AdminUpdatePortfolio() {
           </div>
         </div>
 
-        {/* Error Alert */}
         {show && (
           <div className="alert alert-danger alert-dismissible" role="alert">
             {Object.values(error).find((x) => x !== "")}
@@ -181,8 +183,6 @@ export default function AdminUpdatePortfolio() {
         )}
 
         <section className="row g-3">
-
-          {/* ── Form Panel ── */}
           <div className="col-12 col-xl-8">
             <div className="panel">
               <div className="panel-header">
@@ -197,7 +197,6 @@ export default function AdminUpdatePortfolio() {
 
               <div className="row g-3">
 
-                {/* Name */}
                 <div className="col-12">
                   <label className="form-label" htmlFor="name">Project Name</label>
                   <input id="name" type="text" name="name" className="form-control"
@@ -205,7 +204,6 @@ export default function AdminUpdatePortfolio() {
                   {show && error.name && <div className="text-danger small mt-1">{error.name}</div>}
                 </div>
 
-                {/* Short Description */}
                 <div className="col-12">
                   <label className="form-label" htmlFor="shortDescription">Short Description</label>
                   <input id="shortDescription" type="text" name="shortDescription" className="form-control"
@@ -213,7 +211,6 @@ export default function AdminUpdatePortfolio() {
                   {show && error.shortDescription && <div className="text-danger small mt-1">{error.shortDescription}</div>}
                 </div>
 
-                {/* Long Description */}
                 <div className="col-12">
                   <label className="form-label" htmlFor="longDescription">Long Description</label>
                   <textarea id="longDescription" name="longDescription" rows={4} className="form-control"
@@ -221,12 +218,16 @@ export default function AdminUpdatePortfolio() {
                   {show && error.longDescription && <div className="text-danger small mt-1">{error.longDescription}</div>}
                 </div>
 
-                {/* Category & Tech */}
                 <div className="col-md-6">
-                  <label className="form-label" htmlFor="category">Category</label>
-                  <input id="category" type="text" name="category" className="form-control"
-                    placeholder="e.g. Web App, Mobile" value={data.category} onChange={getInputData} />
-                  {show && error.category && <div className="text-danger small mt-1">{error.category}</div>}
+                  <label className="form-label" htmlFor="projectCategory">Project Category</label>
+                  <select id="projectCategory" name="projectCategory" className="form-select"
+                    value={data.projectCategory} onChange={getInputData}>
+                    <option value="">Select a category</option>
+                    {ProjectCategoryStateData?.filter((c) => c.active !== false || c._id === data.projectCategory).map((c) => (
+                      <option key={c._id} value={c._id}>{c.name}</option>
+                    ))}
+                  </select>
+                  {show && error.projectCategory && <div className="text-danger small mt-1">{error.projectCategory}</div>}
                 </div>
                 <div className="col-md-6">
                   <label className="form-label" htmlFor="tech">Tech Stack</label>
@@ -235,7 +236,6 @@ export default function AdminUpdatePortfolio() {
                   {show && error.tech && <div className="text-danger small mt-1">{error.tech}</div>}
                 </div>
 
-                {/* Live URL, Admin URL & GitHub */}
                 <div className="col-md-4">
                   <label className="form-label" htmlFor="liveUrl">
                     Live URL <span className="text-muted fw-normal">(optional)</span>
@@ -258,14 +258,12 @@ export default function AdminUpdatePortfolio() {
                     placeholder="https://github.com/user/repo" value={data.githubRepo} onChange={getInputData} />
                 </div>
 
-                {/* ✅ Image Management */}
                 <div className="col-12">
                   <label className="form-label">
                     Project Images
                     <span className="text-muted fw-normal ms-1">({totalCount}/5 — first image is the cover)</span>
                   </label>
 
-                  {/* Existing images */}
                   {keepPic.length > 0 && (
                     <div className="mb-2">
                       <p className="small text-muted mb-1">Current images — click ✕ to remove:</p>
@@ -291,7 +289,6 @@ export default function AdminUpdatePortfolio() {
                     </div>
                   )}
 
-                  {/* New image previews */}
                   {newPreviews.length > 0 && (
                     <div className="mb-2">
                       <p className="small text-muted mb-1">New images to upload:</p>
@@ -311,7 +308,6 @@ export default function AdminUpdatePortfolio() {
                     </div>
                   )}
 
-                  {/* Add more images */}
                   {totalCount < 5 && (
                     <label htmlFor="pic" className="upload-dropzone">
                       <i className="bi bi-plus-circle"></i>
@@ -323,7 +319,6 @@ export default function AdminUpdatePortfolio() {
                   {show && error.pic && <div className="text-danger small mt-1">{error.pic}</div>}
                 </div>
 
-                {/* Status */}
                 <div className="col-md-6">
                   <label className="form-label" htmlFor="active">Status</label>
                   <select id="active" name="active" className="form-select"
@@ -335,7 +330,6 @@ export default function AdminUpdatePortfolio() {
 
               </div>
 
-              {/* Actions */}
               <div className="d-flex flex-wrap justify-content-end gap-2 mt-4">
                 <Link className="btn btn-outline-secondary" to="/portfolio">Cancel</Link>
                 <button className="btn btn-primary" type="button" onClick={postSubmit}>
@@ -345,7 +339,6 @@ export default function AdminUpdatePortfolio() {
             </div>
           </div>
 
-          {/* ── Checklist ── */}
           <div className="col-12 col-xl-4">
             <div className="panel h-100">
               <h2 className="h5 mb-3 section-title">

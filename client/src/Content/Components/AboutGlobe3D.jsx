@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useRef } from "react";
 import * as THREE from "three";
+import useIntersectionWebGL from '../hooks/useIntersectionWebGL';
 
 /**
  * AboutGlobe3D
@@ -37,12 +38,7 @@ function latLonToVector3(lat, lon, radius) {
 }
 
 export default function AboutGlobe3D() {
-  const containerRef = useRef(null);
-
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
+  const containerRef = useIntersectionWebGL((container) => {
     let width = container.clientWidth || 380;
     let height = container.clientHeight || 360;
 
@@ -518,6 +514,7 @@ export default function AboutGlobe3D() {
 
       [dotGeo, wireGeo, coreGeo].forEach((g) => g.dispose());
       [dotMat, wireMat, coreMat].forEach((m) => m.dispose());
+      renderer.forceContextLoss();
       renderer.dispose();
     };
   }, []);

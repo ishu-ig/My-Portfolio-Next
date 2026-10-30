@@ -38,6 +38,4 @@ module.exports = {
     blogUploader: createUploader("blog"),
     aboutUploader: createUploader("about"),
     noteUploader: createUploader("notes"),
-    projectCategoryUploader: createUploader("projectCategory"),
-    skillCategoryUploader: createUploader("skillCategory"),
 };

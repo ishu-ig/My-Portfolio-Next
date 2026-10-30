@@ -1,19 +1,15 @@
 const mongoose = require("mongoose")
 
-const CertificateSchema = new mongoose.Schema({
+const ProjectCategorySchema = new mongoose.Schema({
     name: {
         type: String,
-        required: [true, "Certificate Name is Mendatory"]
-    },
-    pic: {
-        type: String,
-        required: [true, "Description is Mendatory"]
+        required: [true, "Project Category Name is Mandatory"]
     },
     active: {
         type: Boolean,
         default: true
     },
 })
-const Certificate = new mongoose.model("Certificate", CertificateSchema)
+const ProjectCategory = new mongoose.model("ProjectCategory", ProjectCategorySchema)
 
-module.exports = Certificate
+module.exports = ProjectCategory

@@ -1,5 +1,4 @@
 const SkillCategoryRouter = require("express").Router()
-const {skillCategoryUploader } = require("../middleware/fileuploader")
 const { verifyAdmin } = require("../middleware/authentication")
 const {
     createRecord,
@@ -9,11 +8,11 @@ const {
     deleteRecord,
 } = require("../controllers/SkillCategoryController")
 
-SkillCategoryRouter.post("", verifyAdmin,skillCategoryUploader.single("pic"), createRecord)
+SkillCategoryRouter.post("", verifyAdmin, createRecord)
 SkillCategoryRouter.get("", getRecord)
 SkillCategoryRouter.get("/:_id", getSingleRecord)
-SkillCategoryRouter.put("/:_id",verifyAdmin,skillCategoryUploader.single("pic"), updateRecord)
-SkillCategoryRouter.delete("/:_id",verifyAdmin, deleteRecord)
+SkillCategoryRouter.put("/:_id", verifyAdmin, updateRecord)
+SkillCategoryRouter.delete("/:_id", verifyAdmin, deleteRecord)
 
 
-module.exports = CertificateRouter
+module.exports = SkillCategoryRouter
